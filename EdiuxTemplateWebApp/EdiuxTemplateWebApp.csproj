@@ -63,6 +63,7 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Web.DynamicData" />
@@ -189,8 +190,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\OpenCoreWebExtensions.cs" />
     <Compile Include="Interfaces\ICacheProvider.cs" />
     <Compile Include="Interfaces\IDataRepository.cs" />
+    <Compile Include="Interfaces\IUnitOfWork.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApplicationDbModel.Context.cs">
       <AutoGen>True</AutoGen>
@@ -243,6 +246,7 @@
     <Compile Include="Models\ApplicationUserRepository.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\EdiuxAspNetSqlUserStore.cs" />
     <Compile Include="Models\Edward.IRepository.EF6.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -259,6 +263,7 @@
     <Compile Include="Models\EFUnitOfWork.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\EFUnitOfWork.partial.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\IUnitOfWork.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
@@ -404,8 +409,8 @@
     <Folder Include="Content\js\" />
     <Folder Include="Content\style\" />
     <Folder Include="Filters\" />
-    <Folder Include="Helpers\" />
     <Folder Include="Html\" />
+    <Folder Include="Models\ApplicationLevelModels\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

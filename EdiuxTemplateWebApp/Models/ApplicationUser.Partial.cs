@@ -1,12 +1,16 @@
 namespace EdiuxTemplateWebApp.Models
 {
+    using Microsoft.AspNet.Identity;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    
+    using System.Security.Claims;
+    using System.Threading.Tasks;
+
     [MetadataType(typeof(ApplicationUserMetaData))]
-    public partial class ApplicationUser
+    public partial class ApplicationUser : IUser<int>
     {
+      
     }
     
     public partial class ApplicationUserMetaData

@@ -1,0 +1,401 @@
+﻿using Microsoft.AspNet.Identity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Threading.Tasks;
+using System.Security.Claims;
+
+namespace EdiuxTemplateWebApp.Models
+{
+    public class EdiuxAspNetSqlUserStore : IUserStore<ApplicationUser, int>
+        , IUserRoleStore<ApplicationUser, int>, IRoleStore<ApplicationRole, int>
+        , IUserEmailStore<ApplicationUser, int>, IUserLockoutStore<ApplicationUser, int>
+        , IUserLoginStore<ApplicationUser, int>, IUserPasswordStore<ApplicationUser, int>
+        , IUserPhoneNumberStore<ApplicationUser, int>, IUserSecurityStampStore<ApplicationUser, int>
+        , IUserTwoFactorStore<ApplicationUser, int>, IUserClaimStore<ApplicationUser, int>
+        , IQueryableUserStore<ApplicationUser, int>, IQueryableRoleStore<ApplicationRole, int>
+    {
+        #region 變數宣告區
+        private IApplicationUserRepository userRepo;
+        private IApplicationRoleRepository roleRepo;
+        private IApplicationUserLoginRepository userloginRepo;
+        #endregion
+
+        #region 建構式
+        public EdiuxAspNetSqlUserStore(IUnitOfWork dbUnitOfWork)
+        {
+            userRepo = RepositoryHelper.GetApplicationUserRepository(dbUnitOfWork);
+            roleRepo = RepositoryHelper.GetApplicationRoleRepository(dbUnitOfWork);
+            userloginRepo = RepositoryHelper.GetApplicationUserLoginRepository(dbUnitOfWork);
+        }
+        #endregion
+
+        #region Queryable User Store
+        public IQueryable<ApplicationUser> Users
+        {
+            get
+            {
+                return userRepo.All();
+            }
+        }
+        #endregion
+
+        #region Queryable Role Store
+        public IQueryable<ApplicationRole> Roles
+        {
+            get
+            {
+                return roleRepo.All();
+            }
+        }
+        #endregion
+
+        #region User Store(使用者帳號的CRUD)
+        public Task CreateAsync(ApplicationUser user)
+        {
+            try
+            {
+               return userRepo.CreateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;                
+            }
+        }
+
+        public Task DeleteAsync(ApplicationUser user)
+        {
+            try
+            {
+                return userRepo.DeleteAsync(user);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+        }
+
+        public Task<ApplicationUser> FindByIdAsync(int userId)
+        {
+            try
+            {
+                return userRepo.FindByIdAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+        }
+
+        public Task<ApplicationUser> FindByNameAsync(string userName)
+        {
+            try
+            {
+                return userRepo.FindByNameAsync(userName);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+        }
+
+        public Task<IList<string>> GetRolesAsync(ApplicationUser user)
+        {
+            try
+            {
+                return userRepo.GetRolesAsync(user);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+        }
+
+        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                return userRepo.IsInRoleAsync(user, roleName);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+        }
+
+        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                return userRepo.RemoveFromRoleAsync(user, roleName);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+        }
+
+        public Task UpdateAsync(ApplicationUser user)
+        {
+            try
+            {
+                return userRepo.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+        }
+        #endregion
+
+        #region User Role Store
+        public Task AddToRoleAsync(ApplicationUser user, string roleName)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region Role Store
+        public Task CreateAsync(ApplicationRole role)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateAsync(ApplicationRole role)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(ApplicationRole role)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<ApplicationRole> IRoleStore<ApplicationRole, int>.FindByIdAsync(int roleId)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<ApplicationRole> IRoleStore<ApplicationRole, int>.FindByNameAsync(string roleName)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region Email Store
+        public Task SetEmailAsync(ApplicationUser user, string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetEmailAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> GetEmailConfirmedAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApplicationUser> FindByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        #endregion
+
+        #region User Lockout Store
+        public Task<DateTimeOffset> GetLockoutEndDateAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ResetAccessFailedCountAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> GetAccessFailedCountAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> GetLockoutEnabledAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region User Login Store
+        public Task AddLoginAsync(ApplicationUser user, UserLoginInfo login)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveLoginAsync(ApplicationUser user, UserLoginInfo login)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IList<UserLoginInfo>> GetLoginsAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApplicationUser> FindAsync(UserLoginInfo login)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region User Password Store
+        public Task SetPasswordHashAsync(ApplicationUser user, string passwordHash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetPasswordHashAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> HasPasswordAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        #endregion
+
+        #region User Phone Number Store
+        public Task SetPhoneNumberAsync(ApplicationUser user, string phoneNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetPhoneNumberAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> GetPhoneNumberConfirmedAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetPhoneNumberConfirmedAsync(ApplicationUser user, bool confirmed)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region User Security Stamp Store
+        public Task SetSecurityStampAsync(ApplicationUser user, string stamp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetSecurityStampAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region User Two Factor Store
+        public Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region User Claim Store
+        public Task<IList<Claim>> GetClaimsAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task AddClaimAsync(ApplicationUser user, Claim claim)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveClaimAsync(ApplicationUser user, Claim claim)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region IDisposable Support
+        private bool disposedValue = false; // 偵測多餘的呼叫
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: 處置 Managed 狀態 (Managed 物件)。
+                    userloginRepo.Dispose();
+                    roleRepo.Dispose();
+                    userRepo.Dispose();
+                }
+
+                // TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。
+                // TODO: 將大型欄位設為 null。
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: 僅當上方的 Dispose(bool disposing) 具有會釋放 Unmanaged 資源的程式碼時，才覆寫完成項。
+        // ~EdiuxAspNetSqlUserStore() {
+        //   // 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
+        //   Dispose(false);
+        // }
+
+        // 加入這個程式碼的目的在正確實作可處置的模式。
+        public void Dispose()
+        {
+            // 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+    }
+}

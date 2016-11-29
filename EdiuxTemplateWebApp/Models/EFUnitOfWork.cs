@@ -1,3 +1,4 @@
+using System;
 using System.Data.Entity;
 using System.Threading.Tasks;
 
@@ -15,15 +16,23 @@ namespace EdiuxTemplateWebApp.Models
 
 		public void Commit()
 		{
-			Context.SaveChanges();
+            try
+            {
+                Context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }			
 		}
 		
 		public async Task CommitAsync()
         {
             await Context.SaveChangesAsync();
         }
-
-		public bool LazyLoadingEnabled
+      
+        public bool LazyLoadingEnabled
 		{
 			get { return Context.Configuration.LazyLoadingEnabled; }
 			set { Context.Configuration.LazyLoadingEnabled = value; }

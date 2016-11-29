@@ -1,11 +1,12 @@
 namespace EdiuxTemplateWebApp.Models
 {
+    using Microsoft.AspNet.Identity;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(ApplicationRoleMetaData))]
-    public partial class ApplicationRole
+    public partial class ApplicationRole : IRole<int>
     {
     }
     

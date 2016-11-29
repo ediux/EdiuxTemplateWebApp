@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="7f2a1955470841eeb316f88c224457fa" Name="Diagram1">
+        <EntityTypeShape EntityType="WbParkSystemModel.ApplicationRole" Width="1.5" PointX="0.75" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUser" Width="1.5" PointX="3" PointY="4.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUserClaim" Width="1.5" PointX="5.25" PointY="5" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUserLogin" Width="1.5" PointX="5.25" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.Menus" Width="1.5" PointX="10.25" PointY="5.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.System_ControllerActions" Width="1.5" PointX="8" PointY="5.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.System_Controllers" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <AssociationConnector Association="WbParkSystemModel.FK_ApplicationUserClaim_ToApplicationUser" ManuallyRouted="false" />
+        <AssociationConnector Association="WbParkSystemModel.FK_ApplicationUserLogin_ToApplicationUser" ManuallyRouted="false" />
+        <AssociationConnector Association="WbParkSystemModel.FK_Menus_ParentMenus" ManuallyRouted="false" />
+        <AssociationConnector Association="WbParkSystemModel.FK_Menus_System_ControllerActions" ManuallyRouted="false" />
+        <AssociationConnector Association="WbParkSystemModel.FK_System_ControllerActions_System_Controllers" ManuallyRouted="false" />
+        <AssociationConnector Association="WbParkSystemModel.ActionsInRoles" ManuallyRouted="false" />
+        <AssociationConnector Association="WbParkSystemModel.ApplicationUserRole" ManuallyRouted="false" />
+        <AssociationConnector Association="WbParkSystemModel.MenusInRoles" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

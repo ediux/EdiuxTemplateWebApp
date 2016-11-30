@@ -3,6 +3,7 @@ namespace EdiuxTemplateWebApp.Models
     using Microsoft.AspNet.Identity;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
     using System.Security.Claims;
     using System.Threading.Tasks;
@@ -10,7 +11,53 @@ namespace EdiuxTemplateWebApp.Models
     [MetadataType(typeof(ApplicationUserMetaData))]
     public partial class ApplicationUser : IUser<int>
     {
-      
+        public static ApplicationUser Create()
+        {
+            return new ApplicationUser()
+            {
+                Id = -1,
+                AccessFailedCount = 0,
+                ApplicationUserClaim = new Collection<ApplicationUserClaim>(),
+                ApplicationUserLogin = new Collection<ApplicationUserLogin>(),
+                CreateTime = DateTime.Now.ToUniversalTime(),
+                CreateUserId = -1,
+                LastActivityTime = DateTime.Now.ToUniversalTime(),
+                LastUpdateTime = DateTime.Now.ToUniversalTime(),
+                LastUpdateUserId = -1,
+                Password = string.Empty,
+                PasswordHash = string.Empty,
+                LockoutEnabled = false,
+                ResetPasswordToken = string.Empty,
+                SecurityStamp = string.Empty,
+                TwoFactorEnabled = false,
+                UserName = string.Empty,
+                Void = false
+            };
+        }
+
+        public static ApplicationUser CreateKernelUser()
+        {
+            return new ApplicationUser()
+            {
+                Id = -1,
+                AccessFailedCount = 0,
+                ApplicationUserClaim = new Collection<ApplicationUserClaim>(),
+                ApplicationUserLogin = new Collection<ApplicationUserLogin>(),
+                CreateTime = DateTime.Now.ToUniversalTime(),
+                CreateUserId = -1,
+                LastActivityTime = DateTime.Now.ToUniversalTime(),
+                LastUpdateTime = DateTime.Now.ToUniversalTime(),
+                LastUpdateUserId = -1,
+                Password = string.Empty,
+                PasswordHash = string.Empty,
+                LockoutEnabled = false,
+                ResetPasswordToken = string.Empty,
+                SecurityStamp = string.Empty,
+                TwoFactorEnabled = false,
+                UserName = "System",
+                Void = false
+            };
+        }
     }
     
     public partial class ApplicationUserMetaData

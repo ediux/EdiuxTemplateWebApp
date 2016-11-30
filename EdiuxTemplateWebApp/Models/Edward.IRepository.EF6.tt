@@ -166,7 +166,7 @@ namespace <#= code.VsNamespaceSuggestion() #>
 			return ObjectSet.AsQueryable();
 		}
 
-		public IQueryable<T> Where(Expression<Func<T, bool>> expression)
+		public virtual IQueryable<T> Where(Expression<Func<T, bool>> expression)
 		{
 			return ObjectSet.Where(expression);
 		}
@@ -181,33 +181,33 @@ namespace <#= code.VsNamespaceSuggestion() #>
 			ObjectSet.Remove(entity);
 		}
 
-		public Task<IQueryable<T>> AllAsync()
+		public virtual Task<IQueryable<T>> AllAsync()
         {
             return Task.Run(() => ObjectSet.AsQueryable());
         }
 
-        public IList<T> BatchAdd(IEnumerable<T> entities)
+        public virtual IList<T> BatchAdd(IEnumerable<T> entities)
         {
             return ((DbSet<T>)ObjectSet).AddRange(entities).ToList();
         }
 
-        public T Get(params object[] values)
+        public virtual T Get(params object[] values)
         {
             return ObjectSet.Find(values);
         }
 
-        public Task<T> GetAsync(params object[] values)
+        public virtual Task<T> GetAsync(params object[] values)
         {
             return Task.Run(() => ObjectSet.Find(values));
         }
 
-        public T Reload(T entity)
+        public virtual T Reload(T entity)
         {
             UnitOfWork.Context.Entry(entity).Reload();
             return entity;
         }
 
-        public async Task<T> ReloadAsync(T entity)
+        public virtual async Task<T> ReloadAsync(T entity)
         {
            await UnitOfWork.Context.Entry(entity).ReloadAsync();
             return entity;

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Threading.Tasks;
 
@@ -17,42 +15,15 @@ namespace EdiuxTemplateWebApp.Models
 
 		public void Commit()
 		{
-            try
-            {
-                Context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                List<string> list = new List<string>();
-
-                if(ex is System.Data.Entity.Validation.DbEntityValidationException)
-                {
-                    System.Data.Entity.Validation.DbEntityValidationException dbValidationEx =
-                        (System.Data.Entity.Validation.DbEntityValidationException)ex;
-
-                    foreach(var error in dbValidationEx.EntityValidationErrors)
-                    {
-                        foreach(var detailerror in error.ValidationErrors)
-                        {
-                            list.Add(string.Format("{0}:{1}", detailerror.PropertyName, detailerror.ErrorMessage));
-                        }
-                    }
-
-                    throw new Exception(string.Join("\n", list.ToArray()));
-                }
-                throw ex;
-            }			
+			Context.SaveChanges();
 		}
 		
 		public async Task CommitAsync()
         {
             await Context.SaveChangesAsync();
         }
-      
-        public bool LazyLoadingEnabled
+
+		public bool LazyLoadingEnabled
 		{
 			get { return Context.Configuration.LazyLoadingEnabled; }
 			set { Context.Configuration.LazyLoadingEnabled = value; }

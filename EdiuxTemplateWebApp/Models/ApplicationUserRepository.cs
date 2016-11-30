@@ -316,8 +316,7 @@ namespace EdiuxTemplateWebApp.Models
 
                 if (isInRole.Result)
                 {
-                    
-                   
+
                     ApplicationRole rolefromcache =
                         userfromcache.ApplicationRole.
                         FirstOrDefault(w => w.Name.Equals(roleName,
@@ -328,10 +327,13 @@ namespace EdiuxTemplateWebApp.Models
                         user.ApplicationRole.Remove(rolefromcache);
                         UnitOfWork.Context.Entry(user).State = EntityState.Modified;
                         UnitOfWork.Commit();
+                        return Task.CompletedTask;
                     }
+
+                    throw new Exception(string.Format("Role '{0}' is not existed.", roleName));
                 }
 
-                throw new Exception("");
+                throw new Exception(string.Format("User '{0}' is not in roles of {1}.", user.UserName, roleName));
 
             }
             catch (Exception ex)
@@ -345,7 +347,46 @@ namespace EdiuxTemplateWebApp.Models
 
         public Task UpdateAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                List<ApplicationUser> _MemoryCache = GetFromCache();
+
+                ApplicationUser dbUser = Get(user.Id);
+                _MemoryCache.Remove(dbUser);
+
+                dbUser.LastActivityTime = user.LastActivityTime;
+                dbUser.LastLoginFailTime = user.LastLoginFailTime;
+                dbUser.LastUnlockedTime = user.LastUnlockedTime;
+                dbUser.LastUpdateTime = DateTime.UtcNow;
+                dbUser.LastUpdateUserId = user.LastUpdateUserId;
+                dbUser.LockoutEnabled = user.LockoutEnabled;
+                dbUser.LockoutEndDate = user.LockoutEndDate;
+                dbUser.Password = user.Password;
+                dbUser.PasswordHash = user.PasswordHash;
+                dbUser.PhoneConfirmed = user.PhoneConfirmed;
+                dbUser.PhoneNumber = user.PhoneNumber;
+                dbUser.ResetPasswordToken = user.ResetPasswordToken;
+                dbUser.SecurityStamp = user.SecurityStamp;
+                dbUser.TwoFactorEnabled = user.TwoFactorEnabled;
+                dbUser.Void = user.Void;
+
+                _MemoryCache.Add(dbUser);
+                UnitOfWork.Set(KeyName, _MemoryCache, 30);
+                UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
+                return UnitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         #region Helper Function

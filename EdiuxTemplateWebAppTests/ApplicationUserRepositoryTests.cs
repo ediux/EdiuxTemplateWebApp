@@ -198,11 +198,11 @@ namespace EdiuxTemplateWebApp.Models.Tests
             try
             {
                 _user = await testUserRepo.FindByNameAsync("TestUser");
+                Assert.IsNotNull(_user);
                 Assert.AreNotEqual(0, _user.Id);
             }
             catch (Exception ex)
             {
-
                 Assert.Fail(ex.Message);
             }
         }
@@ -210,31 +210,95 @@ namespace EdiuxTemplateWebApp.Models.Tests
         [TestMethod()]
         public void GetCacheTest()
         {
-
+            try
+            {
+                Assert.IsNotNull(testUserRepo.GetCache());
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message);
+            }
         }
 
         [TestMethod()]
         public void GetRolesAsyncTest()
         {
+            try
+            {
+                if (_user == null)
+                {
+                    FindByNameAsyncTest();
+                }
 
+                Task<IList<string>> roles = testUserRepo.GetRolesAsync(_user);
+                roles.Wait();
+                Assert.IsNotNull(roles.Result);
+                Assert.IsTrue(roles.Result.Count >= 0);
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message);
+            }
         }
 
         [TestMethod()]
         public void IsInRoleAsyncTest()
         {
+            try
+            {
+                if (_user == null)
+                {
+                    FindByNameAsyncTest();
+                }
 
+                Task<bool> isInRoleTask = testUserRepo.IsInRoleAsync(_user, "Users");
+                Assert.IsTrue(isInRoleTask.Result);                
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message);
+            }
         }
 
         [TestMethod()]
         public void RemoveFromRoleAsyncTest()
         {
+            try
+            {
+                if (_user == null)
+                {
+                    FindByNameAsyncTest();
+                }
 
+                Task removeFromRoleTask = testUserRepo.RemoveFromRoleAsync(_user, "Users");
+                Task<bool> isInRoleTask = testUserRepo.IsInRoleAsync(_user, "Users");
+                Assert.IsFalse(isInRoleTask.Result);
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message);
+            }
         }
 
         [TestMethod()]
         public void UpdateAsyncTest()
         {
+            try
+            {
+                if (_user == null)
+                {
+                    FindByNameAsyncTest();
+                }
 
+                _user.LastUpdateUserId = 0;
+                _user.LastUpdateTime = DateTime.UtcNow;
+                testUserRepo.UpdateAsync(_user);
+
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message);
+            }
         }
     }
 }

@@ -16,6 +16,39 @@ namespace EdiuxTemplateWebApp.Models
         private static string KeyName = typeof(ApplicationUser).Name;
 #endif
 
+        public override ApplicationUser Get(params object[] values)
+        {
+            try
+            {
+                if (values == null)
+                    throw new ArgumentNullException(nameof(values));
+
+                ApplicationUser cacheUser = null;
+
+                if (values.Length == 1)
+                {
+                    cacheUser = GetFromCache().FirstOrDefault(p => p.Id == (int)values[0]);
+                }
+
+                if (cacheUser == null)
+                {
+                    cacheUser = base.Get(values);
+                    List<ApplicationUser> newCache = GetFromCache();
+                    newCache.Add(cacheUser);
+                    UnitOfWork.Set(KeyName, newCache, 30);
+                }
+
+                return cacheUser;
+            }
+            catch (Exception ex)
+            {
+#if !DEBUG
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+#endif
+                throw ex;
+            }
+        }
+
         public override IQueryable<ApplicationUser> All()
         {
             //檢查是否有快取，有就快取先行否則從資料庫載入
@@ -37,16 +70,31 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
                 List<ApplicationUser> _cache = GetFromCache();
 
-                if (_cache != null)
-                {
-                    _cache.Add(entity);
-                    UnitOfWork.Set(KeyName, _cache, 30);
-                }
+                Task<ApplicationUser> userInMemoryOrDbTask = FindByNameAsync(entity.UserName);
+                userInMemoryOrDbTask.Wait();
 
-                return base.Add(entity);
+                if (userInMemoryOrDbTask.Result == null)
+                {
+                    if (_cache != null)
+                    {
+                        _cache.Add(entity);
+                        UnitOfWork.Set(KeyName, _cache, 30);
+                    }
+
+                    return base.Add(entity);
+                }
+                else
+                {
+                    userInMemoryOrDbTask.Result.Void = false;
+                    userInMemoryOrDbTask.Result.LastUpdateTime = DateTime.UtcNow;
+                    UpdateAsync(userInMemoryOrDbTask.Result);
+                    return Reload(userInMemoryOrDbTask.Result);
+                }
             }
             catch (Exception ex)
             {
@@ -63,17 +111,38 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                List<ApplicationUser> _cache = GetFromCache();
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
-                if (_cache != null)
+                if (IsUserExists(entity.UserName) == false)
+                    throw new Exception(string.Format("User '{0}' is not existed.", entity.UserName));
+
+                var dbUser = Get(entity.Id);
+
+                dbUser.Void = true;
+                dbUser.LockoutEnabled = true;
+                dbUser.LockoutEndDate = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                dbUser.LastActivityTime = dbUser.LastUpdateTime = DateTime.UtcNow;
+
+                if (System.Web.HttpContext.Current != null)
                 {
-                    List<ApplicationUser> _cacheList = _cache;
+                    dbUser.LastUpdateUserId = System.Web.HttpContext.Current.User.Identity.GetUserId<int>();
+                }
+                else
+                {
+                    ApplicationUser sysUser = FindByNameAsync("root").Result;
 
-                    _cache.Remove(entity);
-                    UnitOfWork.Set(KeyName, _cache, 30);
+                    if (sysUser == null)
+                    {
+                        dbUser.LastUpdateUserId = 0;
+                    }
+                    else
+                    {
+                        dbUser.LastUpdateUserId = sysUser.Id;
+                    }
                 }
 
-
+                UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
             }
             catch (Exception ex)
             {
@@ -101,7 +170,7 @@ namespace EdiuxTemplateWebApp.Models
 
         }
 
-        public Task CreateAsync(ApplicationUser user)
+        public async Task CreateAsync(ApplicationUser user)
         {
             try
             {
@@ -111,10 +180,22 @@ namespace EdiuxTemplateWebApp.Models
                 if (IsUserExists(user.UserName))
                     throw new Exception(string.Format("User '{0}' is existed.", user.UserName));
 
-                Add(user);
-                UnitOfWork.Commit();
+                ApplicationUser newUser = Add(user);
 
-                return Task.CompletedTask;
+                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UnitOfWork);
+
+                if(await IsInRoleAsync(user, "Users") == false)
+                {
+                    ApplicationRole role = roleRepo.All().FirstOrDefault(p => p.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase));
+                    newUser.ApplicationRole.Add(role);
+                    UnitOfWork.Context.Entry(role).State = EntityState.Modified;
+                    UnitOfWork.Context.Entry(user).State = EntityState.Modified;
+                }
+
+                if(newUser!=null && newUser.Id > 0)
+                {
+                    UnitOfWork.Commit();
+                }                                
             }
             catch (Exception ex)
             {
@@ -129,39 +210,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                if (user == null)
-                    throw new ArgumentNullException(nameof(user));  //C# 6.0 新語法
-
-                if (IsUserExists(user.UserName) == false)
-                    throw new Exception(string.Format("User '{0}' is not existed.", user.UserName));
-
-                var dbUser = Get(user.Id);
-
-                dbUser.Void = true;
-                dbUser.LockoutEnabled = true;
-                dbUser.LockoutEndDate = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                dbUser.LastActivityTime = dbUser.LastUpdateTime = DateTime.UtcNow;
-
-                if (System.Web.HttpContext.Current != null)
-                {
-                    dbUser.LastUpdateUserId = System.Web.HttpContext.Current.User.Identity.GetUserId<int>();
-                }
-                else
-                {
-                    ApplicationUser sysUser = FindByNameAsync("root").Result;
-
-                    if (sysUser == null)
-                    {
-                        dbUser.LastUpdateUserId = 0;
-                    }
-                    else
-                    {
-                        dbUser.LastUpdateUserId = sysUser.Id;
-                    }
-                }
-
-                UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
-
+                Delete(user);
                 return UnitOfWork.CommitAsync();
             }
             catch (Exception ex)
@@ -195,6 +244,15 @@ namespace EdiuxTemplateWebApp.Models
             {
                 ApplicationUser _user = GetCache()
                     .FirstOrDefault(w => w.UserName == userName);
+
+                if (_user == null)
+                {
+                    //Get From DB
+                    _user = ObjectSet
+                        .Where(w => w.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase))
+                        .FirstOrDefault();
+                }
+
                 return Task.FromResult(_user);
             }
             catch (Exception ex)
@@ -212,7 +270,11 @@ namespace EdiuxTemplateWebApp.Models
             {
                 if (UnitOfWork.IsSet(KeyName) == false)
                 {
-                    IQueryable<ApplicationUser> asyncResult = ObjectSet;
+                    IQueryable<ApplicationUser> asyncResult = ObjectSet
+                        .Include(p => p.ApplicationRole)
+                        .Include(p => p.ApplicationUserClaim)
+                        .Include(p => p.ApplicationUserLogin);
+
                     Task<List<ApplicationUser>> _cacheList = asyncResult.ToListAsync();
                     _cacheList.Wait();
                     UnitOfWork.Set(KeyName, _cacheList.Result, 30); //快取保留30分鐘
@@ -243,8 +305,11 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(user));
                 }
 
+                ApplicationUser cacheUser = Get(user.Id);
+
                 return Task.FromResult(
-                   (IList<string>)user.ApplicationRole.SelectMany(s => s.Name).ToList()
+                   (IList<string>)cacheUser
+                   .ApplicationRole.Select(s => s.Name).ToList()
                     );
             }
             catch (Exception ex)
@@ -265,7 +330,7 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(user));
                 }
 
-                if (!string.IsNullOrEmpty(roleName))
+                if (string.IsNullOrEmpty(roleName))
                 {
                     throw new ArgumentNullException(nameof(roleName));
                 }
@@ -293,7 +358,7 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(user));
                 }
 
-                if (!string.IsNullOrEmpty(roleName))
+                if (string.IsNullOrEmpty(roleName))
                 {
                     throw new ArgumentNullException(nameof(roleName));
                 }
@@ -378,7 +443,9 @@ namespace EdiuxTemplateWebApp.Models
                 _MemoryCache.Add(dbUser);
                 UnitOfWork.Set(KeyName, _MemoryCache, 30);
                 UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
-                return UnitOfWork.CommitAsync();
+                Task commitTask = UnitOfWork.CommitAsync();
+                commitTask.Wait();
+                return commitTask;
             }
             catch (Exception ex)
             {

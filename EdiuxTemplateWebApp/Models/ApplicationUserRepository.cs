@@ -3,110 +3,386 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.Entity;
-using System.Collections.ObjectModel;
+using Microsoft.AspNet.Identity;
 
 namespace EdiuxTemplateWebApp.Models
 {
     public partial class ApplicationUserRepository : EFRepository<ApplicationUser>, IApplicationUserRepository
-        , Interfaces.IDataRepository<ApplicationUser>
+
     {
+#if CS6
         private const string KeyName = nameof(ApplicationUser);
+#else
+        private static string KeyName = typeof(ApplicationUser).Name;
+#endif
 
         public override IQueryable<ApplicationUser> All()
         {
             //檢查是否有快取，有就快取先行否則從資料庫載入
+            try
+            {
+                return GetCache().Where(p => p.Void == false);
+            }
+            catch (Exception ex)
+            {
+#if !DEBUG
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+#endif
+                throw ex;
+            }
 
-            if (UnitOfWork.IsSet(KeyName) == false)
-            {
-                Task<List<ApplicationUser>> asyncResult = ObjectSet.Where(p => p.Void == false).ToListAsync();
-                asyncResult.Wait();
-                UnitOfWork.Set(KeyName, asyncResult.Result, 30); //快取保留30分鐘
-                return asyncResult.Result.AsQueryable();
-            }
-            else
-            {
-                List<ApplicationUser> _cache =
-                    UnitOfWork.Get(KeyName) as List<ApplicationUser>;
-                return _cache.AsQueryable();
-            }
         }
 
         public override ApplicationUser Add(ApplicationUser entity)
         {
-            List<ApplicationUser> _cache =
-                   UnitOfWork.Get(KeyName) as List<ApplicationUser>;
-            if (_cache != null)
+            try
             {
-                _cache.Add(entity);
-                UnitOfWork.Set(KeyName, _cache, 30);
-            }            
-            return base.Add(entity);
+
+                List<ApplicationUser> _cache = GetFromCache();
+
+                if (_cache != null)
+                {
+                    _cache.Add(entity);
+                    UnitOfWork.Set(KeyName, _cache, 30);
+                }
+
+                return base.Add(entity);
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+
+                throw ex;
+            }
+
         }
 
         public override void Delete(ApplicationUser entity)
         {
-            List<ApplicationUser> _cache =
-       UnitOfWork.Get(KeyName) as List<ApplicationUser>;
-            if (_cache != null)
+            try
             {
-                _cache.Remove(entity);
-                UnitOfWork.Set(KeyName, _cache, 30);
+                List<ApplicationUser> _cache = GetFromCache();
+
+                if (_cache != null)
+                {
+                    List<ApplicationUser> _cacheList = _cache;
+
+                    _cache.Remove(entity);
+                    UnitOfWork.Set(KeyName, _cache, 30);
+                }
+
+
             }
-            base.Delete(entity);
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
+
         }
 
         public void ClearCache(string key)
-        {            
-            UnitOfWork.Invalidate(key);
+        {
+            try
+            {
+                UnitOfWork.Invalidate(key);
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
+
         }
 
         public Task CreateAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));  //C# 6.0 新語法
+
+                if (IsUserExists(user.UserName))
+                    throw new Exception(string.Format("User '{0}' is existed.", user.UserName));
+
+                Add(user);
+                UnitOfWork.Commit();
+
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public Task DeleteAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));  //C# 6.0 新語法
+
+                if (IsUserExists(user.UserName) == false)
+                    throw new Exception(string.Format("User '{0}' is not existed.", user.UserName));
+
+                var dbUser = Get(user.Id);
+
+                dbUser.Void = true;
+                dbUser.LockoutEnabled = true;
+                dbUser.LockoutEndDate = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                dbUser.LastActivityTime = dbUser.LastUpdateTime = DateTime.UtcNow;
+
+                if (System.Web.HttpContext.Current != null)
+                {
+                    dbUser.LastUpdateUserId = System.Web.HttpContext.Current.User.Identity.GetUserId<int>();
+                }
+                else
+                {
+                    ApplicationUser sysUser = FindByNameAsync("root").Result;
+
+                    if (sysUser == null)
+                    {
+                        dbUser.LastUpdateUserId = 0;
+                    }
+                    else
+                    {
+                        dbUser.LastUpdateUserId = sysUser.Id;
+                    }
+                }
+
+                UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
+
+                return UnitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public Task<ApplicationUser> FindByIdAsync(int userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                ApplicationUser _user = Get(userId);
+                return Task.FromResult(_user);
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public Task<ApplicationUser> FindByNameAsync(string userName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                ApplicationUser _user = GetCache()
+                    .FirstOrDefault(w => w.UserName == userName);
+                return Task.FromResult(_user);
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public IQueryable<ApplicationUser> GetCache()
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (UnitOfWork.IsSet(KeyName) == false)
+                {
+                    IQueryable<ApplicationUser> asyncResult = ObjectSet;
+                    Task<List<ApplicationUser>> _cacheList = asyncResult.ToListAsync();
+                    _cacheList.Wait();
+                    UnitOfWork.Set(KeyName, _cacheList.Result, 30); //快取保留30分鐘
+                    return asyncResult;
+                }
+                else
+                {
+                    List<ApplicationUser> _cache =
+                        UnitOfWork.Get(KeyName) as List<ApplicationUser>;
+                    return _cache.AsQueryable();
+                }
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public Task<IList<string>> GetRolesAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                return Task.FromResult(
+                   (IList<string>)user.ApplicationRole.SelectMany(s => s.Name).ToList()
+                    );
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                if (!string.IsNullOrEmpty(roleName))
+                {
+                    throw new ArgumentNullException(nameof(roleName));
+                }
+
+                return Task.FromResult(
+                    user.ApplicationRole.Any(s => s.Name.Equals(roleName,
+                     StringComparison.InvariantCultureIgnoreCase))
+                    );
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                if (!string.IsNullOrEmpty(roleName))
+                {
+                    throw new ArgumentNullException(nameof(roleName));
+                }
+
+                ApplicationUser userfromcache =
+                        All().FirstOrDefault(s => s.Id == user.Id);
+
+                if (userfromcache == null)
+                {
+                    //load from db
+                    userfromcache =
+                        ObjectSet.FirstOrDefault(s => s.Id == user.Id);
+
+                    if (userfromcache == null)
+                        throw new NullReferenceException(string.Format("User '{0}' is not existed.", user.UserName));
+                }
+
+                Task<bool> isInRole = IsInRoleAsync(user, roleName);
+                isInRole.Wait();
+
+                if (isInRole.Result)
+                {
+                    
+                   
+                    ApplicationRole rolefromcache =
+                        userfromcache.ApplicationRole.
+                        FirstOrDefault(w => w.Name.Equals(roleName,
+                        StringComparison.InvariantCultureIgnoreCase));
+
+                    if (rolefromcache != null)
+                    {
+                        user.ApplicationRole.Remove(rolefromcache);
+                        UnitOfWork.Context.Entry(user).State = EntityState.Modified;
+                        UnitOfWork.Commit();
+                    }
+                }
+
+                throw new Exception("");
+
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
         }
 
         public Task UpdateAsync(ApplicationUser user)
         {
             throw new NotImplementedException();
         }
+
+        #region Helper Function
+        private bool IsUserExists(string userName)
+        {
+            try
+            {
+                return GetCache().Any(p => p.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
+        }
+        private List<ApplicationUser> GetFromCache()
+        {
+            try
+            {
+                List<ApplicationUser> _cache = GetCache().ToList();
+                return _cache;
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
+
+        }
+        #endregion
     }
 
-    public partial interface IApplicationUserRepository : IRepositoryBase<ApplicationUser>
+    public partial interface IApplicationUserRepository : IRepositoryBase<ApplicationUser>, Interfaces.IDataRepository<ApplicationUser>
     {
         Task CreateAsync(ApplicationUser user);
         Task DeleteAsync(ApplicationUser user);

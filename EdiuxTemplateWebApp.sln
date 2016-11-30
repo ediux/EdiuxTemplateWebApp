@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EdiuxTemplateWebApp", "EdiuxTemplateWebApp\EdiuxTemplateWebApp.csproj", "{D7777CCF-6C0B-4676-8DCB-65BD4DD1A26F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EdiuxTemplateWebAppTests", "EdiuxTemplateWebAppTests\EdiuxTemplateWebAppTests.csproj", "{548B0C77-FB3E-453A-8EA7-9E10FE8FF208}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D7777CCF-6C0B-4676-8DCB-65BD4DD1A26F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7777CCF-6C0B-4676-8DCB-65BD4DD1A26F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7777CCF-6C0B-4676-8DCB-65BD4DD1A26F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{548B0C77-FB3E-453A-8EA7-9E10FE8FF208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{548B0C77-FB3E-453A-8EA7-9E10FE8FF208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{548B0C77-FB3E-453A-8EA7-9E10FE8FF208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{548B0C77-FB3E-453A-8EA7-9E10FE8FF208}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

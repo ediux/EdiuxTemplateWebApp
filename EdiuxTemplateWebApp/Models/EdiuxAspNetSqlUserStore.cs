@@ -56,12 +56,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-               return userRepo.CreateAsync(user);
+                return userRepo.CreateAsync(user);
             }
             catch (Exception ex)
             {
                 Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-                throw;                
+                throw;
             }
         }
 
@@ -160,46 +160,110 @@ namespace EdiuxTemplateWebApp.Models
         #region User Role Store
         public Task AddToRoleAsync(ApplicationUser user, string roleName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return userRepo.AddToRoleAsync(user, roleName);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
         }
         #endregion
 
         #region Role Store
         public Task CreateAsync(ApplicationRole role)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return roleRepo.CreateAsync(role);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
         }
 
         public Task UpdateAsync(ApplicationRole role)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return roleRepo.UpdateAsync(role);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
         }
 
         public Task DeleteAsync(ApplicationRole role)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return roleRepo.DeleteAsync(role);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
         }
 
         Task<ApplicationRole> IRoleStore<ApplicationRole, int>.FindByIdAsync(int roleId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return roleRepo.FindByIdAsync(roleId);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
         }
 
         Task<ApplicationRole> IRoleStore<ApplicationRole, int>.FindByNameAsync(string roleName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return roleRepo.FindByNameAsync(roleName);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
         }
         #endregion
 
         #region Email Store
         public Task SetEmailAsync(ApplicationUser user, string email)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return userRepo.SetEmailAsync(user,email);
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
         }
 
         public Task<string> GetEmailAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return userRepo.GetEmailAsync(user);
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
         }
 
         public Task<bool> GetEmailConfirmedAsync(ApplicationUser user)

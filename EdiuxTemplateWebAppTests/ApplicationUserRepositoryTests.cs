@@ -252,7 +252,8 @@ namespace EdiuxTemplateWebApp.Models.Tests
                 }
 
                 Task<bool> isInRoleTask = testUserRepo.IsInRoleAsync(_user, "Users");
-                Assert.IsTrue(isInRoleTask.Result);                
+                isInRoleTask.Wait();
+                             
             }
             catch (Exception ex)
             {

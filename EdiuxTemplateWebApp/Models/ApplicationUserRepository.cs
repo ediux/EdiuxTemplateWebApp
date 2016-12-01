@@ -184,18 +184,16 @@ namespace EdiuxTemplateWebApp.Models
 
                 IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UnitOfWork);
 
-                if(await IsInRoleAsync(user, "Users") == false)
+                if (await IsInRoleAsync(newUser, "Users") == false)
                 {
                     ApplicationRole role = roleRepo.All().FirstOrDefault(p => p.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase));
                     newUser.ApplicationRole.Add(role);
                     UnitOfWork.Context.Entry(role).State = EntityState.Modified;
                     UnitOfWork.Context.Entry(user).State = EntityState.Modified;
+                    UnitOfWork.Commit();
                 }
 
-                if(newUser!=null && newUser.Id > 0)
-                {
-                    UnitOfWork.Commit();
-                }                                
+                user = newUser;
             }
             catch (Exception ex)
             {

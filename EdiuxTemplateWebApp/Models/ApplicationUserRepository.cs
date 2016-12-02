@@ -18,236 +18,50 @@ namespace EdiuxTemplateWebApp.Models
 #endif
 
         #region Override of Base
-        public override IQueryable<ApplicationUser> Where(Expression<Func<ApplicationUser, bool>> expression)
+
+        protected ApplicationUser ChangeBeforeReactive(ApplicationUser entity)
         {
-            try
+            entity.Void = false;
+            entity.LockoutEnabled = false;
+            entity.LockoutEndDate = DateTime.UtcNow;
+
+            Task<ApplicationUser> getRootUserTask = FindByNameAsync("root");
+            getRootUserTask.Wait();
+
+            if (getRootUserTask.Result != null)
             {
-                //記憶體快取先行的讀取
-                IQueryable<ApplicationUser> cacheResult = GetCache().Where(expression);
-                //IQueryable<ApplicationUser> mergedSet = cacheResult.Union(base.Where(expression));  //
-                //IQueryable<ApplicationUser> addtoCacheResult = mergedSet.Except(GetCache());
-                //List<ApplicationUser> newcacheResult = GetFromCache();
-                //newcacheResult.AddRange(addtoCacheResult.ToList());
-                //return mergedSet;
-                return cacheResult;
+                entity.LastUpdateUserId = getRootUserTask.Result.Id;
             }
-            catch (Exception ex)
+            else
             {
-#if !DEBUG
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-#endif
-                throw ex;
+                entity.LastUpdateUserId = 0;
             }
 
+            entity.LastUpdateTime = DateTime.UtcNow;
+
+            //更新資料庫
+            Task updateTask = UpdateAsync(entity);
+            updateTask.Wait();
+
+            //從資料庫重新載入
+            entity = Reload(entity);
+
+            return entity;
         }
-
-        public override IList<ApplicationUser> BatchAdd(IEnumerable<ApplicationUser> entities)
-        {
-            List<ApplicationUser> cacheUsers = FromCache;
-
-            var addlist = entities.Except(cacheUsers);
-
-            if (addlist != null && addlist.Count() > 0)
-            {
-                cacheUsers.AddRange(addlist);
-                UnitOfWork.Set(KeyName, cacheUsers, 30);
-            }
-
-            return base.BatchAdd(entities);
-        }
-
-        public override ApplicationUser Get(params object[] values)
-        {
-            try
-            {
-                if (values == null)
-                    throw new ArgumentNullException(nameof(values));
-
-                ApplicationUser cacheUser = null;
-
-                if (values.Length == 1)
-                {
-                    cacheUser = GetCache().FirstOrDefault(p => p.Id == (int)values[0]);
-                }
-
-                if (cacheUser == null)
-                {
-                    cacheUser = base.Get(values);   //從資料庫讀取
-
-                    //加入快取
-                    AddToCache(cacheUser);
-                }
-
-                return cacheUser;
-            }
-            catch (Exception ex)
-            {
-#if !DEBUG
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-#endif
-                throw ex;
-            }
-        }
-
-        public override IQueryable<ApplicationUser> All()
-        {
-
-            try
-            {
-                //取得記憶體快取中的資料
-                //只傳回未被標記為刪除的資料集合
-                return GetCache().Where(p => p.Void == false);
-            }
-            catch (Exception ex)
-            {
-#if !DEBUG
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-#endif
-                throw ex;
-            }
-
-        }
-
         public override ApplicationUser Add(ApplicationUser entity)
         {
-            try
-            {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
-                //先取得目前快取
-                Task<ApplicationUser> userInMemoryOrDbTask = FindByNameAsync(entity.UserName);
-                userInMemoryOrDbTask.Wait();
-
-                if (userInMemoryOrDbTask.Result == null)
-                {
-                    //加入快取
-                    AddToCache(entity);
-
-                    //加入資料庫
-                    return base.Add(entity);
-                }
-                else
-                {
-
-                    ApplicationUser existedUser = ObjectSet.Find(userInMemoryOrDbTask.Result.Id);  //取得已存在的使用者
-
-                    if (existedUser == null)
-                    {
-                        existedUser = entity;
-                        existedUser = base.Add(entity);
-                        UpdateCache(existedUser.Id, existedUser);
-                        return existedUser;
-                    }
-
-                    existedUser.Void = false;
-
-                    Task<ApplicationUser> getRootUserTask = FindByNameAsync("root");
-                    getRootUserTask.Wait();
-
-                    if (getRootUserTask.Result != null)
-                    {
-                        existedUser.LastUpdateUserId = getRootUserTask.Result.Id;
-                    }
-                    else
-                    {
-                        existedUser.LastUpdateUserId = 0;
-                    }
-
-                    existedUser.LastUpdateTime = DateTime.UtcNow;
-
-                    //更新資料庫
-                    Task updateTask = UpdateAsync(existedUser);
-                    updateTask.Wait();
-
-                    //從資料庫重新載入
-                    existedUser = Reload(existedUser);
-
-                    //更新快取
-                    UpdateCache(existedUser.Id, existedUser);
-
-                    return existedUser;
-                }
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#else
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-#endif
-
-                throw ex;
-            }
 
         }
 
         public override void Delete(ApplicationUser entity)
         {
-            try
-            {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
-                if (IsUserExists(entity.UserName) == false)
-                    throw new Exception(string.Format("User '{0}' is not existed.", entity.UserName));
-
-                var dbUser = ObjectSet.Find(entity.Id);
-
-                dbUser.Void = true;
-                dbUser.LockoutEnabled = true;
-                dbUser.LockoutEndDate = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                dbUser.LastActivityTime = dbUser.LastUpdateTime = DateTime.UtcNow;
-
-                if (System.Web.HttpContext.Current != null)
-                {
-                    dbUser.LastUpdateUserId = System.Web.HttpContext.Current.User.Identity.GetUserId<int>();
-                }
-                else
-                {
-                    ApplicationUser sysUser = FindByNameAsync("root").Result;
-
-                    if (sysUser == null)
-                    {
-                        dbUser.LastUpdateUserId = 0;
-                    }
-                    else
-                    {
-                        dbUser.LastUpdateUserId = sysUser.Id;
-                    }
-                }
-
-                UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
-
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
 
         }
         #endregion
 
         #region User Store
-        public void ClearCache(string key)
-        {
-            try
-            {
-                UnitOfWork.Invalidate(key);
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-
-        }
-
         public async Task CreateAsync(ApplicationUser user)
         {
             try
@@ -268,7 +82,7 @@ namespace EdiuxTemplateWebApp.Models
                     //UnitOfWork.Context.Entry(role).State = EntityState.Modified;
                     UnitOfWork.Context.Entry(newUser).State = EntityState.Modified;
                     UnitOfWork.Commit();
-                    UpdateCache(user.Id, newUser);
+                    UpdateCache(newUser);
 
                 }
                 user = newUser;
@@ -288,7 +102,7 @@ namespace EdiuxTemplateWebApp.Models
             {
                 Delete(user);
                 UnitOfWork.CommitAsync().Wait();
-                UpdateCache(user.Id, user);
+                UpdateCache(user);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -351,37 +165,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public IQueryable<ApplicationUser> GetCache()
-        {
-            try
-            {
-                if (UnitOfWork.IsSet(KeyName) == false)
-                {
-                    IQueryable<ApplicationUser> asyncResult = ObjectSet
-                        .Include(p => p.ApplicationRole)
-                        .Include(p => p.ApplicationUserClaim)
-                        .Include(p => p.ApplicationUserLogin);
 
-                    Task<List<ApplicationUser>> _cacheList = asyncResult.ToListAsync();
-                    _cacheList.Wait();
-                    UnitOfWork.Set(KeyName, _cacheList.Result, 30); //快取保留30分鐘
-                    return asyncResult;
-                }
-                else
-                {
-                    List<ApplicationUser> _cache =
-                        UnitOfWork.Get(KeyName) as List<ApplicationUser>;
-                    return _cache.AsQueryable();
-                }
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-        }
 
         public Task<IList<string>> GetRolesAsync(ApplicationUser user)
         {
@@ -603,90 +387,9 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        private void RemoveFromCache(ApplicationUser entity)
-        {
-            try
-            {
-                if (FromCache.Any(p => p.Id == entity.Id))
-                {
-                    List<ApplicationUser> cacheSet = FromCache;
-                    cacheSet.Remove(FromCache.Find(p => p.Id == entity.Id));
-                    UnitOfWork.Set(KeyName, cacheSet, 30);
-                }
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-        }
-
-        private void AddToCache(ApplicationUser entity)
-        {
-            try
-            {
-                //加入到記憶體快取
-                List<ApplicationUser> memoryUsersCache = FromCache;
-                if (memoryUsersCache.Any(w => w.Id == entity.Id))   //確認快取有該筆資料
-                {
-                    RemoveFromCache(entity);
-                }
-                memoryUsersCache.Add(entity);
-                UnitOfWork.Set(KeyName, memoryUsersCache, 30);
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-        }
-
-        private void UpdateCache(int id, ApplicationUser updated)
-        {
-            try
-            {
-                //加入到記憶體快取
-                List<ApplicationUser> memoryUsersCache = FromCache;
-                if (memoryUsersCache.Any(w => w.Id == id))   //確認快取有該筆資料
-                {
-                    RemoveFromCache(memoryUsersCache.Find(p => p.Id == id));    //移除快取資料
-                }
-                memoryUsersCache.Add(updated);
-                UnitOfWork.Set(KeyName, memoryUsersCache, 30);
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-        }
 
 
-        private List<ApplicationUser> FromCache
-        {
-            get
-            {
-                try
-                {
-                    List<ApplicationUser> _cache = GetCache().ToList();
-                    return _cache;
-                }
-                catch (Exception ex)
-                {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                    throw ex;
-                }
 
-            }
-        }
         #endregion
     }
 

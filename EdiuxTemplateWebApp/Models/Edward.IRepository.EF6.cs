@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Models
 { 
-	public partial interface IRepositoryBase<T> :IDisposable
-		where T : class
+	public partial interface IRepositoryBase<T> :IDisposable, Interfaces.IDataRepository<T>
+        where T : class
 	{
 		IUnitOfWork UnitOfWork { get; set; }
 		

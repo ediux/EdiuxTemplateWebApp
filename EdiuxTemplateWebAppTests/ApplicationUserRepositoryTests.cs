@@ -127,11 +127,13 @@ namespace EdiuxTemplateWebApp.Models.Tests
             {
                 CreateTestUser();
 
-                testUserRepo.CreateAsync(_user);
-                FindByNameAsyncTest();
+                Task createTask = testUserRepo.CreateAsync(_user);
+                createTask.Wait();
+                //FindByNameAsyncTest();
 
                 Assert.IsNotNull(_user);
                 Assert.AreEqual("TestUser", _user.UserName);
+                Assert.IsTrue(_user.ApplicationRole.Any(a => a.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase)),"User '{0}' is in roles of '{1}'.",_user.UserName,"Users");
             }
             catch (Exception ex)
             {

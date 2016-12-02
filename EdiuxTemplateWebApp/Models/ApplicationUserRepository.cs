@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.Entity;
 using Microsoft.AspNet.Identity;
+using System.Linq.Expressions;
 
 namespace EdiuxTemplateWebApp.Models
 {
@@ -16,6 +17,45 @@ namespace EdiuxTemplateWebApp.Models
         private static string KeyName = typeof(ApplicationUser).Name;
 #endif
 
+        #region Override of Base
+        public override IQueryable<ApplicationUser> Where(Expression<Func<ApplicationUser, bool>> expression)
+        {
+            try
+            {
+                //記憶體快取先行的讀取
+                IQueryable<ApplicationUser> cacheResult = GetCache().Where(expression);
+                //IQueryable<ApplicationUser> mergedSet = cacheResult.Union(base.Where(expression));  //
+                //IQueryable<ApplicationUser> addtoCacheResult = mergedSet.Except(GetCache());
+                //List<ApplicationUser> newcacheResult = GetFromCache();
+                //newcacheResult.AddRange(addtoCacheResult.ToList());
+                //return mergedSet;
+                return cacheResult;
+            }
+            catch (Exception ex)
+            {
+#if !DEBUG
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+#endif
+                throw ex;
+            }
+
+        }
+
+        public override IList<ApplicationUser> BatchAdd(IEnumerable<ApplicationUser> entities)
+        {
+            List<ApplicationUser> cacheUsers = FromCache;
+
+            var addlist = entities.Except(cacheUsers);
+
+            if (addlist != null && addlist.Count() > 0)
+            {
+                cacheUsers.AddRange(addlist);
+                UnitOfWork.Set(KeyName, cacheUsers, 30);
+            }
+
+            return base.BatchAdd(entities);
+        }
+
         public override ApplicationUser Get(params object[] values)
         {
             try
@@ -27,15 +67,15 @@ namespace EdiuxTemplateWebApp.Models
 
                 if (values.Length == 1)
                 {
-                    cacheUser = GetFromCache().FirstOrDefault(p => p.Id == (int)values[0]);
+                    cacheUser = GetCache().FirstOrDefault(p => p.Id == (int)values[0]);
                 }
 
                 if (cacheUser == null)
                 {
-                    cacheUser = base.Get(values);
-                    List<ApplicationUser> newCache = GetFromCache();
-                    newCache.Add(cacheUser);
-                    UnitOfWork.Set(KeyName, newCache, 30);
+                    cacheUser = base.Get(values);   //從資料庫讀取
+
+                    //加入快取
+                    AddToCache(cacheUser);
                 }
 
                 return cacheUser;
@@ -51,9 +91,11 @@ namespace EdiuxTemplateWebApp.Models
 
         public override IQueryable<ApplicationUser> All()
         {
-            //檢查是否有快取，有就快取先行否則從資料庫載入
+
             try
             {
+                //取得記憶體快取中的資料
+                //只傳回未被標記為刪除的資料集合
                 return GetCache().Where(p => p.Void == false);
             }
             catch (Exception ex)
@@ -73,33 +115,66 @@ namespace EdiuxTemplateWebApp.Models
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
-                List<ApplicationUser> _cache = GetFromCache();
-
+                //先取得目前快取
                 Task<ApplicationUser> userInMemoryOrDbTask = FindByNameAsync(entity.UserName);
                 userInMemoryOrDbTask.Wait();
 
                 if (userInMemoryOrDbTask.Result == null)
                 {
-                    if (_cache != null)
-                    {
-                        _cache.Add(entity);
-                        UnitOfWork.Set(KeyName, _cache, 30);
-                    }
+                    //加入快取
+                    AddToCache(entity);
 
+                    //加入資料庫
                     return base.Add(entity);
                 }
                 else
                 {
-                    userInMemoryOrDbTask.Result.Void = false;
-                    userInMemoryOrDbTask.Result.LastUpdateTime = DateTime.UtcNow;
-                    UpdateAsync(userInMemoryOrDbTask.Result);
-                    return Reload(userInMemoryOrDbTask.Result);
+
+                    ApplicationUser existedUser = ObjectSet.Find(userInMemoryOrDbTask.Result.Id);  //取得已存在的使用者
+
+                    if (existedUser == null)
+                    {
+                        existedUser = entity;
+                        existedUser = base.Add(entity);
+                        UpdateCache(existedUser.Id, existedUser);
+                        return existedUser;
+                    }
+
+                    existedUser.Void = false;
+
+                    Task<ApplicationUser> getRootUserTask = FindByNameAsync("root");
+                    getRootUserTask.Wait();
+
+                    if (getRootUserTask.Result != null)
+                    {
+                        existedUser.LastUpdateUserId = getRootUserTask.Result.Id;
+                    }
+                    else
+                    {
+                        existedUser.LastUpdateUserId = 0;
+                    }
+
+                    existedUser.LastUpdateTime = DateTime.UtcNow;
+
+                    //更新資料庫
+                    Task updateTask = UpdateAsync(existedUser);
+                    updateTask.Wait();
+
+                    //從資料庫重新載入
+                    existedUser = Reload(existedUser);
+
+                    //更新快取
+                    UpdateCache(existedUser.Id, existedUser);
+
+                    return existedUser;
                 }
             }
             catch (Exception ex)
             {
 #if !TEST
                 Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#else
+                System.Diagnostics.Debug.WriteLine(ex.Message);
 #endif
 
                 throw ex;
@@ -117,7 +192,7 @@ namespace EdiuxTemplateWebApp.Models
                 if (IsUserExists(entity.UserName) == false)
                     throw new Exception(string.Format("User '{0}' is not existed.", entity.UserName));
 
-                var dbUser = Get(entity.Id);
+                var dbUser = ObjectSet.Find(entity.Id);
 
                 dbUser.Void = true;
                 dbUser.LockoutEnabled = true;
@@ -143,6 +218,7 @@ namespace EdiuxTemplateWebApp.Models
                 }
 
                 UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
+
             }
             catch (Exception ex)
             {
@@ -153,7 +229,9 @@ namespace EdiuxTemplateWebApp.Models
             }
 
         }
+        #endregion
 
+        #region User Store
         public void ClearCache(string key)
         {
             try
@@ -177,22 +255,22 @@ namespace EdiuxTemplateWebApp.Models
                 if (user == null)
                     throw new ArgumentNullException(nameof(user));  //C# 6.0 新語法
 
-                if (IsUserExists(user.UserName))
-                    throw new Exception(string.Format("User '{0}' is existed.", user.UserName));
-
                 ApplicationUser newUser = Add(user);
 
                 IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UnitOfWork);
 
-                if (await IsInRoleAsync(newUser, "Users") == false)
+                if (await IsInRoleAsync(user, "Users") == false)
                 {
-                    ApplicationRole role = roleRepo.All().FirstOrDefault(p => p.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase));
+                    ApplicationRole role = roleRepo
+                        .All()
+                        .FirstOrDefault(p => p.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase));
                     newUser.ApplicationRole.Add(role);
-                    UnitOfWork.Context.Entry(role).State = EntityState.Modified;
-                    UnitOfWork.Context.Entry(user).State = EntityState.Modified;
+                    //UnitOfWork.Context.Entry(role).State = EntityState.Modified;
+                    UnitOfWork.Context.Entry(newUser).State = EntityState.Modified;
                     UnitOfWork.Commit();
-                }
+                    UpdateCache(user.Id, newUser);
 
+                }
                 user = newUser;
             }
             catch (Exception ex)
@@ -209,7 +287,9 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Delete(user);
-                return UnitOfWork.CommitAsync();
+                UnitOfWork.CommitAsync().Wait();
+                UpdateCache(user.Id, user);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -225,6 +305,7 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 ApplicationUser _user = Get(userId);
+
                 return Task.FromResult(_user);
             }
             catch (Exception ex)
@@ -247,8 +328,16 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     //Get From DB
                     _user = ObjectSet
+                        .Include(p => p.ApplicationRole)
+                        .Include(p => p.ApplicationUserClaim)
+                        .Include(p => p.ApplicationUserLogin)
                         .Where(w => w.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase))
                         .FirstOrDefault();
+
+                    //加入到記憶體快取
+                    if (_user != null)
+                        AddToCache(_user);
+
                 }
 
                 return Task.FromResult(_user);
@@ -361,8 +450,7 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(roleName));
                 }
 
-                ApplicationUser userfromcache =
-                        All().FirstOrDefault(s => s.Id == user.Id);
+                ApplicationUser userfromcache = Get(user.Id);
 
                 if (userfromcache == null)
                 {
@@ -379,21 +467,13 @@ namespace EdiuxTemplateWebApp.Models
 
                 if (isInRole.Result)
                 {
+                    user.ApplicationRole.Remove(userfromcache.
+                        ApplicationRole.Single(w => w.Name.Equals(roleName,
+                        StringComparison.InvariantCultureIgnoreCase)));
 
-                    ApplicationRole rolefromcache =
-                        userfromcache.ApplicationRole.
-                        FirstOrDefault(w => w.Name.Equals(roleName,
-                        StringComparison.InvariantCultureIgnoreCase));
-
-                    if (rolefromcache != null)
-                    {
-                        user.ApplicationRole.Remove(rolefromcache);
-                        UnitOfWork.Context.Entry(user).State = EntityState.Modified;
-                        UnitOfWork.Commit();
-                        return Task.CompletedTask;
-                    }
-
-                    throw new Exception(string.Format("Role '{0}' is not existed.", roleName));
+                    UnitOfWork.Context.Entry(user).State = EntityState.Modified;
+                    UnitOfWork.Commit();
+                    return Task.CompletedTask;
                 }
 
                 throw new Exception(string.Format("User '{0}' is not in roles of {1}.", user.UserName, roleName));
@@ -417,10 +497,9 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(user));
                 }
 
-                List<ApplicationUser> _MemoryCache = GetFromCache();
+                ApplicationUser dbUser = base.Get(user.Id);  //從資料庫讀取
 
-                ApplicationUser dbUser = Get(user.Id);
-                _MemoryCache.Remove(dbUser);
+                RemoveFromCache(user); //先從記憶體快取中移除
 
                 dbUser.LastActivityTime = user.LastActivityTime;
                 dbUser.LastLoginFailTime = user.LastLoginFailTime;
@@ -438,11 +517,13 @@ namespace EdiuxTemplateWebApp.Models
                 dbUser.TwoFactorEnabled = user.TwoFactorEnabled;
                 dbUser.Void = user.Void;
 
-                _MemoryCache.Add(dbUser);
-                UnitOfWork.Set(KeyName, _MemoryCache, 30);
                 UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
                 Task commitTask = UnitOfWork.CommitAsync();
                 commitTask.Wait();
+
+                //重新加入記憶體快取
+                AddToCache(dbUser);
+
                 return commitTask;
             }
             catch (Exception ex)
@@ -453,13 +534,65 @@ namespace EdiuxTemplateWebApp.Models
                 throw ex;
             }
         }
+        #endregion
+
+        #region User Role Store
+        public Task AddToRoleAsync(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                if (string.IsNullOrEmpty(roleName))
+                {
+                    throw new ArgumentException(nameof(roleName));
+                }
+
+                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository();
+
+                Task<ApplicationRole> roleTask = roleRepo.FindByNameAsync(roleName);
+                roleTask.Wait();
+
+                ApplicationRole role = roleTask.Result;
+                user.ApplicationRole.Clear();
+                user.ApplicationRole.Add(role);
+
+                UpdateAsync(user).Wait();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
+        }
+        #endregion
+
+        #region Email Store
+
+        public Task SetEmailAsync(ApplicationUser user, string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetEmailAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
 
         #region Helper Function
         private bool IsUserExists(string userName)
         {
             try
             {
-                return GetCache().Any(p => p.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase));
+                return GetCache()
+                    .Any(p => p.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase));
             }
             catch (Exception ex)
             {
@@ -469,12 +602,17 @@ namespace EdiuxTemplateWebApp.Models
                 throw ex;
             }
         }
-        private List<ApplicationUser> GetFromCache()
+
+        private void RemoveFromCache(ApplicationUser entity)
         {
             try
             {
-                List<ApplicationUser> _cache = GetCache().ToList();
-                return _cache;
+                if (FromCache.Any(p => p.Id == entity.Id))
+                {
+                    List<ApplicationUser> cacheSet = FromCache;
+                    cacheSet.Remove(FromCache.Find(p => p.Id == entity.Id));
+                    UnitOfWork.Set(KeyName, cacheSet, 30);
+                }
             }
             catch (Exception ex)
             {
@@ -483,13 +621,78 @@ namespace EdiuxTemplateWebApp.Models
 #endif
                 throw ex;
             }
+        }
 
+        private void AddToCache(ApplicationUser entity)
+        {
+            try
+            {
+                //加入到記憶體快取
+                List<ApplicationUser> memoryUsersCache = FromCache;
+                if (memoryUsersCache.Any(w => w.Id == entity.Id))   //確認快取有該筆資料
+                {
+                    RemoveFromCache(entity);
+                }
+                memoryUsersCache.Add(entity);
+                UnitOfWork.Set(KeyName, memoryUsersCache, 30);
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
+        }
+
+        private void UpdateCache(int id, ApplicationUser updated)
+        {
+            try
+            {
+                //加入到記憶體快取
+                List<ApplicationUser> memoryUsersCache = FromCache;
+                if (memoryUsersCache.Any(w => w.Id == id))   //確認快取有該筆資料
+                {
+                    RemoveFromCache(memoryUsersCache.Find(p => p.Id == id));    //移除快取資料
+                }
+                memoryUsersCache.Add(updated);
+                UnitOfWork.Set(KeyName, memoryUsersCache, 30);
+            }
+            catch (Exception ex)
+            {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                throw ex;
+            }
+        }
+
+
+        private List<ApplicationUser> FromCache
+        {
+            get
+            {
+                try
+                {
+                    List<ApplicationUser> _cache = GetCache().ToList();
+                    return _cache;
+                }
+                catch (Exception ex)
+                {
+#if !TEST
+                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
+#endif
+                    throw ex;
+                }
+
+            }
         }
         #endregion
     }
 
     public partial interface IApplicationUserRepository : IRepositoryBase<ApplicationUser>, Interfaces.IDataRepository<ApplicationUser>
     {
+        #region For User Store
         Task CreateAsync(ApplicationUser user);
         Task DeleteAsync(ApplicationUser user);
         Task<ApplicationUser> FindByIdAsync(int userId);
@@ -498,5 +701,15 @@ namespace EdiuxTemplateWebApp.Models
         Task<bool> IsInRoleAsync(ApplicationUser user, string roleName);
         Task RemoveFromRoleAsync(ApplicationUser user, string roleName);
         Task UpdateAsync(ApplicationUser user);
+        #endregion
+
+        #region For User Role Store
+        Task AddToRoleAsync(ApplicationUser user, string roleName);
+        #endregion
+
+        #region Email Store
+        Task SetEmailAsync(ApplicationUser user, string email);
+        Task<string> GetEmailAsync(ApplicationUser user);
+        #endregion
     }
 }

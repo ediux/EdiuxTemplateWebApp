@@ -794,7 +794,7 @@ namespace EdiuxTemplateWebApp.Models
 
                 if (userinDB != null)
                 {
-                    return user.PasswordHash;
+                    return userinDB.PasswordHash;
                 }
 
                 return string.Empty;
@@ -806,9 +806,27 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<bool> HasPasswordAsync(ApplicationUser user)
+        public async Task<bool> HasPasswordAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (!string.IsNullOrEmpty(userinDB.Password))
+                    return true;
+                if (!string.IsNullOrEmpty(userinDB.PasswordHash))
+                    return true;
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 

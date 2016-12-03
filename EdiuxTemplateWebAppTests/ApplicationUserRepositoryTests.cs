@@ -21,25 +21,47 @@ namespace EdiuxTemplateWebApp.Models.Tests
         [TestInitialize]
         public void init()
         {
-            testUserRepo = RepositoryHelper.GetApplicationUserRepository();
+            try
+            {
+                testUserRepo = RepositoryHelper.GetApplicationUserRepository();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
+            }
+
 
         }
 
         [TestCleanup]
         public void GC()
         {
-            if (testUserRepo.Where(w => w.UserName == "TestUser").Any())
+            try
             {
-                ApplicationUser user = testUserRepo.All().FirstOrDefault(w => w.UserName == "TestUser");
-
-                if (user != null)
+                if (testUserRepo.Where(w => w.UserName == "TestUser").Any())
                 {
-                    testUserRepo.Delete(user);
-                    testUserRepo.UnitOfWork.Commit();
+                    ApplicationUser user = testUserRepo.All().FirstOrDefault(w => w.UserName == "TestUser");
+
+                    if (user != null)
+                    {
+                        testUserRepo.Delete(user);
+                        testUserRepo.UnitOfWork.Commit();
+                    }
                 }
+
+                testUserRepo.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
 
-            testUserRepo.Dispose();
         }
 
         [TestMethod()]
@@ -52,7 +74,10 @@ namespace EdiuxTemplateWebApp.Models.Tests
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
 
 
@@ -78,7 +103,10 @@ namespace EdiuxTemplateWebApp.Models.Tests
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
 
         }
@@ -100,24 +128,13 @@ namespace EdiuxTemplateWebApp.Models.Tests
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                 ex.Message,
+                 ex.Source,
+                 ex.StackTrace);
             }
 
 
-        }
-
-        [TestMethod()]
-        public void ClearCacheTest()
-        {
-            try
-            {
-                testUserRepo.ClearCache(KeyName);
-                Assert.IsFalse(testUserRepo.UnitOfWork.IsSet(KeyName));
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail(ex.Message);
-            }
         }
 
         [TestMethod()]
@@ -129,18 +146,24 @@ namespace EdiuxTemplateWebApp.Models.Tests
 
                 Task createTask = testUserRepo.CreateAsync(_user);
                 createTask.Wait();
+                Task<ApplicationUser> finduserTask = testUserRepo.FindByNameAsync(_user.UserName);
+                finduserTask.Wait();
+                _user = finduserTask.Result;
                 //FindByNameAsyncTest();
 
                 Assert.IsNotNull(_user);
                 Assert.AreEqual("TestUser", _user.UserName);
-                Assert.IsTrue(_user.ApplicationRole.Any(a => a.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase)),"User '{0}' is in roles of '{1}'.",_user.UserName,"Users");
+                Assert.IsTrue(_user.ApplicationRole.Any(a => a.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase)), "User '{0}' is not in roles of '{1}'.", _user.UserName, "Users");
             }
             catch (Exception ex)
             {
                 if (ex.Message == "User 'TestUser' is existed.")
                     Assert.AreEqual("User 'TestUser' is existed.", ex.Message);
                 else
-                    Assert.Fail(ex.Message);
+                    Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
 
@@ -155,18 +178,21 @@ namespace EdiuxTemplateWebApp.Models.Tests
         }
 
         [TestMethod()]
-        public async void DeleteAsyncTest()
+        public void DeleteAsyncTest()
         {
             try
             {
                 FindByNameAsyncTest();
-                await testUserRepo.DeleteAsync(_user);
+                testUserRepo.DeleteAsync(_user).Wait();
                 FindByNameAsyncTest();
-                Assert.IsNull(_user);
+                Assert.AreEqual(true, _user.Void);
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
 
@@ -190,37 +216,33 @@ namespace EdiuxTemplateWebApp.Models.Tests
             catch (Exception ex)
             {
 
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
 
         [TestMethod()]
-        public async void FindByNameAsyncTest()
+        public void FindByNameAsyncTest()
         {
             try
             {
-                _user = await testUserRepo.FindByNameAsync("TestUser");
+                Task<ApplicationUser> testTask = testUserRepo.FindByNameAsync("TestUser");
+                testTask.Wait();
+                _user = testTask.Result; 
                 Assert.IsNotNull(_user);
                 Assert.AreNotEqual(0, _user.Id);
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
 
-        [TestMethod()]
-        public void GetCacheTest()
-        {
-            try
-            {
-                Assert.IsNotNull(testUserRepo.GetCache());
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail(ex.Message);
-            }
-        }
 
         [TestMethod()]
         public void GetRolesAsyncTest()
@@ -239,7 +261,10 @@ namespace EdiuxTemplateWebApp.Models.Tests
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
 
@@ -255,11 +280,14 @@ namespace EdiuxTemplateWebApp.Models.Tests
 
                 Task<bool> isInRoleTask = testUserRepo.IsInRoleAsync(_user, "Users");
                 isInRoleTask.Wait();
-                             
+
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
 
@@ -279,7 +307,10 @@ namespace EdiuxTemplateWebApp.Models.Tests
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
 
@@ -295,12 +326,15 @@ namespace EdiuxTemplateWebApp.Models.Tests
 
                 _user.LastUpdateUserId = 0;
                 _user.LastUpdateTime = DateTime.UtcNow;
-                testUserRepo.UpdateAsync(_user);
+                testUserRepo.UpdateAsync(_user).Wait();
 
             }
             catch (Exception ex)
             {
-                Assert.Fail(ex.Message);
+                Assert.Fail("Message:{0}\nSource:{1}\nStackTrace:{2}\n",
+                ex.Message,
+                ex.Source,
+                ex.StackTrace);
             }
         }
     }

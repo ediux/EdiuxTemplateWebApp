@@ -754,9 +754,33 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Password Store
-        public Task SetPasswordHashAsync(ApplicationUser user, string passwordHash)
+        public async Task SetPasswordHashAsync(ApplicationUser user, string passwordHash)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                if (string.IsNullOrEmpty(passwordHash))
+                    throw new ArgumentNullException(nameof(passwordHash));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    userinDB.PasswordHash = passwordHash;
+                    userinDB.LastUpdateUserId = getCurrentLoginedUserId();
+                    userinDB.LastActivityTime = userinDB.LastUpdateTime = DateTime.Now.ToUniversalTime();
+
+                    await UpdateAsync(userinDB);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<string> GetPasswordHashAsync(ApplicationUser user)

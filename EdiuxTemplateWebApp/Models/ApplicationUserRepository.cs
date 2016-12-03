@@ -753,6 +753,22 @@ namespace EdiuxTemplateWebApp.Models
         }
         #endregion
 
+        #region User Password Store
+        public Task SetPasswordHashAsync(ApplicationUser user, string passwordHash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetPasswordHashAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> HasPasswordAsync(ApplicationUser user)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
 
         #region Helper Function
         protected override int getCurrentLoginedUserId()
@@ -835,6 +851,12 @@ namespace EdiuxTemplateWebApp.Models
         Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled);
         #endregion
 
-    
+        #region User Password Store
+        Task SetPasswordHashAsync(ApplicationUser user, string passwordHash);
+
+        Task<string> GetPasswordHashAsync(ApplicationUser user);
+
+        Task<bool> HasPasswordAsync(ApplicationUser user);
+        #endregion
     }
 }

@@ -425,20 +425,48 @@ namespace EdiuxTemplateWebApp.Models
         #region User Password Store
         public Task SetPasswordHashAsync(ApplicationUser user, string passwordHash)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user,passwordHash);
+                setSetPasswordTask.Wait();
+                return setSetPasswordTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<string> GetPasswordHashAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<string> getPasswordHashTask = userRepo.GetPasswordHashAsync(user);
+                getPasswordHashTask.Wait();
+                return getPasswordHashTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<bool> HasPasswordAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<bool> hasPasswordTask = userRepo.HasPasswordAsync(user);
+                hasPasswordTask.Wait();
+                return hasPasswordTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
-
-
         #endregion
 
         #region User Phone Number Store

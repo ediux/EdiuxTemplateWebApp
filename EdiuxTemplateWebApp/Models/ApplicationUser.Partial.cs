@@ -58,6 +58,32 @@ namespace EdiuxTemplateWebApp.Models
                 Void = false
             };
         }
+
+        public void CloneFrom(ApplicationUser source)
+        {           
+            AccessFailedCount = source.AccessFailedCount;
+            CreateTime = source.CreateTime;
+            CreateUserId = source.CreateUserId;
+            DisplayName = source.DisplayName;
+            EMail = source.EMail;
+            EMailConfirmed = source.EMailConfirmed;
+            LastActivityTime = source.LastActivityTime;
+            LastLoginFailTime = source.LastLoginFailTime;
+            LastUnlockedTime = source.LastUnlockedTime;
+            LastUpdateTime = source.LastUpdateTime;
+            LastUpdateUserId = source.LastUpdateUserId;
+            LockoutEnabled = source.LockoutEnabled;
+            LockoutEndDate = source.LockoutEndDate;
+            Password = source.Password;
+            PasswordHash = source.PasswordHash;
+            PhoneConfirmed = source.PhoneConfirmed;
+            PhoneNumber = source.PhoneNumber;
+            ResetPasswordToken = source.ResetPasswordToken;
+            SecurityStamp = source.SecurityStamp;
+            TwoFactorEnabled = source.TwoFactorEnabled;
+            UserName = source.UserName;
+            Void = source.Void;
+        }
     }
     
     public partial class ApplicationUserMetaData

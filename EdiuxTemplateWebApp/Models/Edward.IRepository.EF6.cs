@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Models
 { 
-	public partial interface IRepositoryBase<T> :IDisposable, Interfaces.IDataRepository<T>
+	public partial interface IRepositoryBase<T> :IDisposable
         where T : class
 	{
 		IUnitOfWork UnitOfWork { get; set; }
@@ -57,6 +57,7 @@ namespace EdiuxTemplateWebApp.Models
 		T Reload(T entity);
 
 		Task<T> ReloadAsync(T entity);
+
 	}
 }
 

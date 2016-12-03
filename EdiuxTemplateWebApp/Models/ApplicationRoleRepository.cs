@@ -14,39 +14,103 @@ namespace EdiuxTemplateWebApp.Models
         private static string KeyName = typeof(ApplicationRole).Name;
 #endif
 
-        #region Role Store
-        public Task CreateAsync(ApplicationRole role)
+        public override IQueryable<ApplicationRole> All()
         {
-            throw new NotImplementedException();
+            return base.All().Where(w => w.Void == false);
         }
 
-        public Task DeleteAsync(ApplicationRole role)
+        #region Role Store
+        public async Task CreateAsync(ApplicationRole role)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (role == null)
+                    throw new ArgumentNullException(nameof(role));  //C# 6.0 新語法
+
+                Add(role);
+                await UnitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public async Task DeleteAsync(ApplicationRole role)
+        {
+            try
+            {
+                if (role == null)
+                    throw new ArgumentNullException(nameof(role));  //C# 6.0 新語法
+
+                role.Void = true;
+                role.LastUpdateTime = DateTime.UtcNow;
+                role.LastUpdateUserId = getCurrentLoginedUserId();
+
+                await UpdateAsync(role);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<ApplicationRole> FindByIdAsync(int roleId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(Get(roleId));
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<ApplicationRole> FindByNameAsync(string roleName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (string.IsNullOrEmpty(roleName))
+                    throw new ArgumentNullException(nameof(roleName));  //C# 6.0 新語法
+
+                var role = (from q in All()
+                            where q.Name.Equals(roleName, StringComparison.InvariantCultureIgnoreCase)
+                            select q).SingleOrDefault();
+
+                return Task.FromResult(role);
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
-        public Task UpdateAsync(ApplicationRole role)
+        public async Task UpdateAsync(ApplicationRole role)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (role == null)
+                    throw new ArgumentNullException(nameof(role));  //C# 6.0 新語法
+
+                UnitOfWork.Context.Entry(role).State = EntityState.Modified;
+                await UnitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
-        #endregion
-
-        #region Helper Function
-
-        #endregion
+        #endregion   
     }
 
-    public  partial interface IApplicationRoleRepository : IRepositoryBase<ApplicationRole>
+    public partial interface IApplicationRoleRepository : IRepositoryBase<ApplicationRole>
     {
         #region Role Store
         Task CreateAsync(ApplicationRole role);
@@ -54,7 +118,6 @@ namespace EdiuxTemplateWebApp.Models
         Task DeleteAsync(ApplicationRole role);
         Task<ApplicationRole> FindByIdAsync(int roleId);
         Task<ApplicationRole> FindByNameAsync(string roleName);
-
         #endregion
     }
 }

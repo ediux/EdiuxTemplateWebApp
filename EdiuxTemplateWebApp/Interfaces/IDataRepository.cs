@@ -10,6 +10,6 @@ namespace EdiuxTemplateWebApp.Interfaces
     public interface IDataRepository<T> where T:class
     {
         void ClearCache(string key);
-        IQueryable<T> GetCache();
+        System.Collections.ObjectModel.ObservableCollection<T> GetCache();
     }
 }

@@ -16,48 +16,241 @@ namespace EdiuxTemplateWebApp.Models
 #else
         private static string KeyName = typeof(ApplicationUser).Name;
 #endif
+        private bool _IsOnline;
+        public bool IsOnline
+        {
+            get
+            {
+                return _IsOnline;
+            }
+
+            set
+            {
+                _IsOnline = value;
+            }
+        }
+
+        public ApplicationUserRepository()
+        {
+            _IsOnline = false;
+        }
 
         #region Override of Base
 
-        protected ApplicationUser ChangeBeforeReactive(ApplicationUser entity)
+        protected ApplicationUser ChangeBeforeReactive(ApplicationUser existedUser)
         {
-            entity.Void = false;
-            entity.LockoutEnabled = false;
-            entity.LockoutEndDate = DateTime.UtcNow;
-
-            Task<ApplicationUser> getRootUserTask = FindByNameAsync("root");
-            getRootUserTask.Wait();
-
-            if (getRootUserTask.Result != null)
+            try
             {
-                entity.LastUpdateUserId = getRootUserTask.Result.Id;
+
+
+                if (existedUser != null)
+                {
+                    existedUser.Void = false;
+                    existedUser.LockoutEnabled = false;
+
+                    if (System.Web.HttpContext.Current != null)
+                    {
+                        existedUser.LastUpdateUserId
+                            = System.Web.HttpContext.Current.User.Identity.GetUserId<int>();
+                    }
+                    else
+                    {
+                        Task<ApplicationUser> findbyNameTask
+                            = FindByNameAsync("root");
+                        findbyNameTask.Wait();
+
+                        ApplicationUser updatedUser
+                            = findbyNameTask.Result;
+
+                        if (updatedUser != null)
+                        {
+                            existedUser.LastUpdateUserId = updatedUser.Id;
+                        }
+                        else
+                        {
+                            existedUser.LastUpdateUserId = 0;
+                        }
+                    }
+
+                    existedUser.LastActivityTime
+                        = existedUser.LastUnlockedTime
+                        = existedUser.LockoutEndDate
+                        = existedUser.LastUpdateTime
+                        = DateTime.UtcNow;
+
+                    existedUser.ApplicationRole.Clear();    //移除角色
+                    existedUser.ApplicationUserClaim.Clear();   //移除宣告式身分識別
+                    existedUser.ApplicationUserLogin.Clear();   //移除外部登入識別                        
+
+                }
+
+                return existedUser;
             }
-            else
+            catch (Exception ex)
             {
-                entity.LastUpdateUserId = 0;
+                WriteErrorLog(ex);
+                throw ex;
             }
 
-            entity.LastUpdateTime = DateTime.UtcNow;
-
-            //更新資料庫
-            Task updateTask = UpdateAsync(entity);
-            updateTask.Wait();
-
-            //從資料庫重新載入
-            entity = Reload(entity);
-
-            return entity;
         }
+
         public override ApplicationUser Add(ApplicationUser entity)
         {
+            ApplicationUser existedUser = null;
+            ApplicationUser newUser = null;
+            try
+            {
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));
 
+                try
+                {
+                    existedUser =
+                        base.All()
+                        .SingleOrDefault(w => w.UserName.Equals(entity.UserName, StringComparison.InvariantCultureIgnoreCase));
+                }
+                catch (InvalidOperationException)
+                {
+                    //找不到或是有一筆以上紀錄
+                    //以建立日期找出最後建立那一次的紀錄
+                    existedUser = base.All()
+                        .OrderByDescending(o => o.CreateTime)
+                        .First(w => w.UserName.Equals(entity.UserName, StringComparison.InvariantCultureIgnoreCase));
+
+                    //找出重複的使用者並永久刪除
+                    List<ApplicationUser> existedUsers =
+                        base.All()
+                        .Where(w => w.UserName.Equals(entity.UserName, StringComparison.InvariantCultureIgnoreCase)
+                        && w.Id != existedUser.Id).ToList();
+
+                    foreach (var user in existedUsers)
+                    {
+                        ObjectSet.Remove(user);
+                    }
+
+                    UnitOfWork.Commit();
+                    existedUser = Reload(existedUser);
+                }
+
+                if (existedUser == null)
+                {
+                    newUser = ApplicationUser.Create();
+                    newUser.CloneFrom(entity);
+                    ObjectSet.Add(newUser);
+                }
+                else
+                {
+                    if (existedUser.Void)
+                    {
+                        //檢查停用後最後更新時間與當下時間距離多久，如果超過六個月將該帳號直接刪除。
+                        TimeSpan accountDisableDurtion = (TimeSpan)(DateTime.Now - existedUser.LastUpdateTime);
+
+                        if (accountDisableDurtion.Days > (30 * 6))
+                        {
+                            ObjectSet.Remove(existedUser);
+                            newUser = ApplicationUser.Create();
+                            newUser.CloneFrom(entity);
+                            ObjectSet.Add(newUser);
+                        }
+                        else
+                        {
+                            newUser = existedUser;
+                            newUser.CloneFrom(entity);
+                            newUser.Void = false;
+                            newUser.LockoutEnabled = false;
+                            newUser.LockoutEndDate = DateTime.UtcNow;
+                            newUser.ApplicationRole.Clear();
+                            newUser.ApplicationUserClaim.Clear();
+                            newUser.ApplicationUserLogin.Clear();
+                            UnitOfWork.Context.Entry(newUser).State = EntityState.Modified;
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception(string.Format("User '{0}' is already existed.", entity.UserName));
+                    }
+
+                }
+
+                return newUser;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
 
         }
 
         public override void Delete(ApplicationUser entity)
         {
+            ApplicationUser existedUser = null;
 
+            try
+            {
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));
 
+                Task<ApplicationUser> findUserByIdTask = FindByIdAsync(entity.Id);
+                findUserByIdTask.Wait();
+
+                existedUser = findUserByIdTask.Result;
+
+                if (existedUser == null)
+                {
+                    throw new Exception(string.Format("User '{0}' is not existed.", entity.UserName));
+                }
+                else
+                {
+                    //作廢並鎖定帳號
+                    existedUser.Void = true;
+                    existedUser.LockoutEnabled = true;
+                    existedUser.LockoutEndDate = null;
+                    existedUser.LastUpdateUserId
+                          = getCurrentLoginedUserId();
+                    existedUser.ApplicationRole.Clear();
+                    UnitOfWork.Context.Entry(existedUser).State = EntityState.Modified;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+
+        }
+
+        public override IQueryable<ApplicationUser> All()
+        {
+            try
+            {
+                return base.All().Where(w => w.Void == false);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public override IList<ApplicationUser> BatchAdd(IEnumerable<ApplicationUser> entities)
+        {
+            try
+            {
+                IList<ApplicationUser> newUsers = new List<ApplicationUser>();
+
+                foreach (var user in entities)
+                {
+                    newUsers.Add(Add(user));
+                }
+                return newUsers;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 
@@ -70,63 +263,41 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(user));  //C# 6.0 新語法
 
                 ApplicationUser newUser = Add(user);
-
-                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UnitOfWork);
-
-                if (await IsInRoleAsync(user, "Users") == false)
-                {
-                    ApplicationRole role = roleRepo
-                        .All()
-                        .FirstOrDefault(p => p.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase));
-                    newUser.ApplicationRole.Add(role);
-                    //UnitOfWork.Context.Entry(role).State = EntityState.Modified;
-                    UnitOfWork.Context.Entry(newUser).State = EntityState.Modified;
-                    UnitOfWork.Commit();
-                    UpdateCache(newUser);
-
-                }
-                user = newUser;
+                await AddToRoleAsync(newUser, "Users");
+                user = await ReloadAsync(newUser);
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
 
-        public Task DeleteAsync(ApplicationUser user)
+        public async Task DeleteAsync(ApplicationUser user)
         {
             try
             {
                 Delete(user);
-                UnitOfWork.CommitAsync().Wait();
+                await UnitOfWork.CommitAsync();
                 UpdateCache(user);
-                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
 
-        public Task<ApplicationUser> FindByIdAsync(int userId)
+        public async Task<ApplicationUser> FindByIdAsync(int userId)
         {
             try
             {
-                ApplicationUser _user = Get(userId);
-
-                return Task.FromResult(_user);
+                ApplicationUser _user = await GetAsync(userId);
+                return _user;
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -135,139 +306,16 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ApplicationUser _user = GetCache()
-                    .FirstOrDefault(w => w.UserName == userName);
+                ApplicationUser _user = null;
 
-                if (_user == null)
-                {
-                    //Get From DB
-                    _user = ObjectSet
-                        .Include(p => p.ApplicationRole)
-                        .Include(p => p.ApplicationUserClaim)
-                        .Include(p => p.ApplicationUserLogin)
-                        .Where(w => w.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase))
-                        .FirstOrDefault();
-
-                    //加入到記憶體快取
-                    if (_user != null)
-                        AddToCache(_user);
-
-                }
+                var queryresult = base.All();
+                _user = queryresult.SingleOrDefault(w => w.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase));
 
                 return Task.FromResult(_user);
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-        }
-
-
-
-        public Task<IList<string>> GetRolesAsync(ApplicationUser user)
-        {
-            try
-            {
-                if (user == null)
-                {
-                    throw new ArgumentNullException(nameof(user));
-                }
-
-                ApplicationUser cacheUser = Get(user.Id);
-
-                return Task.FromResult(
-                   (IList<string>)cacheUser
-                   .ApplicationRole.Select(s => s.Name).ToList()
-                    );
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-        }
-
-        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
-        {
-            try
-            {
-                if (user == null)
-                {
-                    throw new ArgumentNullException(nameof(user));
-                }
-
-                if (string.IsNullOrEmpty(roleName))
-                {
-                    throw new ArgumentNullException(nameof(roleName));
-                }
-
-                return Task.FromResult(
-                    user.ApplicationRole.Any(s => s.Name.Equals(roleName,
-                     StringComparison.InvariantCultureIgnoreCase))
-                    );
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
-                throw ex;
-            }
-        }
-
-        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
-        {
-            try
-            {
-                if (user == null)
-                {
-                    throw new ArgumentNullException(nameof(user));
-                }
-
-                if (string.IsNullOrEmpty(roleName))
-                {
-                    throw new ArgumentNullException(nameof(roleName));
-                }
-
-                ApplicationUser userfromcache = Get(user.Id);
-
-                if (userfromcache == null)
-                {
-                    //load from db
-                    userfromcache =
-                        ObjectSet.FirstOrDefault(s => s.Id == user.Id);
-
-                    if (userfromcache == null)
-                        throw new NullReferenceException(string.Format("User '{0}' is not existed.", user.UserName));
-                }
-
-                Task<bool> isInRole = IsInRoleAsync(user, roleName);
-                isInRole.Wait();
-
-                if (isInRole.Result)
-                {
-                    user.ApplicationRole.Remove(userfromcache.
-                        ApplicationRole.Single(w => w.Name.Equals(roleName,
-                        StringComparison.InvariantCultureIgnoreCase)));
-
-                    UnitOfWork.Context.Entry(user).State = EntityState.Modified;
-                    UnitOfWork.Commit();
-                    return Task.CompletedTask;
-                }
-
-                throw new Exception(string.Format("User '{0}' is not in roles of {1}.", user.UserName, roleName));
-
-            }
-            catch (Exception ex)
-            {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -283,38 +331,20 @@ namespace EdiuxTemplateWebApp.Models
 
                 ApplicationUser dbUser = base.Get(user.Id);  //從資料庫讀取
 
-                RemoveFromCache(user); //先從記憶體快取中移除
+                dbUser.CloneFrom(user);
 
-                dbUser.LastActivityTime = user.LastActivityTime;
-                dbUser.LastLoginFailTime = user.LastLoginFailTime;
-                dbUser.LastUnlockedTime = user.LastUnlockedTime;
-                dbUser.LastUpdateTime = DateTime.UtcNow;
-                dbUser.LastUpdateUserId = user.LastUpdateUserId;
-                dbUser.LockoutEnabled = user.LockoutEnabled;
-                dbUser.LockoutEndDate = user.LockoutEndDate;
-                dbUser.Password = user.Password;
-                dbUser.PasswordHash = user.PasswordHash;
-                dbUser.PhoneConfirmed = user.PhoneConfirmed;
-                dbUser.PhoneNumber = user.PhoneNumber;
-                dbUser.ResetPasswordToken = user.ResetPasswordToken;
-                dbUser.SecurityStamp = user.SecurityStamp;
-                dbUser.TwoFactorEnabled = user.TwoFactorEnabled;
-                dbUser.Void = user.Void;
+                dbUser.LastActivityTime
+                    = dbUser.LastUpdateTime = DateTime.UtcNow;
 
                 UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
                 Task commitTask = UnitOfWork.CommitAsync();
                 commitTask.Wait();
 
-                //重新加入記憶體快取
-                AddToCache(dbUser);
-
                 return commitTask;
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -335,7 +365,7 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentException(nameof(roleName));
                 }
 
-                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository();
+                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UnitOfWork);
 
                 Task<ApplicationRole> roleTask = roleRepo.FindByNameAsync(roleName);
                 roleTask.Wait();
@@ -343,58 +373,429 @@ namespace EdiuxTemplateWebApp.Models
                 ApplicationRole role = roleTask.Result;
                 user.ApplicationRole.Clear();
                 user.ApplicationRole.Add(role);
-
+                roleRepo.UnitOfWork.Context.Entry(role).State = EntityState.Modified;
                 UpdateAsync(user).Wait();
                 return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public async Task<IList<string>> GetRolesAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                ApplicationUser cacheUser = await GetAsync(user.Id);
+
+                return
+                   (IList<string>)cacheUser
+                   .ApplicationRole
+                   .Select(s => s.Name)
+                   .ToList();
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public async Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                if (string.IsNullOrEmpty(roleName))
+                {
+                    throw new ArgumentNullException(nameof(roleName));
+                }
+
+                return await Task.FromResult(
+                    user.ApplicationRole.Any(s => s.Name.Equals(roleName,
+                     StringComparison.InvariantCultureIgnoreCase)));
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public async Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                if (user == null)
+                {
+                    throw new ArgumentNullException(nameof(user));
+                }
+
+                if (string.IsNullOrEmpty(roleName))
+                {
+                    throw new ArgumentNullException(nameof(roleName));
+                }
+
+                ApplicationUser userfromcache = await GetAsync(user.Id);
+
+                if (userfromcache == null)
+                {
+                    //load from db
+                    userfromcache =
+                        await ObjectSet.FirstOrDefaultAsync(s => s.Id == user.Id);
+
+                    if (userfromcache == null)
+                        throw new NullReferenceException(string.Format("User '{0}' is not existed.", user.UserName));
+                }
+
+                Task<bool> isInRole = IsInRoleAsync(user, roleName);
+                isInRole.Wait();
+
+                if (isInRole.Result)
+                {
+                    user.ApplicationRole.Remove(userfromcache.
+                        ApplicationRole.SingleOrDefault(w => w.Name.Equals(roleName,
+                        StringComparison.InvariantCultureIgnoreCase)));
+
+                    UnitOfWork.Context.Entry(user).State = EntityState.Modified;
+                    await UnitOfWork.CommitAsync();
+                }
+
+                throw new Exception(string.Format("User '{0}' is not in roles of {1}.", user.UserName, roleName));
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
         #endregion
 
         #region Email Store
-
-        public Task SetEmailAsync(ApplicationUser user, string email)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<string> GetEmailAsync(ApplicationUser user)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        #region Helper Function
-        private bool IsUserExists(string userName)
+        public async Task SetEmailAsync(ApplicationUser user, string email)
         {
             try
             {
-                return GetCache()
-                    .Any(p => p.UserName.Equals(userName, StringComparison.InvariantCultureIgnoreCase));
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                if (string.IsNullOrEmpty(email))
+                    throw new ArgumentNullException(nameof(email));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+                if (userinDB != null)
+                {
+                    userinDB.EMail = email;
+                    userinDB.LastUpdateTime = DateTime.UtcNow;
+                    userinDB.LastUpdateUserId = getCurrentLoginedUserId();
+
+                    if (IsOnline)
+                    {
+                        userinDB.LastActivityTime = DateTime.UtcNow;
+                    }
+
+                    if (userinDB.TwoFactorEnabled)
+                    {
+                        userinDB.EMailConfirmed = false;
+                    }
+                    else
+                    {
+                        userinDB.EMailConfirmed = true;
+                    }
+                }
+                await UpdateAsync(user);
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+        public Task<string> GetEmailAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(user.EMail);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+        public async Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    userinDB.EMailConfirmed = confirmed;
+                    userinDB.LastUpdateTime = DateTime.UtcNow;
+
+                    if (_IsOnline)
+                    {
+                        userinDB.LastActivityTime = DateTime.UtcNow;
+                    }
+
+                    await UpdateAsync(userinDB);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+        public Task<bool> GetEmailConfirmedAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(user.EMailConfirmed);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+        public async Task<ApplicationUser> FindByEmailAsync(string email)
+        {
+            try
+            {
+                ApplicationUser founduser =
+                  await All().SingleOrDefaultAsync(w =>
+                  w.EMail.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+
+                return founduser;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+        #endregion
+
+        #region User Lockout Store
+        public Task<DateTimeOffset> GetLockoutEndDateAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                DateTimeOffset LockoutEndDateFrom = new DateTimeOffset(user.LockoutEndDate ?? new DateTime(1754, 1, 1));
+                return Task.FromResult(LockoutEndDateFrom);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
 
+        public Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
 
+                ApplicationUser userInDb = Get(user.Id);
 
+                userInDb.LastUpdateTime = DateTime.UtcNow;
+                userInDb.LastActivityTime = DateTime.UtcNow;
+                userInDb.LastUpdateUserId = getCurrentLoginedUserId();
+                userInDb.LockoutEndDate = new DateTime(lockoutEnd.Ticks).ToUniversalTime();
 
+                UpdateAsync(userInDb).Wait();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                ApplicationUser userInDb = Get(user.Id);
+
+                if (userInDb != null)
+                {
+                    userInDb.AccessFailedCount += 1;
+                    userInDb.LastUpdateTime = DateTime.UtcNow;
+                    userInDb.LastActivityTime = DateTime.UtcNow;
+                    userInDb.LastUpdateUserId = getCurrentLoginedUserId();
+                    UpdateAsync(userInDb).Wait();
+                    userInDb = Reload(userInDb);
+                    return Task.FromResult(userInDb.AccessFailedCount);
+                }
+
+                return Task.FromResult(0);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public Task ResetAccessFailedCountAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                ApplicationUser userInDb = Get(user.Id);
+
+                userInDb.AccessFailedCount = 0;
+                userInDb.LastUpdateTime = DateTime.UtcNow;
+                userInDb.LastActivityTime = DateTime.UtcNow;
+                userInDb.LastUpdateUserId = getCurrentLoginedUserId();
+                userInDb.LastUpdateUserId = getCurrentLoginedUserId();
+
+                UpdateAsync(userInDb).Wait();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public Task<int> GetAccessFailedCountAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(user.AccessFailedCount);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public Task<bool> GetLockoutEnabledAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+                return Task.FromResult(user.LockoutEnabled ?? false);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                ApplicationUser userInDb = Get(user.Id);
+
+                userInDb.AccessFailedCount = 0;
+                userInDb.LastUpdateTime = DateTime.UtcNow;
+                userInDb.LastActivityTime = DateTime.UtcNow;
+                userInDb.LastUpdateUserId = getCurrentLoginedUserId();
+                userInDb.LockoutEnabled = enabled;
+
+                UpdateAsync(userInDb).Wait();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
         #endregion
+
+
+        #region Helper Function
+        protected override int getCurrentLoginedUserId()
+        {
+            try
+            {
+
+                if (System.Web.HttpContext.Current != null)
+                {
+                    return base.getCurrentLoginedUserId();
+                }
+                else
+                {
+                    Task<ApplicationUser> findbyNameTask
+                        = FindByNameAsync("root");
+                    findbyNameTask.Wait();
+
+                    ApplicationUser updatedUser
+                        = findbyNameTask.Result;
+
+                    if (updatedUser != null)
+                        return updatedUser.Id;
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+        #endregion
+
     }
 
-    public partial interface IApplicationUserRepository : IRepositoryBase<ApplicationUser>, Interfaces.IDataRepository<ApplicationUser>
+    public partial interface IApplicationUserRepository : IRepositoryBase<ApplicationUser>
     {
+        #region For Setings
+        bool IsOnline { get; set; }
+        #endregion
+
         #region For User Store
         Task CreateAsync(ApplicationUser user);
         Task DeleteAsync(ApplicationUser user);
@@ -413,6 +814,27 @@ namespace EdiuxTemplateWebApp.Models
         #region Email Store
         Task SetEmailAsync(ApplicationUser user, string email);
         Task<string> GetEmailAsync(ApplicationUser user);
+        Task<ApplicationUser> FindByEmailAsync(string email);
+        Task<bool> GetEmailConfirmedAsync(ApplicationUser user);
+        Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed);
         #endregion
+
+        #region User Lockout Store
+        Task<DateTimeOffset> GetLockoutEndDateAsync(ApplicationUser user);
+
+        Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd);
+
+        Task<int> IncrementAccessFailedCountAsync(ApplicationUser user);
+
+        Task ResetAccessFailedCountAsync(ApplicationUser user);
+
+        Task<int> GetAccessFailedCountAsync(ApplicationUser user);
+
+        Task<bool> GetLockoutEnabledAsync(ApplicationUser user);
+
+        Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled);
+        #endregion
+
+    
     }
 }

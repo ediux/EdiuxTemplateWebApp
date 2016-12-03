@@ -1,9 +1,10 @@
 namespace EdiuxTemplateWebApp.Models
 {
+    using Microsoft.AspNet.Identity;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(ApplicationUserLoginMetaData))]
     public partial class ApplicationUserLogin
     {

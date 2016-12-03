@@ -1,3 +1,4 @@
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -43,14 +44,16 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 //取得記憶體快取中的資料
-                //只傳回未被標記為刪除的資料集合
-                return GetCache();
+                //只傳回未被標記為刪除的資料集合    
+                if (ObjectSet.Local.Count > 0)
+                    return ObjectSet.Local.AsQueryable();
+
+                ObjectSet.Load();            
+                return ObjectSet.Local.AsQueryable();
             }
             catch (Exception ex)
             {
-#if !DEBUG
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -59,39 +62,24 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                //記憶體快取先行的讀取
-                IQueryable<T> cacheResult = GetCache().Where(expression);
+                //使用EF的快取
+                IQueryable<T> getFromL1Cache = ObjectSet.Local.AsQueryable().Where(expression);
 
-                IQueryable<T> queryResultFromDatabase = ObjectSet.Where(expression);
-
-                if (queryResultFromDatabase != null
-                    && queryResultFromDatabase.Count() > 0)
-                {
-                    //如果資料庫有資料的話
-                    var diffFromDatabase = queryResultFromDatabase.Except(cacheResult);
-
-                    if (diffFromDatabase != null
-                        && diffFromDatabase.Count() > 0)
-                    {
-                        foreach (var item in diffFromDatabase)
-                        {
-                            AddToCache(item);
-                        }
-                    }
+                //Local快取(L1)有結果          
+                if (getFromL1Cache != null && getFromL1Cache.Count() > 0)
+                {                    
+                    return getFromL1Cache;
                 }
-                cacheResult = cacheResult.Union(queryResultFromDatabase);
-                //IQueryable<ApplicationUser> mergedSet = cacheResult.Union(base.Where(expression));  //
-                //IQueryable<ApplicationUser> addtoCacheResult = mergedSet.Except(GetCache());
-                //List<ApplicationUser> newcacheResult = GetFromCache();
-                //newcacheResult.AddRange(addtoCacheResult.ToList());
-                //return mergedSet;
-                return cacheResult;
+
+                getFromL1Cache.Load();  //對資料庫進行查詢並將結果快取到記憶體內 DB->L1->L2      
+                    
+                getFromL1Cache = ObjectSet.Local.AsQueryable().Where(expression);
+
+                return getFromL1Cache;
             }
             catch (Exception ex)
             {
-#if !DEBUG
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
             //return ObjectSet.Where(expression);
@@ -105,18 +93,12 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
                 //先取得目前快取
-                entity = ObjectSet.Add(entity);
-                AddToCache(entity);
+                entity = ObjectSet.Add(entity); //=> add to L1               
                 return entity;
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#else
-                System.Diagnostics.Debug.WriteLine(ex.Message);
-#endif
-
+                WriteErrorLog(ex);
                 throw ex;
             }
             //return ObjectSet.Add(entity);
@@ -130,14 +112,11 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
                 ObjectSet.Remove(entity);
-                FromCache.Remove(entity);
 
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
 
@@ -145,81 +124,133 @@ namespace EdiuxTemplateWebApp.Models
 
         public virtual Task<IQueryable<T>> AllAsync()
         {
-            return Task.FromResult(GetCache());
+            try
+            {
+                return Task.FromResult(All());
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
         }
 
         public virtual IList<T> BatchAdd(IEnumerable<T> entities)
         {
-            if (entities.Count() > 0)
+            try
             {
-                foreach (var item in entities)
-                {
-                    AddToCache(item);
-                }
+                return ((DbSet<T>)ObjectSet).AddRange(entities).ToList();
             }
-            return ((DbSet<T>)ObjectSet).AddRange(entities).ToList();
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
         }
 
         public virtual T Get(params object[] values)
         {
-            T entity = ObjectSet.Find(values);
-            AddToCache(entity);
-            return entity;
+            try
+            {
+                return ObjectSet.Find(values);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
         }
 
         public virtual Task<T> GetAsync(params object[] values)
         {
-            return Task.FromResult(Get(values));
+            try
+            {
+                return Task.FromResult(Get(values)); 
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public virtual T Reload(T entity)
         {
-            UnitOfWork.Context.Entry(entity).Reload();
-            UpdateCache(entity);
-            return entity;
+            try
+            {                
+                UnitOfWork.Context.Entry(entity).Reload();
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+
         }
 
-        public virtual async Task<T> ReloadAsync(T entity)
-        {
-            await UnitOfWork.Context.Entry(entity).ReloadAsync();
-            UpdateCache(entity);
-            return entity;
-        }
-
-        #region Memory Cache Supports
-
-        public virtual void ClearCache(string key)
-        {
-            UnitOfWork.Invalidate(key);
-        }
-
-        public virtual IQueryable<T> GetCache()
+        public virtual Task<T> ReloadAsync(T entity)
         {
             try
             {
+                return Task.FromResult(Reload(entity));
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+
+        }
+
+        #region Local Cache Supports
+        private Func<T, object> pkeySetting;
+        protected void SetPrimaryKey<TPKey>(Func<T, object> primaryKeys)
+        {
+            pkeySetting = primaryKeys;
+        }
+
+        public virtual void ClearCache(string key)
+        {
+            try
+            {
+                UnitOfWork.Invalidate(key); //移除快取
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+
+        public virtual System.Collections.ObjectModel.ObservableCollection<T> GetCache()
+        {
+            try
+            {
+
                 string KeyName = nameof(T);
 
                 if (UnitOfWork.IsSet(KeyName) == false)
                 {
-                    IQueryable<T> asyncResult = ObjectSet.AsQueryable();
-
-                    System.Collections.ObjectModel.ObservableCollection<T> _cacheList = ObjectSet.Local;
-
-                    UnitOfWork.Set(KeyName, _cacheList, CacheExpiredTime); //快取保留30分鐘
-                    return asyncResult;
+                    //IQueryable<T> asyncResult = ObjectSet.AsQueryable();
+                    ObjectSet.Load();//<--直接載入記憶體副本 Db=>L1
+                    System.Collections.ObjectModel.ObservableCollection<T> _cache = new System.Collections.ObjectModel.ObservableCollection<T>(ObjectSet.Local.AsEnumerable()); //L1 Save=> RAM
+                    UnitOfWork.Set(KeyName, _cache, CacheExpiredTime); //快取保留30分鐘
+                    return _cache;
                 }
                 else
                 {
                     System.Collections.ObjectModel.ObservableCollection<T> _cache =
                         UnitOfWork.Get(KeyName) as System.Collections.ObjectModel.ObservableCollection<T>;
-                    return _cache.AsQueryable();
+                    return _cache;
                 }
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -237,9 +268,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -262,9 +291,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -284,9 +311,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-#if !TEST
-                Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
@@ -302,13 +327,44 @@ namespace EdiuxTemplateWebApp.Models
                 }
                 catch (Exception ex)
                 {
-#if !TEST
-                    Elmah.ErrorSignal.Get(new MvcApplication()).Raise(ex);
-#endif
+                    WriteErrorLog(ex);
                     throw ex;
                 }
 
             }
+        }
+
+        protected virtual void WriteErrorLog(Exception ex)
+        {
+            if (System.Web.HttpContext.Current == null)
+            {
+                Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
+            }
+            else
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+            }
+        }
+        #endregion
+
+        #region Helper Function
+        protected virtual int getCurrentLoginedUserId()
+        {
+            try
+            {
+                if (System.Web.HttpContext.Current != null)
+                {
+                    return System.Web.HttpContext.Current.User.Identity.GetUserId<int>();
+                }                
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
         }
         #endregion
 

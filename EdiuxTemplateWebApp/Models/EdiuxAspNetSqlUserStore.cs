@@ -60,7 +60,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 throw;
             }
         }
@@ -73,7 +73,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 throw;
             }
         }
@@ -86,7 +86,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 throw;
             }
         }
@@ -99,49 +99,12 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 throw;
             }
         }
 
-        public Task<IList<string>> GetRolesAsync(ApplicationUser user)
-        {
-            try
-            {
-                return userRepo.GetRolesAsync(user);
-            }
-            catch (Exception ex)
-            {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-                throw;
-            }
-        }
-
-        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
-        {
-            try
-            {
-                return userRepo.IsInRoleAsync(user, roleName);
-            }
-            catch (Exception ex)
-            {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-                throw;
-            }
-        }
-
-        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
-        {
-            try
-            {
-                return userRepo.RemoveFromRoleAsync(user, roleName);
-            }
-            catch (Exception ex)
-            {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
-                throw;
-            }
-        }
+        
 
         public Task UpdateAsync(ApplicationUser user)
         {
@@ -151,7 +114,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 throw;
             }
         }
@@ -166,7 +129,46 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+
+        public Task<IList<string>> GetRolesAsync(ApplicationUser user)
+        {
+            try
+            {
+                return userRepo.GetRolesAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+
+        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                return userRepo.IsInRoleAsync(user, roleName);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+
+        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
+        {
+            try
+            {
+                return userRepo.RemoveFromRoleAsync(user, roleName);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
                 throw;
             }
         }
@@ -248,7 +250,7 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 throw;
             }
         }
@@ -261,38 +263,77 @@ namespace EdiuxTemplateWebApp.Models
             }
             catch (Exception ex)
             {
-
+                WriteErrorLog(ex);
                 throw ex;
             }
         }
 
         public Task<bool> GetEmailConfirmedAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return userRepo.GetEmailConfirmedAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return userRepo.SetEmailConfirmedAsync(user, confirmed);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<ApplicationUser> FindByEmailAsync(string email)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return userRepo.FindByEmailAsync(email);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
-
 
         #endregion
 
         #region User Lockout Store
-        public Task<DateTimeOffset> GetLockoutEndDateAsync(ApplicationUser user)
+        public async Task<DateTimeOffset> GetLockoutEndDateAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await userRepo.GetLockoutEndDateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
-        public Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
+        public async Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await userRepo.SetLockoutEndDateAsync(user,lockoutEnd);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
@@ -422,6 +463,20 @@ namespace EdiuxTemplateWebApp.Models
         public Task RemoveClaimAsync(ApplicationUser user, Claim claim)
         {
             throw new NotImplementedException();
+        }
+        #endregion
+
+        #region Helper Functions
+        protected virtual void WriteErrorLog(Exception ex)
+        {
+            if (System.Web.HttpContext.Current == null)
+            {
+                Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
+            }
+            else
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+            }
         }
         #endregion
 

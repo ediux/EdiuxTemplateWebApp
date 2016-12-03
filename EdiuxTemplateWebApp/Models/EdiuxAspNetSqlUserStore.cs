@@ -365,22 +365,60 @@ namespace EdiuxTemplateWebApp.Models
         #region User Login Store
         public Task AddLoginAsync(ApplicationUser user, UserLoginInfo login)
         {
-            throw new NotImplementedException();
+            try
+            {
+                userloginRepo.AddLoginAsync(user, login).Wait();
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task RemoveLoginAsync(ApplicationUser user, UserLoginInfo login)
         {
-            throw new NotImplementedException();
+            try
+            {
+                userloginRepo.RemoveLoginAsync(user, login);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<IList<UserLoginInfo>> GetLoginsAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<IList<UserLoginInfo>> getLoginTask = userloginRepo.GetLoginsAsync(user);
+                getLoginTask.Wait();
+                return getLoginTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<ApplicationUser> FindAsync(UserLoginInfo login)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<ApplicationUser> getFindTask = userloginRepo.FindAsync(login);
+                getFindTask.Wait();
+                return getFindTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 

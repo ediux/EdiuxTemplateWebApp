@@ -783,9 +783,27 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<string> GetPasswordHashAsync(ApplicationUser user)
+        public async Task<string> GetPasswordHashAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));               
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    return user.PasswordHash;
+                }
+
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<bool> HasPasswordAsync(ApplicationUser user)

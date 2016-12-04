@@ -1,0 +1,122 @@
+﻿@model EdiuxTemplateWebApp.Models.Menus
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Menus</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IconCSS)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IconCSS)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsExternalLinks)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsExternalLinks)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalURL)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalURL)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Void)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Void)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CreateUserId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreateUserId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CreateTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreateTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LastUpdateUserId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LastUpdateUserId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LastUpdateTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LastUpdateTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AllowAnonymous)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AllowAnonymous)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Order)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Order)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Menus2.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Menus2.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.System_ControllerActions.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.System_ControllerActions.Name)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

@@ -1,0 +1,118 @@
+﻿@using My.Core.Infrastructures.Implementations.Models
+@model List<Menus>
+@{
+    Layout = "";
+}
+<div id="top-menu" class="top-menu">
+    <!-- begin top-menu nav -->
+    <ul class="nav">
+        @foreach (Menus menuitem in Model)
+        {
+            if (menuitem.ChildMenus.Any(v => v.Void == false)==false)
+            {
+
+                if (menuitem.IsExternalLinks)
+                {
+                    <li>
+                        <a href="@menuitem.ExternalURL">
+                            @if (string.IsNullOrEmpty(menuitem.IconCSS) == false)
+                            {
+                                <i class="@menuitem.IconCSS"></i>
+                            }
+                            <span>@menuitem.Name</span>
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    if (menuitem.System_ControllerActions != null)
+                    {
+                        if (menuitem.System_ControllerActions.System_Controllers != null)
+                        {
+                            <li>
+                                <a href="@Url.Action(menuitem.System_ControllerActions.Name, menuitem.System_ControllerActions.System_Controllers.Name)">
+                                    @if (string.IsNullOrEmpty(menuitem.IconCSS) == false)
+                                    {
+                                        <i class="@menuitem.IconCSS"></i>
+                                    }
+                                    <span>@menuitem.Name</span>
+                                </a>
+                            </li>
+                        }
+                    }
+                }
+
+            }
+            else
+            {
+                if (menuitem.IsExternalLinks)
+                {
+                    <li class="has-sub">
+                        <a href="@menuitem.ExternalURL">
+                            <b class="caret pull-right"></b>
+                            <i class="@menuitem.IconCSS"></i>
+                            <span>@menuitem.Name</span>
+                        </a>
+                        @Html.Partial("_SubMenuBarPartial", menuitem.ChildMenus.ToList())
+                    </li>
+                }
+                else
+                {
+                    if (menuitem.System_ControllerActions != null)
+                    {
+                        if (menuitem.System_ControllerActions.System_Controllers != null)
+                        {
+                            <li class="has-sub">
+                                <a href="@Url.Action(menuitem.System_ControllerActions.Name, menuitem.System_ControllerActions.System_Controllers.Name)">
+                                    <b class="caret pull-right"></b>
+                                    <i class="@menuitem.IconCSS"></i>
+                                    <span>@menuitem.Name</span>
+                                </a>
+                                @Html.Partial("_SubMenuBarPartial", menuitem.ChildMenus.ToList())
+                            </li>
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+        @*@if (User.IsInRole("Admins"))
+            {
+                <li>
+                    <a href="@Url.Action("Index", "Cars")">
+
+                        <i class="glyphicon glyphicon-list"></i>
+                        <span>@WebPages.ETAs_Cars_Binding</span>
+                    </a>
+                </li>
+            }
+            @if (User.IsInRole("警衛") || User.IsInRole("Admins"))
+            {
+                <li>
+                    <a href="@Url.Action( "ListRemainParkingGridAmounts", "ParkingLotsFloor")">
+
+                        <i class="glyphicon glyphicon-question-sign"></i>
+                        <span>剩餘車位數量維護</span>
+                    </a>
+                </li>
+            }
+
+            @if (User.IsInRole("Admins"))
+            {
+                <li>
+                    <a href="@Url.Action("Index", "News")">
+
+                        <i class="glyphicon glyphicon-bullhorn"></i>
+                        <span>公告維護</span>
+                    </a>
+                </li>
+            }
+
+            }*@
+    </ul>
+
+    <!-- end top-menu nav -->
+</div>

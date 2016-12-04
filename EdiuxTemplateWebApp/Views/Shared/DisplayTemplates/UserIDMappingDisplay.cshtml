@@ -1,0 +1,14 @@
+﻿@model int?
+@{ 
+    int userId = Model ?? -1;
+    if (userId == -1)
+    {
+        @Html.Raw("訪客")
+    }
+    else
+    {
+        @Html.GetUserName((int)Model)
+    }
+
+
+}

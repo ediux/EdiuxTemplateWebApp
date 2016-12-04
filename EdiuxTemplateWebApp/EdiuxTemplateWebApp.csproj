@@ -320,6 +320,7 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\fonts\fontawesome-webfont.svg" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -349,6 +350,10 @@
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap-theme.css.map" />
+    <Content Include="Content\fonts\fontawesome-webfont.eot" />
+    <Content Include="Content\fonts\fontawesome-webfont.ttf" />
+    <Content Include="Content\fonts\fontawesome-webfont.woff" />
+    <Content Include="Content\fonts\FontAwesome.otf" />
     <None Include="Scripts\jquery-3.1.1.intellisense.js" />
     <Content Include="Models\Edward.IRepository.EF6.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -439,6 +444,15 @@
     <Content Include="Views\Shared\EditorTemplates\UTCLocalDateDisplay.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\UTCLocalTimeDisplay.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\VoidDisplay.cshtml" />
+    <Content Include="Views\Demo\General.cshtml" />
+    <Content Include="Views\Demo\Buttons.cshtml" />
+    <Content Include="Views\Demo\Tabs.cshtml" />
+    <Content Include="Views\Demo\Accordions.cshtml" />
+    <Content Include="Views\Demo\NestableList.cshtml" />
+    <Content Include="Views\Demo\Grid.cshtml" />
+    <Content Include="Views\Demo\Dialogs.cshtml" />
+    <Content Include="Views\Demo\FormElements.cshtml" />
+    <Content Include="Views\Demo\FormValidation.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

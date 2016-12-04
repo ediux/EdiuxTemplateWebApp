@@ -4,102 +4,89 @@
     ViewBag.Title = "Index";
 }
 
-<h2>Index</h2>
-
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
-<table class="table">
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Name)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.IconCSS)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.IsExternalLinks)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.ExternalURL)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Void)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreateUserId)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreateTime)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.LastUpdateUserId)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.LastUpdateTime)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.AllowAnonymous)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Order)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Menus2.Name)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.System_ControllerActions.Name)
-        </th>
-        <th></th>
-    </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.IconCSS)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.IsExternalLinks)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.ExternalURL)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Void)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreateUserId)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreateTime)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.LastUpdateUserId)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.LastUpdateTime)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.AllowAnonymous)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Order)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Menus2.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.System_ControllerActions.Name)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
-            @Html.ActionLink("Details", "Details", new { id=item.Id }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.Id })
-        </td>
-    </tr>
-}
-
-</table>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                </div>
+                <h4 class="panel-title">@ViewBag.Title</h4>
+            </div>
+            <div class="panel-toolbar">
+                @*<div class="btn-group m-r-5" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index")" class="btn btn-white" title="回到選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                </div>*@
+                <div class="btn-group m-l-5" role="group" aria-label="First group">
+                    <a href="@Url.Action("Create")" class="btn btn-white" title="新增選單"><i class="glyphicon glyphicon-plus"></i></a>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr class="info">
+                            <th>
+                                @Html.DisplayNameFor(model => model.Name)
+                            </th>
+                            <th class="hidden-xs hidden-sm">
+                                @Html.DisplayNameFor(model => model.IconCSS)
+                            </th>
+                            <th class="hidden-xs hidden-sm">
+                                @Html.DisplayNameFor(model => model.CreateUserId)
+                            </th>
+                            <th class="hidden-xs hidden-sm">
+                                @Html.DisplayNameFor(model => model.CreateTime)
+                            </th>
+                            <th class="hidden-xs hidden-sm">
+                                @Html.DisplayNameFor(model => model.LastUpdateUserId)
+                            </th>
+                            <th class="hidden-xs hidden-sm">
+                                @Html.DisplayNameFor(model => model.LastUpdateTime)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.ParentMenu)
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-justify">
+                                    <i class="@item.IconCSS visible-xs visible-sm"></i>
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td class="hidden-xs hidden-sm">
+                                    <i class="@item.IconCSS hidden-sm"></i>
+                                    @Html.DisplayFor(modelItem => item.IconCSS)
+                                </td>
+                                <td class="hidden-xs hidden-sm">
+                                    @Html.DisplayFor(modelItem => item.CreateUserId)
+                                </td>
+                                <td class="hidden-xs hidden-sm">
+                                    @Html.DisplayFor(modelItem => item.CreateTime)
+                                </td>
+                                <td class="hidden-xs hidden-sm">
+                                    @Html.DisplayFor(modelItem => item.LastUpdateUserId)
+                                </td>
+                                <td class="hidden-xs hidden-sm">
+                                    @Html.DisplayFor(modelItem => item.LastUpdateTime)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.ParentMenu.Name)
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("EditMenu", new { id = item.Id })" class="btn btn-primary btn-xs m-r-5" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>
+                                    <a href="@Url.Action("MenuDetails", new { id = item.Id })" class="btn btn-info btn-xs m-r-5" title="詳細"><i class="glyphicon glyphicon-info-sign"></i></a>
+                                    <a href="@Url.Action("DeleteMenu", new { id = item.Id })" class="btn btn-danger btn-xs m-r-5" title="刪除"><i class="glyphicon glyphicon-remove"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

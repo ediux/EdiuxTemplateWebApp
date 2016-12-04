@@ -22,6 +22,10 @@ namespace EdiuxTemplateWebApp.Models
         private IApplicationUserLoginRepository userloginRepo;
         #endregion
 
+        public IUnitOfWork UnitOfWork
+        {
+            get { return userRepo.UnitOfWork; }
+        }
         #region 建構式
         public EdiuxAspNetSqlUserStore(IUnitOfWork dbUnitOfWork)
         {

@@ -7,6 +7,21 @@ namespace EdiuxTemplateWebApp.Models
     [MetadataType(typeof(MenusMetaData))]
     public partial class Menus
     {
+        public void CloneFrom(Menus source)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            Name = source.Name;
+            IconCSS = source.IconCSS;
+            IsExternalLinks = source.IsExternalLinks;
+            ExternalURL = source.ExternalURL;
+            ParentMenuId = source.ParentMenuId;
+            System_ControllerActionsId = source.System_ControllerActionsId;
+            Void = source.Void;
+            Order = source.Order;
+            AllowAnonymous = source.AllowAnonymous;
+        }
     }
     
     public partial class MenusMetaData

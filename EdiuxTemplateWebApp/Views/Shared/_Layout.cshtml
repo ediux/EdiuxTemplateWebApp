@@ -1,45 +1,143 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta charset="utf-8" />
+    <title>@ViewBag.Title - @ViewBag.WebSiteName</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - 我的 ASP.NET 應用程式</title>
-    @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
-
+    <!-- Bootstrap -->
+    <link href="/Content/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="/Content/css/thin-admin.css" rel="stylesheet" media="screen">
+    <link href="/Content/css/font-awesome.css" rel="stylesheet" media="screen">
+    <link href="/Content/style/style.css" rel="stylesheet">
+    <link href="/Content/style/dashboard.css" rel="stylesheet">
+    <link href="/Content/assets/jquery-easy-pie-chart/jquery.easy-pie-chart.css" rel="stylesheet" type="text/css" media="screen" />
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+          <script src="/Content/assets/js/html5shiv.js"></script>
+          <script src="/Content/assets/js/respond.min.js"></script>
+        <![endif]-->
+    @*@Styles.Render("~/Content/css")*@
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                @Html.ActionLink("應用程式名稱", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
+    <div class="container">
+        <div class="top-navbar header b-b">
+            <a data-original-title="Toggle navigation" class="toggle-side-nav pull-left" href="#"><i class="icon-reorder"></i> </a>
+            @*@Html.ActionLink("應用程式名稱", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })*@
+            <div class="brand pull-left"> <a href="@Url.Action("Index","Home")"><img src="/Content/images/logo.png" width="147" height="33"></a></div>
+  
+            <form class="pull-right">
+                <input type="search" placeholder="Search..." class="search" id="search-input">
+            </form>
+            @*@Html.Partial("_LoginPartial")*@
+        </div>
+    </div>
+    <div class="wrapper">
+        <div class="left-nav">
+            <div id="side-nav">
+                <ul id="nav">
                     <li>@Html.ActionLink("首頁", "Index", "Home")</li>
                     <li>@Html.ActionLink("關於", "About", "Home")</li>
                     <li>@Html.ActionLink("連絡方式", "Contact", "Home")</li>
+                    <li class="current"> <a href="/Html/index.html"> <i class="icon-dashboard"></i> Dashboard </a> </li>
+                    <li>
+                        <a href="#"> <i class="icon-desktop"></i> UI Features <span class="label label-info pull-right">7</span> <i class="arrow icon-angle-left"></i></a>
+                        <ul class="sub-menu">
+                            <li> <a href="/Html/general.html"> <i class="icon-angle-right"></i> General </a> </li>
+                            <li> <a href="/Html/buttons.html"> <i class="icon-angle-right"></i> Buttons </a> </li>
+                            <li> <a href="/Html/tabs.html"> <i class="icon-angle-right"></i> Tabs</a> </li>
+                            <li> <a href="/Html/accordions.html"> <i class="icon-angle-right"></i> Accordions </a> </li>
+                            <li> <a href="/Html/nestable.html"> <i class="icon-angle-right"></i> Nestable List </a> </li>
+                            <li> <a href="/Html/grid.html"> <i class="icon-angle-right"></i> Grid </a> </li>
+                            <li> <a href="/Html/dialogs.html"> <i class="icon-angle-right"></i> Dialogs </a> </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#"> <i class="icon-edit"></i> Forms <span class="label label-info pull-right">4</span> <i class="arrow icon-angle-left"></i></a>
+                        <ul class="sub-menu">
+                            <li> <a href="form_elements.html"> <i class="icon-angle-right"></i> Form Elements </a> </li>
+                            <li> <a href="form_validation.html"> <i class="icon-angle-right"></i> Form Validation</a> </li>
+                            <li> <a href="form_masks.html"> <i class="icon-angle-right"></i> Form Masks </a> </li>
+                            <li> <a href="wizard.html"> <i class="icon-angle-right"></i> Form Wizard </a> </li>
+                            <li> <a href="multipleFile_upload.html"> <i class="icon-angle-right"></i> Multiple File Upload </a> </li>
+                            <li> <a href="dropzone_upload.html"> <i class="icon-angle-right"></i> Dropzone File Upload </a> </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#"> <i class="icon-table"></i> Tables <span class="label label-info pull-right">2</span> <i class="arrow icon-angle-left"></i></a>
+                        <ul class="sub-menu">
+                            <li> <a href="static_table.html"> <i class="icon-angle-right"></i> Static </a> </li>
+                            <li> <a href="dynamic_table.html"> <i class="icon-angle-right"></i> Dynamic </a> </li>
+                        </ul>
+                    </li>
+                    <li> <a href="chart.html"> <i class="icon-bar-chart"></i> Charts &amp; Statistics </a> </li>
+                    <li>
+                        <a href="#"> <i class="icon-flag"></i> Fontawesome <span class="label label-info pull-right">2</span> <i class="arrow icon-angle-left"></i></a>
+                        <ul class="sub-menu">
+                            <li> <a href="icons-new.html"> <i class="icon-angle-right"></i> New-Icons </a> </li>
+                            <li> <a href="icons.html"> <i class="icon-angle-right"></i> Icons </a> </li>
+                        </ul>
+                    </li>
+                    <li> <a href="gallery.html"> <i class="icon-picture"></i> Gallery </a> </li>
+                    <li> <a href="timeline.html"> <i class="icon-time"></i> Timeline </a> </li>
+                    <li>
+                        <a href="#"> <i class="icon-folder-open-alt"></i> Pages <span class="label label-info pull-right">5</span> <i class="arrow icon-angle-left"></i></a>
+                        <ul class="sub-menu">
+                            <li> <a href="login.html"> <i class="icon-angle-right"></i> Login </a> </li>
+                            <li> <a href="user_profile.html"> <i class="icon-angle-right"></i> User Profile </a> </li>
+                            <li> <a href="mailbox.html"> <i class="icon-angle-right"></i> Mailbox </a> </li>
+                            <li> <a href="fullCalendar.html"> <i class="icon-angle-right"></i> Calendar </a> </li>
+                            <li> <a href="404-page.html"> <i class="icon-angle-right"></i> 404-page </a> </li>
+                        </ul>
+                    </li>
                 </ul>
-                @Html.Partial("_LoginPartial")
+            </div>
+        </div>
+        <div class="page-content">
+            <div class="content container">
+                @RenderBody()
             </div>
         </div>
     </div>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - 我的 ASP.NET 應用程式</p>
-        </footer>
+    <div class="bottom-nav footer"> @DateTime.Now.Year &copy; 我的 ASP.NET 應用程式 - Thin Admin by Riaxe Systems. </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/Content/js/jquery.js"></script>
+    <script src="/Content/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/Content/js/smooth-sliding-menu.js"></script>
+    <script class="include" type="text/javascript" src="javascript/jquery191.min.js"></script>
+    <script class="include" type="text/javascript" src="javascript/jquery.jqplot.min.js"></script>
+    <script src="/Content/js/select-checkbox.js"></script>
+    <script src="/Content/js/to-do-admin.js"></script>
+    <script src="/Content/assets/sparkline/jquery.sparkline.js" type="text/javascript"></script>
+    <script src="/Content/assets/sparkline/jquery.customSelect.min.js"></script>
+    <script src="/Content/assets/sparkline/sparkline-chart.js"></script>
+    <script src="/Content/assets/sparkline/easy-pie-chart.js"></script>
+
+
+    <!--switcher html start-->
+    <div class="demo_changer active" style="right: 0px;">
+        <div class="demo-icon"></div>
+        <div class="form_holder">
+            <div class="predefined_styles"> <a class="styleswitch" rel="a" href=""><img alt="" src="/Content/images/a.jpg"></a> <a class="styleswitch" rel="b" href=""><img alt="" src="/Content/images/b.jpg"></a> <a class="styleswitch" rel="c" href=""><img alt="" src="/Content/images/c.jpg"></a> <a class="styleswitch" rel="d" href=""><img alt="" src="/Content/images/d.jpg"></a> <a class="styleswitch" rel="e" href=""><img alt="" src="/Content/images/e.jpg"></a> <a class="styleswitch" rel="f" href=""><img alt="" src="/Content/images/f.jpg"></a> <a class="styleswitch" rel="g" href=""><img alt="" src="/Content/images/g.jpg"></a> <a class="styleswitch" rel="h" href=""><img alt="" src="/Content/images/h.jpg"></a> <a class="styleswitch" rel="i" href=""><img alt="" src="/Content/images/i.jpg"></a> <a class="styleswitch" rel="j" href=""><img alt="" src="/Content/images/j.jpg"></a> </div>
+        </div>
     </div>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
+    <!--switcher html end-->
+    <script src="/Content/assets/switcher/switcher.js"></script>
+    <script src="/Content/assets/switcher/moderziner.custom.js"></script>
+    <link href="/Content/assets/switcher/switcher.css" rel="stylesheet">
+    <link href="/Content/assets/switcher/switcher-defult.css" rel="stylesheet">
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/a.css" title="a" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/b.css" title="b" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/c.css" title="c" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/d.css" title="d" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/e.css" title="e" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/f.css" title="f" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/g.css" title="g" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/h.css" title="h" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/i.css" title="i" media="all" />
+    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/j.css" title="j" media="all" />
+
     @RenderSection("scripts", required: false)
+
 </body>
 </html>

@@ -405,6 +405,29 @@
     <Content Include="Views\Menus\Details.cshtml" />
     <Content Include="Views\Menus\Edit.cshtml" />
     <Content Include="Views\Menus\Index.cshtml" />
+    <Content Include="Views\Shared\DbEntityValidationException.cshtml" />
+    <Content Include="Views\Shared\_MenuBarPartial.cshtml" />
+    <Content Include="Views\Shared\_SubMenuBarPartial.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\CarTypeDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\EnabledDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LockedStateDispaly.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\Password.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\RoleIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\UserIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\UTCLocalDateDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\UTCLocalTimeDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\VoidDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\YesNoDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\CarTypeDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\EnabledDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Html.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\LockedStateDispaly.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Password.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\RoleIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\UserIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\UTCLocalDateDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\UTCLocalTimeDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\VoidDisplay.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

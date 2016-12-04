@@ -8,21 +8,19 @@
     <link href="/Content/css/thin-admin.css" rel="stylesheet" media="screen">
     <link href="/Content/css/font-awesome.css" rel="stylesheet" media="screen">
     <link href="/Content/style/style.css" rel="stylesheet">
-    <link href="/Content/style/dashboard.css" rel="stylesheet">
-    <link href="/Content/assets/jquery-easy-pie-chart/jquery.easy-pie-chart.css" rel="stylesheet" type="text/css" media="screen" />
+   
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
           <script src="/Content/assets/js/html5shiv.js"></script>
           <script src="/Content/assets/js/respond.min.js"></script>
         <![endif]-->
-    @*@Styles.Render("~/Content/css")*@
+    @RenderSection("pagelevelcss",false)
 </head>
 <body>
     <div class="container">
         <div class="top-navbar header b-b">
             <a data-original-title="Toggle navigation" class="toggle-side-nav pull-left" href="#"><i class="icon-reorder"></i> </a>
-            @*@Html.ActionLink("應用程式名稱", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })*@
-            <div class="brand pull-left"> <a href="@Url.Action("Index","Home")"><img src="/Content/images/logo.png" width="147" height="33"></a></div>
+            <div class="brand pull-left"> <a href="@Url.Action("Index","Demo")"><img src="/Content/images/logo.png" width="147" height="33"></a></div>
   
             <form class="pull-right">
                 <input type="search" placeholder="Search..." class="search" id="search-input">
@@ -37,7 +35,7 @@
                     <li>@Html.ActionLink("首頁", "Index", "Home")</li>
                     <li>@Html.ActionLink("關於", "About", "Home")</li>
                     <li>@Html.ActionLink("連絡方式", "Contact", "Home")</li>
-                    <li class="current"> <a href="/Html/index.html"> <i class="icon-dashboard"></i> Dashboard </a> </li>
+                    <li class="current"> <a href="@Url.Action("Index","Demo")"> <i class="icon-dashboard"></i> Dashboard </a> </li>
                     <li>
                         <a href="#"> <i class="icon-desktop"></i> UI Features <span class="label label-info pull-right">7</span> <i class="arrow icon-angle-left"></i></a>
                         <ul class="sub-menu">
@@ -103,39 +101,13 @@
     <script src="/Content/js/jquery.js"></script>
     <script src="/Content/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/Content/js/smooth-sliding-menu.js"></script>
-    <script class="include" type="text/javascript" src="javascript/jquery191.min.js"></script>
-    <script class="include" type="text/javascript" src="javascript/jquery.jqplot.min.js"></script>
-    <script src="/Content/js/select-checkbox.js"></script>
-    <script src="/Content/js/to-do-admin.js"></script>
-    <script src="/Content/assets/sparkline/jquery.sparkline.js" type="text/javascript"></script>
-    <script src="/Content/assets/sparkline/jquery.customSelect.min.js"></script>
-    <script src="/Content/assets/sparkline/sparkline-chart.js"></script>
-    <script src="/Content/assets/sparkline/easy-pie-chart.js"></script>
+    <script class="include" type="text/javascript" src="/Content/javascript/jquery191.min.js"></script>
+    <script class="include" type="text/javascript" src="/Content/javascript/jquery.jqplot.min.js"></script>
+    @RenderSection("pagelevelscripts",false)
 
 
-    <!--switcher html start-->
-    <div class="demo_changer active" style="right: 0px;">
-        <div class="demo-icon"></div>
-        <div class="form_holder">
-            <div class="predefined_styles"> <a class="styleswitch" rel="a" href=""><img alt="" src="/Content/images/a.jpg"></a> <a class="styleswitch" rel="b" href=""><img alt="" src="/Content/images/b.jpg"></a> <a class="styleswitch" rel="c" href=""><img alt="" src="/Content/images/c.jpg"></a> <a class="styleswitch" rel="d" href=""><img alt="" src="/Content/images/d.jpg"></a> <a class="styleswitch" rel="e" href=""><img alt="" src="/Content/images/e.jpg"></a> <a class="styleswitch" rel="f" href=""><img alt="" src="/Content/images/f.jpg"></a> <a class="styleswitch" rel="g" href=""><img alt="" src="/Content/images/g.jpg"></a> <a class="styleswitch" rel="h" href=""><img alt="" src="/Content/images/h.jpg"></a> <a class="styleswitch" rel="i" href=""><img alt="" src="/Content/images/i.jpg"></a> <a class="styleswitch" rel="j" href=""><img alt="" src="/Content/images/j.jpg"></a> </div>
-        </div>
-    </div>
 
-    <!--switcher html end-->
-    <script src="/Content/assets/switcher/switcher.js"></script>
-    <script src="/Content/assets/switcher/moderziner.custom.js"></script>
-    <link href="/Content/assets/switcher/switcher.css" rel="stylesheet">
-    <link href="/Content/assets/switcher/switcher-defult.css" rel="stylesheet">
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/a.css" title="a" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/b.css" title="b" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/c.css" title="c" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/d.css" title="d" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/e.css" title="e" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/f.css" title="f" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/g.css" title="g" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/h.css" title="h" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/i.css" title="i" media="all" />
-    <link rel="alternate stylesheet" type="text/css" href="/Content/assets/switcher/j.css" title="j" media="all" />
+@*@Html.Partial("_ThemeChanger")*@
 
     @RenderSection("scripts", required: false)
 

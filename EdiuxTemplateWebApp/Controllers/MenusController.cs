@@ -202,7 +202,7 @@ namespace EdiuxTemplateWebApp.Controllers
             return RedirectToAction("Index");
         }
         
-        public ActionResult NotificationMenuBar()
+        public ActionResult NotificationMenuBar(int? id)
         {
             //通知列
             return View();

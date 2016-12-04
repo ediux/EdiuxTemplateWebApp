@@ -17,7 +17,7 @@ namespace EdiuxTemplateWebApp.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Menus()
         {
-            this.Menus1 = new HashSet<Menus>();
+            this.ChildMenus = new HashSet<Menus>();
             this.ApplicationRole = new HashSet<ApplicationRole>();
         }
     
@@ -37,8 +37,8 @@ namespace EdiuxTemplateWebApp.Models
         public int Order { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Menus> Menus1 { get; set; }
-        public virtual Menus Menus2 { get; set; }
+        public virtual ICollection<Menus> ChildMenus { get; set; }
+        public virtual Menus ParentMenu { get; set; }
         public virtual System_ControllerActions System_ControllerActions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }

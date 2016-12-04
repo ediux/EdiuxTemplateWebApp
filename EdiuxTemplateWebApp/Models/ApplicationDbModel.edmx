@@ -412,10 +412,26 @@
           <Property Name="AllowAnonymous" Type="Boolean" Nullable="false" />
           <Property Name="System_ControllerActionsId" Type="Int32" />
           <Property Name="Order" Type="Int32" Nullable="false" />
-          <NavigationProperty Name="Menus1" Relationship="Self.FK_Menus_ParentMenus" FromRole="Menus" ToRole="Menus1" />
-          <NavigationProperty Name="Menus2" Relationship="Self.FK_Menus_ParentMenus" FromRole="Menus1" ToRole="Menus" />
-          <NavigationProperty Name="System_ControllerActions" Relationship="Self.FK_Menus_System_ControllerActions" FromRole="Menus" ToRole="System_ControllerActions" />
-          <NavigationProperty Name="ApplicationRole" Relationship="Self.MenusInRoles" FromRole="Menus" ToRole="ApplicationRole" />
+          <NavigationProperty Name="ChildMenus" Relationship="Self.FK_Menus_ParentMenus" FromRole="Menus" ToRole="Menus1" >
+            <Documentation>
+              <LongDescription>子選單集合</LongDescription>
+            </Documentation>
+          </NavigationProperty>
+          <NavigationProperty Name="ParentMenu" Relationship="Self.FK_Menus_ParentMenus" FromRole="Menus1" ToRole="Menus" >
+            <Documentation>
+              <LongDescription>父代選單</LongDescription>
+            </Documentation>
+          </NavigationProperty>
+          <NavigationProperty Name="System_ControllerActions" Relationship="Self.FK_Menus_System_ControllerActions" FromRole="Menus" ToRole="System_ControllerActions" >
+            <Documentation>
+              <LongDescription>選單對應的控制器動作</LongDescription>
+            </Documentation>
+          </NavigationProperty>
+          <NavigationProperty Name="ApplicationRole" Relationship="Self.MenusInRoles" FromRole="Menus" ToRole="ApplicationRole" >
+            <Documentation>
+              <LongDescription>可視系統角色清單</LongDescription>
+            </Documentation>
+          </NavigationProperty>
         </EntityType>
         <EntityType Name="System_ControllerActions">
           <Key>

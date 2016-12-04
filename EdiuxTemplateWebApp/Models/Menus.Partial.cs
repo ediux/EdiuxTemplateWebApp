@@ -40,8 +40,8 @@ namespace EdiuxTemplateWebApp.Models
         [Required]
         public int Order { get; set; }
     
-        public virtual ICollection<Menus> Menus1 { get; set; }
-        public virtual Menus Menus2 { get; set; }
+        public virtual ICollection<Menus> ChildMenus { get; set; }
+        public virtual Menus ParentMenu { get; set; }
         public virtual System_ControllerActions System_ControllerActions { get; set; }
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }
     }

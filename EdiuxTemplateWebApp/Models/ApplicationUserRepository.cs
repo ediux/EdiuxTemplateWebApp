@@ -332,7 +332,7 @@ namespace EdiuxTemplateWebApp.Models
                 ApplicationUser dbUser = base.Get(user.Id);  //從資料庫讀取
 
                 dbUser.CloneFrom(user);
-
+                dbUser.LastUpdateUserId = getCurrentLoginedUserId();                
                 dbUser.LastActivityTime
                     = dbUser.LastUpdateTime = DateTime.UtcNow;
 
@@ -788,7 +788,7 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 if (user == null)
-                    throw new ArgumentNullException(nameof(user));               
+                    throw new ArgumentNullException(nameof(user));
 
                 ApplicationUser userinDB = await FindByIdAsync(user.Id);
 
@@ -827,6 +827,140 @@ namespace EdiuxTemplateWebApp.Models
                 WriteErrorLog(ex);
                 throw ex;
             }
+        }
+        #endregion
+
+        #region User Phone Number Store
+        public async Task SetPhoneNumberAsync(ApplicationUser user, string phoneNumber)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                if (string.IsNullOrEmpty(phoneNumber))
+                    throw new ArgumentNullException(nameof(phoneNumber));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    userinDB.PhoneNumber = phoneNumber;
+                    userinDB.PhoneConfirmed = true;
+
+                    if (await GetTwoFactorEnabledAsync(user))
+                        userinDB.PhoneConfirmed = false;
+
+                    await UpdateAsync(userinDB);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+
+        public Task<string> GetPhoneNumberAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(user.PhoneNumber);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public Task<bool> GetPhoneNumberConfirmedAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(user.PhoneConfirmed);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public async Task SetPhoneNumberConfirmedAsync(ApplicationUser user, bool confirmed)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    userinDB.PhoneConfirmed = confirmed;
+                    await UpdateAsync(userinDB);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+        #endregion
+
+        #region Security Stamp Store
+        public Task<string> GetSecurityStampAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(user.SecurityStamp);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public async Task SetSecurityStampAsync(ApplicationUser user, string stamp)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                if (string.IsNullOrEmpty(stamp))
+                    throw new ArgumentNullException(nameof(stamp));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    userinDB.SecurityStamp = stamp;
+                    await UpdateAsync(userinDB);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
         }
         #endregion
 
@@ -917,6 +1051,22 @@ namespace EdiuxTemplateWebApp.Models
         Task<string> GetPasswordHashAsync(ApplicationUser user);
 
         Task<bool> HasPasswordAsync(ApplicationUser user);
+        #endregion
+
+        #region User Phone Number Store
+        Task SetPhoneNumberAsync(ApplicationUser user, string phoneNumber);
+
+        Task<string> GetPhoneNumberAsync(ApplicationUser user);
+
+        Task<bool> GetPhoneNumberConfirmedAsync(ApplicationUser user);
+
+        Task SetPhoneNumberConfirmedAsync(ApplicationUser user, bool confirmed);
+        #endregion
+
+        #region Security Stamp Store
+        Task<string> GetSecurityStampAsync(ApplicationUser user);
+
+        Task SetSecurityStampAsync(ApplicationUser user, string stamp);
         #endregion
     }
 }

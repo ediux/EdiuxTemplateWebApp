@@ -964,6 +964,48 @@ namespace EdiuxTemplateWebApp.Models
         }
         #endregion
 
+        #region TwoFactor
+        public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(user.TwoFactorEnabled);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+            
+        }
+
+        public async Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    userinDB.TwoFactorEnabled = enabled;
+                    await UpdateAsync(userinDB);
+                }             
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+        #endregion
+
         #region Helper Function
         protected override int getCurrentLoginedUserId()
         {
@@ -1067,6 +1109,12 @@ namespace EdiuxTemplateWebApp.Models
         Task<string> GetSecurityStampAsync(ApplicationUser user);
 
         Task SetSecurityStampAsync(ApplicationUser user, string stamp);
+        #endregion
+
+        #region TwoFactor
+        Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user);
+
+        Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled);
         #endregion
     }
 }

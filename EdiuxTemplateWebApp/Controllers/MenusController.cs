@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
@@ -7,7 +6,6 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using EdiuxTemplateWebApp.Models;
-using Owin;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNet.Identity;
 
@@ -21,9 +19,9 @@ namespace EdiuxTemplateWebApp.Controllers
         private ApplicationUserManager _userManager;
 
         public MenusController()
-        {
-            _menuRepo = RepositoryHelper.GetMenusRepository(UserManager.UnitOfWork);
-            _actionsRepo = RepositoryHelper.GetSystem_ControllerActionsRepository(UserManager.UnitOfWork);
+        {            
+            _menuRepo = RepositoryHelper.GetMenusRepository();
+            _actionsRepo = RepositoryHelper.GetSystem_ControllerActionsRepository(_menuRepo.UnitOfWork);
         }
 
         public MenusController(ApplicationUserManager userManager)

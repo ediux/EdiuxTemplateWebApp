@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Data.Entity;
 using Microsoft.AspNet.Identity;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace EdiuxTemplateWebApp.Models
 {
@@ -332,7 +333,7 @@ namespace EdiuxTemplateWebApp.Models
                 ApplicationUser dbUser = base.Get(user.Id);  //從資料庫讀取
 
                 dbUser.CloneFrom(user);
-                dbUser.LastUpdateUserId = getCurrentLoginedUserId();                
+                dbUser.LastUpdateUserId = getCurrentLoginedUserId();
                 dbUser.LastActivityTime
                     = dbUser.LastUpdateTime = DateTime.UtcNow;
 
@@ -979,7 +980,7 @@ namespace EdiuxTemplateWebApp.Models
                 WriteErrorLog(ex);
                 throw ex;
             }
-            
+
         }
 
         public async Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled)
@@ -995,7 +996,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     userinDB.TwoFactorEnabled = enabled;
                     await UpdateAsync(userinDB);
-                }             
+                }
             }
             catch (Exception ex)
             {
@@ -1005,6 +1006,91 @@ namespace EdiuxTemplateWebApp.Models
 
         }
         #endregion
+
+        #region User Claim Store
+        public async Task AddClaimAsync(ApplicationUser user, Claim claim)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                if (claim == null)
+                    throw new ArgumentNullException(nameof(claim));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    userinDB.ApplicationUserClaim.Add(new ApplicationUserClaim()
+                    {
+                        ClaimType = claim.ValueType,
+                        ClaimValue = claim.Value,
+                        UserId = user.Id
+                    });
+                    await UpdateAsync(userinDB);
+                }        
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+
+        public Task<IList<Claim>> GetClaimsAsync(ApplicationUser user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                return Task.FromResult(
+                    user.ApplicationUserClaim
+                    .ToList().
+                    ConvertAll(c => new Claim(c.ClaimType, c.ClaimValue)) as IList<Claim>
+                );
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+
+        public async Task RemoveClaimAsync(ApplicationUser user, Claim claim)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user));
+
+                if (claim == null)
+                    throw new ArgumentNullException(nameof(claim));
+
+                ApplicationUser userinDB = await FindByIdAsync(user.Id);
+
+                if (userinDB != null)
+                {
+                    List<ApplicationUserClaim> removeList = userinDB.ApplicationUserClaim.ToList();
+                    foreach(ApplicationUserClaim listitem in removeList)
+                    {
+                        userinDB.ApplicationUserClaim.Remove(listitem);
+                    }                    
+                    await UpdateAsync(userinDB);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+        #endregion
+
 
         #region Helper Function
         protected override int getCurrentLoginedUserId()
@@ -1115,6 +1201,12 @@ namespace EdiuxTemplateWebApp.Models
         Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user);
 
         Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled);
+        #endregion
+
+        #region User Claim Store
+        Task AddClaimAsync(ApplicationUser user, Claim claim);
+        Task<IList<Claim>> GetClaimsAsync(ApplicationUser user);
+        Task RemoveClaimAsync(ApplicationUser user, Claim claim);
         #endregion
     }
 }

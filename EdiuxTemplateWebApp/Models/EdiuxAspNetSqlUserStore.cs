@@ -472,34 +472,94 @@ namespace EdiuxTemplateWebApp.Models
         #region User Phone Number Store
         public Task SetPhoneNumberAsync(ApplicationUser user, string phoneNumber)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task setPhoneNumberTask = userRepo.SetPhoneNumberAsync(user, phoneNumber);
+                setPhoneNumberTask.Wait();
+                return setPhoneNumberTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<string> GetPhoneNumberAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<string> getPhoneNumberTask = userRepo.GetPhoneNumberAsync(user);
+                getPhoneNumberTask.Wait();
+                return getPhoneNumberTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<bool> GetPhoneNumberConfirmedAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<bool> getPhoneNumberConfirmedTask = userRepo.GetPhoneNumberConfirmedAsync(user);
+                getPhoneNumberConfirmedTask.Wait();
+                return getPhoneNumberConfirmedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task SetPhoneNumberConfirmedAsync(ApplicationUser user, bool confirmed)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task setPhoneNumberConfirmed = userRepo.SetPhoneNumberConfirmedAsync(user, confirmed);
+                setPhoneNumberConfirmed.Wait();
+                return setPhoneNumberConfirmed;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 
         #region User Security Stamp Store
         public Task SetSecurityStampAsync(ApplicationUser user, string stamp)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task setSecurityStampTask = userRepo.SetSecurityStampAsync(user, stamp);
+                setSecurityStampTask.Wait();
+                return setSecurityStampTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<string> GetSecurityStampAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<string> getSecurityStampTask = userRepo.GetSecurityStampAsync(user);
+                getSecurityStampTask.Wait();
+                return getSecurityStampTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 

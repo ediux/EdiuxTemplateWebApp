@@ -566,12 +566,32 @@ namespace EdiuxTemplateWebApp.Models
         #region User Two Factor Store
         public Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task setTwoFactorEnabledTask = userRepo.SetTwoFactorEnabledAsync(user, enabled);
+                setTwoFactorEnabledTask.Wait();
+                return setTwoFactorEnabledTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<bool> getTwoFactorEnabledTask = userRepo.GetTwoFactorEnabledAsync(user);
+                getTwoFactorEnabledTask.Wait();
+                return getTwoFactorEnabledTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 

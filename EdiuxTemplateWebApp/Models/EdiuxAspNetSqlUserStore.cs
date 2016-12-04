@@ -598,17 +598,47 @@ namespace EdiuxTemplateWebApp.Models
         #region User Claim Store
         public Task<IList<Claim>> GetClaimsAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task<IList<Claim>> getClaimsTask = userRepo.GetClaimsAsync(user);
+                getClaimsTask.Wait();
+                return getClaimsTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task AddClaimAsync(ApplicationUser user, Claim claim)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task addClaimTask = userRepo.AddClaimAsync(user, claim);
+                addClaimTask.Wait();
+                return addClaimTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
         public Task RemoveClaimAsync(ApplicationUser user, Claim claim)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Task removeClaimTask = userRepo.RemoveClaimAsync(user, claim);
+                removeClaimTask.Wait();
+                return removeClaimTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 

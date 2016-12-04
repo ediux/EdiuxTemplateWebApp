@@ -42,6 +42,13 @@ namespace EdiuxTemplateWebApp.Models
 
     public class ForgotViewModel
     {
+        [Display(Name = "使用電子郵件登入")]
+        public bool RequireUniqueEmail { get; set; }
+
+        [Required]
+        [Display(Name = "帳號名稱")]
+        public string UserName { get; set; }
+
         [Required]
         [Display(Name = "電子郵件")]
         public string Email { get; set; }
@@ -72,6 +79,13 @@ namespace EdiuxTemplateWebApp.Models
 
     public class RegisterViewModel
     {
+        [Display(Name = "使用電子郵件登入")]
+        public bool RequireUniqueEmail { get; set; }
+
+        [Required]
+        [Display(Name = "帳號名稱")]
+        public string UserName { get; set; }
+
         [Required]
         [EmailAddress]
         [Display(Name = "電子郵件")]
@@ -91,6 +105,13 @@ namespace EdiuxTemplateWebApp.Models
 
     public class ResetPasswordViewModel
     {
+        [Display(Name = "使用電子郵件登入")]
+        public bool RequireUniqueEmail { get; set; }
+
+        [Required]
+        [Display(Name = "帳號名稱")]
+        public string UserName { get; set; }
+
         [Required]
         [EmailAddress]
         [Display(Name = "電子郵件")]
@@ -112,6 +133,13 @@ namespace EdiuxTemplateWebApp.Models
 
     public class ForgotPasswordViewModel
     {
+        [Display(Name = "使用電子郵件登入")]
+        public bool RequireUniqueEmail { get; set; }
+
+        [Required]
+        [Display(Name = "帳號名稱")]
+        public string UserName { get; set; }
+
         [Required]
         [EmailAddress]
         [Display(Name = "電子郵件")]

@@ -5,6 +5,7 @@ using System.Web;
 using Microsoft.Security.Application;
 using System.Web.Mvc;
 using System.Web.Helpers;
+using EdiuxTemplateWebApp.Models;
 
 namespace EdiuxTemplateWebApp
 {
@@ -53,8 +54,8 @@ namespace EdiuxTemplateWebApp
 
         public static string GetUserName(this HtmlHelper helper,int id)
         {
-            var db = My.Core.Infrastructures.Implementations.Models.OpenWebSiteEntities.Create();
-            var userrepo = My.Core.Infrastructures.Implementations.Models.RepositoryHelper.GetApplicationUserRepository();
+        
+            var userrepo = RepositoryHelper.GetApplicationUserRepository();
 
             var usr = userrepo.Get(id);
 
@@ -69,8 +70,7 @@ namespace EdiuxTemplateWebApp
 
         public static string GetRoleName(this HtmlHelper helper,int RoleId)
         {
-            var db = My.Core.Infrastructures.Implementations.Models.OpenWebSiteEntities.Create();
-            var rolerepo = My.Core.Infrastructures.Implementations.Models.RepositoryHelper.GetApplicationRoleRepository();
+            var rolerepo = RepositoryHelper.GetApplicationRoleRepository();
 
             if (RoleId > 0)
             {

@@ -207,18 +207,21 @@ namespace EdiuxTemplateWebApp.Controllers
         }
 
         [AllowAnonymous]
-        public ActionResult SingInOutShortcutMenu()
+        [ChildActionOnly]
+        public ActionResult SingInOutShortcutMenu(int? id)
         {
             //登出/登入快速選單
             return PartialView("_LoginPartial");
         }
 
         [AllowAnonymous]
+        [ChildActionOnly]
+        [OutputCache(Duration =1800,Location = System.Web.UI.OutputCacheLocation.ServerAndClient)]
         public ActionResult MenuBar()
         {
             //選單列
             return View("_MenuBarPartial", 
-                _menuRepo.getMenusbyCurrentLoginUser().ToList());
+                _menuRepo.getMenusbyCurrentLoginUser(typeof(MvcApplication)).ToList());
         }
         protected override void Dispose(bool disposing)
         {

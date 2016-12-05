@@ -31,7 +31,7 @@ namespace EdiuxTemplateWebApp.Models
 
         }
 
-        public IQueryable<Menus> getMenusbyCurrentLoginUser()
+        public IQueryable<Menus> getMenusbyCurrentLoginUser(Type AppRuntimeType)
         {
             try
             {
@@ -55,11 +55,14 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     var getmenus = user.ApplicationRole
                         .SelectMany(s => s.Menus)
-                        .Where(w => w.Void == false && w.AllowAnonymous == false)
-                        .Union(ObjectSet.Where(w => w.AllowAnonymous == true
+                        .Where(w => w.Void == false && w.AllowAnonymous == false 
+                        && w.System_ControllerActions.System_Controllers.Namespace.Contains(AppRuntimeType.Namespace))
+                        .Union(ObjectSet.Where(w => w.IsExternalLinks == true || (w.AllowAnonymous == true
                     && w.Void == false
                     && (w.ParentMenuId == null
-                    || w.ParentMenuId == 0))).Distinct().OrderBy(o => o.Order);
+                    || w.ParentMenuId == 0))))
+                    .Distinct()
+                    .OrderBy(o => o.Order);
 
                     UnitOfWork.Set(cacheKeyName, getmenus.ToList(), 30);    //將選單存入快取
 
@@ -86,6 +89,6 @@ namespace EdiuxTemplateWebApp.Models
 
     public partial interface IMenusRepository : IRepositoryBase<Menus>
     {
-        IQueryable<Menus> getMenusbyCurrentLoginUser();
+        IQueryable<Menus> getMenusbyCurrentLoginUser(Type AppRuntimeType);
     }
 }

@@ -453,6 +453,9 @@
     <Content Include="Views\Demo\Dialogs.cshtml" />
     <Content Include="Views\Demo\FormElements.cshtml" />
     <Content Include="Views\Demo\FormValidation.cshtml" />
+    <Content Include="Views\Demo\FormMasks.cshtml" />
+    <Content Include="Views\Demo\MultipleFileUpload.cshtml" />
+    <Content Include="Views\Demo\DropzoneFileUpload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

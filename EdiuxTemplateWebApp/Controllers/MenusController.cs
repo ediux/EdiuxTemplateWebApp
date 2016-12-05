@@ -200,14 +200,9 @@ namespace EdiuxTemplateWebApp.Controllers
             return RedirectToAction("Index");
         }
         
-        public ActionResult NotificationMenuBar(int? id)
-        {
-            //通知列
-            return View();
-        }
-
         [AllowAnonymous]
         [ChildActionOnly]
+        [OutputCache(Duration = 1800)]
         public ActionResult SingInOutShortcutMenu(int? id)
         {
             //登出/登入快速選單
@@ -216,7 +211,7 @@ namespace EdiuxTemplateWebApp.Controllers
 
         [AllowAnonymous]
         [ChildActionOnly]
-        [OutputCache(Duration =1800,Location = System.Web.UI.OutputCacheLocation.ServerAndClient)]
+        [OutputCache(Duration =1800)]
         public ActionResult MenuBar()
         {
             //選單列

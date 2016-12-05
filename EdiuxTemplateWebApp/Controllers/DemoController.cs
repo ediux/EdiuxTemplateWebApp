@@ -304,6 +304,31 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             return View();
         }
+
+        public ActionResult StaticTable()
+        {
+            return View();
+        }
+
+        public ActionResult DynamicTable()
+        {
+            return View();
+        }
+
+        public ActionResult Chart()
+        {
+            return View();
+        }
+
+        public ActionResult IconsNew()
+        {
+            return View();
+        }
+
+        public ActionResult Icons()
+        {
+            return View();
+        }
     }
 
     public class ViewDataUploadFilesResult

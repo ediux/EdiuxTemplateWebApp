@@ -223,6 +223,7 @@
       <DependentUpon>ApplicationDbModel.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\ApplicationLevelModels\ControllerActionViewModel.cs" />
+    <Compile Include="Models\ApplicationLevelModels\UserProfileViewModel.cs" />
     <Compile Include="Models\ApplicationRole.cs">
       <DependentUpon>ApplicationDbModel.tt</DependentUpon>
     </Compile>
@@ -441,6 +442,12 @@
     <Content Include="Views\Demo\FormMasks.cshtml" />
     <Content Include="Views\Demo\MultipleFileUpload.cshtml" />
     <Content Include="Views\Demo\DropzoneFileUpload.cshtml" />
+    <Content Include="Views\Manage\UserProfile.cshtml" />
+    <Content Include="Views\Demo\StaticTable.cshtml" />
+    <Content Include="Views\Demo\DynamicTable.cshtml" />
+    <Content Include="Views\Demo\Chart.cshtml" />
+    <Content Include="Views\Demo\IconsNew.cshtml" />
+    <Content Include="Views\Demo\Icons.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

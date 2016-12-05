@@ -34,15 +34,34 @@
                     <fieldset>
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                         <div class="form-group no-margin">
-                            @Html.LabelFor(m => m.Email, new { @for = "email" })
+                            
+                            @if (Model.RequireUniqueEmail)
+                            {
+                                @Html.HiddenFor(model => model.UserName)
+                                @Html.HiddenFor(model => model.RequireUniqueEmail)
+                                @Html.LabelFor(m => m.Email, new { @for = "email" })
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-addon">
+                                        <i class="icon-user"></i>
+                                    </span>
+                                    @Html.TextBoxFor(m => m.Email, new { @id = "email", @type = "email", @placeholder = "您的電子郵件", @class = "form-control input-lg" })
+                                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                                </div>
+                            }
+                            else
+                            {
+                                @Html.HiddenFor(model => model.Email)
+                                @Html.HiddenFor(model => model.RequireUniqueEmail)
+                                @Html.LabelFor(m => m.UserName, new { @for = "username" })
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-addon">
+                                        <i class="icon-user"></i>
+                                    </span>
+                                    @Html.TextBoxFor(m => m.UserName, new { @id = "username",  @placeholder = "您的登入帳號", @class = "form-control input-lg" })
+                                    @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+                                </div>
+                            }
 
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-addon">
-                                    <i class="icon-user"></i>
-                                </span>
-                                @Html.TextBoxFor(m => m.Email, new { @id = "email", @type = "email", @placeholder = "Your Email", @class = "form-control input-lg" })
-                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-                            </div>
 
                         </div>
 

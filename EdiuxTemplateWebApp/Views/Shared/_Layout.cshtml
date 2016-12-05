@@ -7,6 +7,7 @@
     <link href="/Content/css/bootstrap.css" rel="stylesheet" media="screen">
     <link href="/Content/css/thin-admin.css" rel="stylesheet" media="screen">
     <link href="/Content/css/font-awesome.css" rel="stylesheet" media="screen">
+    <link href="/Content/font-awesome-4.0.3/css/font-awesome.min.css" rel="stylesheet" media="screen">
     <link href="/Content/style/style.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -70,7 +71,7 @@
                     <li>
                         <a href="#"> <i class="icon-flag"></i> Fontawesome <span class="label label-info pull-right">2</span> <i class="arrow icon-angle-left"></i></a>
                         <ul class="sub-menu">
-                            <li> <a href="@Url.Action("Icons-new","Demo")"> <i class="icon-angle-right"></i> New-Icons </a> </li>
+                            <li> <a href="@Url.Action("IconsNew","Demo")"> <i class="icon-angle-right"></i> New-Icons </a> </li>
                             <li> <a href="@Url.Action("Icons","Demo")"> <i class="icon-angle-right"></i> Icons </a> </li>
                         </ul>
                     </li>
@@ -110,6 +111,5 @@
     @*@Html.Partial("_ThemeChanger")*@
 
     @RenderSection("scripts", required: false)
-    @RenderSection("Scripts", required: false)
 </body>
 </html>

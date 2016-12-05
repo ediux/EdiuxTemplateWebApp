@@ -321,7 +321,13 @@ namespace EdiuxTemplateWebApp.Controllers
             var result = await UserManager.AddLoginAsync(User.Identity.GetUserId<int>(), loginInfo.Login);
             return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
         }
-
+        #region User Profile Manage
+        public ActionResult UserProfile()
+        {
+            UserProfileViewModel model = new UserProfileViewModel();
+            return View(model);
+        }
+        #endregion
         protected override void Dispose(bool disposing)
         {
             if (disposing && _userManager != null)

@@ -108,7 +108,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        
+
 
         public Task UpdateAsync(ApplicationUser user)
         {
@@ -250,7 +250,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return userRepo.SetEmailAsync(user,email);
+                return userRepo.SetEmailAsync(user, email);
             }
             catch (Exception ex)
             {
@@ -331,7 +331,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                await userRepo.SetLockoutEndDateAsync(user,lockoutEnd);
+                await userRepo.SetLockoutEndDateAsync(user, lockoutEnd);
             }
             catch (Exception ex)
             {
@@ -340,29 +340,70 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
+        public async Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await userRepo.IncrementAccessFailedCountAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+           
         }
 
-        public Task ResetAccessFailedCountAsync(ApplicationUser user)
+        public async Task ResetAccessFailedCountAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await userRepo.ResetAccessFailedCountAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
-        public Task<int> GetAccessFailedCountAsync(ApplicationUser user)
+        public async Task<int> GetAccessFailedCountAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await userRepo.GetAccessFailedCountAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
-        public Task<bool> GetLockoutEnabledAsync(ApplicationUser user)
+        public async Task<bool> GetLockoutEnabledAsync(ApplicationUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+               return await userRepo.GetLockoutEnabledAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
 
-        public Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
+        public async Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await userRepo.ResetAccessFailedCountAsync(user);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
         #endregion
 
@@ -431,7 +472,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user,passwordHash);
+                Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user, passwordHash);
                 setSetPasswordTask.Wait();
                 return setSetPasswordTask;
             }
@@ -670,9 +711,7 @@ namespace EdiuxTemplateWebApp.Models
                 if (disposing)
                 {
                     // TODO: 處置 Managed 狀態 (Managed 物件)。
-                    userloginRepo.Dispose();
-                    roleRepo.Dispose();
-                    userRepo.Dispose();
+           
                 }
 
                 // TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。

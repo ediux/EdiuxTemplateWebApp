@@ -59,11 +59,11 @@ namespace EdiuxTemplateWebApp.Models
         [Display(Name = "使用電子郵件登入")]
         public bool RequireUniqueEmail { get; set; }
 
-        [Required]
+
         [Display(Name = "帳號名稱")]
         public string UserName { get; set; }
 
-        [Required]
+
         [Display(Name = "電子郵件")]
         [EmailAddress]
         public string Email { get; set; }

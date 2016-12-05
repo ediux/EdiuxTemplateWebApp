@@ -56,7 +56,7 @@ namespace EdiuxTemplateWebApp
             manager.UserValidator = new UserValidator<ApplicationUser, int>(manager)
             {
                 AllowOnlyAlphanumericUserNames = false,
-                RequireUniqueEmail = true
+                RequireUniqueEmail = false
             };
 
             // 設定密碼的驗證邏輯

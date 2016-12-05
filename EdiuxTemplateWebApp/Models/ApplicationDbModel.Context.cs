@@ -32,5 +32,6 @@ namespace EdiuxTemplateWebApp.Models
         public virtual DbSet<Menus> Menus { get; set; }
         public virtual DbSet<System_ControllerActions> System_ControllerActions { get; set; }
         public virtual DbSet<System_Controllers> System_Controllers { get; set; }
+        public virtual DbSet<System_Notifications> System_Notifications { get; set; }
     }
 }

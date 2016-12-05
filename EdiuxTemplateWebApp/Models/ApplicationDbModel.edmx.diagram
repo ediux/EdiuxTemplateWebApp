@@ -6,7 +6,7 @@
     <edmx:Diagrams>
       <Diagram DiagramId="7f2a1955470841eeb316f88c224457fa" Name="Diagram1">
         <EntityTypeShape EntityType="WbParkSystemModel.ApplicationRole" Width="1.5" PointX="0.75" PointY="5.875" IsExpanded="true" />
-        <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUser" Width="1.5" PointX="3" PointY="4.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUser" Width="1.875" PointX="3" PointY="4.375" IsExpanded="true" />
         <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUserClaim" Width="1.5" PointX="5.25" PointY="5" IsExpanded="true" />
         <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUserLogin" Width="1.5" PointX="5.25" PointY="7.75" IsExpanded="true" />
         <EntityTypeShape EntityType="WbParkSystemModel.Menus" Width="1.5" PointX="10.25" PointY="5.125" IsExpanded="true" />
@@ -20,6 +20,11 @@
         <AssociationConnector Association="WbParkSystemModel.ActionsInRoles" ManuallyRouted="false" />
         <AssociationConnector Association="WbParkSystemModel.ApplicationUserRole" ManuallyRouted="false" />
         <AssociationConnector Association="WbParkSystemModel.MenusInRoles" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="WbParkSystemModel.System_Notifications" Width="1.875" PointX="5.25" PointY="10.625" />
+        <AssociationConnector Association="WbParkSystemModel.FK_ApplicationRole_ApplicationRole" />
+        <AssociationConnector Association="WbParkSystemModel.FK_System_Notifications_FromApplicationUser" />
+        <AssociationConnector Association="WbParkSystemModel.FK_System_Notifications_TargetApplicationUser" />
+        <AssociationConnector Association="WbParkSystemModel.FK_System_Notifications_OriginalSystem_Notifications" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

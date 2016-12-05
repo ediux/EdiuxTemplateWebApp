@@ -112,5 +112,19 @@ namespace EdiuxTemplateWebApp.Models
 			repository.UnitOfWork = unitOfWork;
 			return repository;
 		}		
+
+		public static System_NotificationsRepository GetSystem_NotificationsRepository()
+		{
+			var repository = new System_NotificationsRepository();
+			repository.UnitOfWork = GetUnitOfWork();
+			return repository;
+		}
+
+		public static System_NotificationsRepository GetSystem_NotificationsRepository(IUnitOfWork unitOfWork)
+		{
+			var repository = new System_NotificationsRepository();
+			repository.UnitOfWork = unitOfWork;
+			return repository;
+		}		
 	}
 }

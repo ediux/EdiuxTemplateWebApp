@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<EdiuxTemplateWebApp.Models.Menus>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "選單管理";
 }
 
 <div class="row">
@@ -11,9 +11,9 @@
                 <h4 class="panel-title">@ViewBag.Title</h4>
             </div>
             <div class="panel-toolbar">
-                @*<div class="btn-group m-r-5" role="group" aria-label="First group">
-                    <a href="@Url.Action("Index")" class="btn btn-white" title="回到選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
-                </div>*@
+                <div class="btn-group m-r-5" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index","Manage")" class="btn btn-white" title="回到選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                </div>
                 <div class="btn-group m-l-5" role="group" aria-label="First group">
                     <a href="@Url.Action("Create")" class="btn btn-white" title="新增選單"><i class="glyphicon glyphicon-plus"></i></a>
                 </div>

@@ -14,7 +14,10 @@ namespace EdiuxTemplateWebApp.Models
             positinTitle = "Development manager";
             companyName = "Riaxe";
             companyWebSiteURL = "http://www.riaxe.com/";
+            UserAccountManage = new IndexViewModel();
         }
+
+        public IndexViewModel UserAccountManage { get; set; }
 
         private string avatarFilePath;
 

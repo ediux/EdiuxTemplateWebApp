@@ -322,11 +322,11 @@ namespace EdiuxTemplateWebApp.Controllers
             return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
         }
         #region User Profile Manage
-        public async Task<ActionResult> UserProfile()
+        public async Task<ActionResult> UserProfile(int? id)
         {
 
             UserProfileViewModel model = new UserProfileViewModel();
-            var userId = User.Identity.GetUserId<int>();
+            var userId = id?? User.Identity.GetUserId<int>();
             model.UserAccountManage = new IndexViewModel
             {
                 HasPassword = HasPassword(),

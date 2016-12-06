@@ -85,6 +85,20 @@ namespace EdiuxTemplateWebApp.Models
 			return repository;
 		}		
 
+		public static System_ApplicationsRepository GetSystem_ApplicationsRepository()
+		{
+			var repository = new System_ApplicationsRepository();
+			repository.UnitOfWork = GetUnitOfWork();
+			return repository;
+		}
+
+		public static System_ApplicationsRepository GetSystem_ApplicationsRepository(IUnitOfWork unitOfWork)
+		{
+			var repository = new System_ApplicationsRepository();
+			repository.UnitOfWork = unitOfWork;
+			return repository;
+		}		
+
 		public static System_ControllerActionsRepository GetSystem_ControllerActionsRepository()
 		{
 			var repository = new System_ControllerActionsRepository();

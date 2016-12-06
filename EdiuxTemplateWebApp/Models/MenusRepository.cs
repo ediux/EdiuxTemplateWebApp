@@ -36,6 +36,11 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 IApplicationUserRepository userRepo = RepositoryHelper.GetApplicationUserRepository(UnitOfWork);
+                ISystem_ApplicationsRepository sysAppRepo = RepositoryHelper.GetSystem_ApplicationsRepository(UnitOfWork);
+
+                System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == AppRuntimeType.Name);
+
+             
 
                 int currentUserId = getCurrentLoginedUserId();
                 string cacheKeyName = string.Format("UserMenu_{0}", currentUserId);
@@ -46,12 +51,20 @@ namespace EdiuxTemplateWebApp.Models
                     return (UnitOfWork.Get(cacheKeyName) as List<Menus>).AsQueryable();
                 }
 
+                if (app == null)
+                {
+                    UnitOfWork.Set(cacheKeyName, new List<Menus>(), CacheExpiredTime);
+                    return (UnitOfWork.Get(cacheKeyName) as List<Menus>).AsQueryable();
+                }
+
                 Task<ApplicationUser> findbyIdTask = userRepo.FindByIdAsync(currentUserId);
                 findbyIdTask.Wait();
 
                 ApplicationUser user = findbyIdTask.Result;
 
-                var anonymousMenus = ObjectSet.Where(w => w.AllowAnonymous == true
+                var anonymousMenus = ObjectSet.Where(w =>
+                    w.ApplicationId == app.Id
+                    && w.AllowAnonymous == true
                     && w.Void == false
                     && (w.ParentMenuId == null
                     || w.ParentMenuId == 0)).OrderBy(o => o.Order);
@@ -64,7 +77,9 @@ namespace EdiuxTemplateWebApp.Models
 
                     if (getmenus != null)
                     {
-                        var getauthMenus = getmenus.Where(w => w.Void == false && w.AllowAnonymous == false);
+                        var getauthMenus = getmenus.Where(w => w.ApplicationId == app.Id 
+                        && w.Void == false 
+                        && w.AllowAnonymous == false);
 
                         if (getauthMenus != null && getauthMenus.Any())
                         {

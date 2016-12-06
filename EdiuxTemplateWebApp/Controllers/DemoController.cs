@@ -8,7 +8,7 @@ using System.Web.Mvc;
 namespace EdiuxTemplateWebApp.Controllers
 {
     [AllowAnonymous]
-    public class DemoController : Controller
+    public class DemoController : BaseController
     {
         public DemoController()
         {

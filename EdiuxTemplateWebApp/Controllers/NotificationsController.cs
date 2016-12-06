@@ -11,7 +11,7 @@ using Microsoft.AspNet.Identity;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
-    public class NotificationsController : Controller
+    public class NotificationsController : BaseController
     {
         private ISystem_NotificationsRepository db;
         private IApplicationUserRepository userRepo;

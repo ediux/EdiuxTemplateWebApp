@@ -11,7 +11,7 @@ using Microsoft.AspNet.Identity;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
-    public class MenusController : Controller
+    public class MenusController : BaseController
     {
         private IMenusRepository _menuRepo;
         private ISystem_ControllerActionsRepository _actionsRepo;

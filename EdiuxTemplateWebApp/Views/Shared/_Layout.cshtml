@@ -32,7 +32,8 @@
     <div class="wrapper">
         <div class="left-nav">
             <div id="side-nav">
-                <ul id="nav">
+                @Html.Action("MenuBar", "Menus")
+                @*<ul id="nav">
                     <li>@Html.ActionLink("首頁", "Index", "Home")</li>
                     <li>@Html.ActionLink("關於", "About", "Home")</li>
                     <li>@Html.ActionLink("連絡方式", "Contact", "Home")</li>
@@ -87,7 +88,7 @@
                             <li> <a href="@Url.Action("404Page","Demo")"> <i class="icon-angle-right"></i> 404-page </a> </li>
                         </ul>
                     </li>
-                </ul>
+                </ul>*@
             </div>
         </div>
         <div class="page-content">

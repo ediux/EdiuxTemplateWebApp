@@ -296,6 +296,9 @@
     <Compile Include="Models\RepositoryHelper.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\System_Applications.cs">
+      <DependentUpon>ApplicationDbModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\System_ControllerActions.cs">
       <DependentUpon>ApplicationDbModel.tt</DependentUpon>
     </Compile>

@@ -47,11 +47,11 @@
             </div>
             <div class="col-md-3 col-xs-12 col-sm-6">
                 <a href="#" class="stats-container">
-                    <div class="stats-heading">Members</div>
+                    <div class="stats-heading">帳號數量</div>
                     <div class="stats-body-alt">
 
-                        <div class="text-center"><span class="text-top"></span>207</div>
-                        <small>new user registered</small>
+                        <div class="text-center"><span class="text-top"></span>@ViewBag.AccountTotalCount</div>
+                        <small>最近註冊人數: @ViewBag.NewRegisterCount</small>
                     </div>
                     <div class="stats-footer">manage members</div>
                 </a>
@@ -75,11 +75,11 @@
         <div class="widget">
             <div class="widget-header">
                 <i class="icon-bookmark"></i>
-                <h3>Important Shortcuts</h3>
+                <h3>常用快捷選單</h3>
             </div>
             <!-- /widget-header -->
             <div class="widget-content">
-                <div class="shortcuts"> <a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-list-alt"></i><span class="shortcut-label">Apps</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-bookmark"></i><span class="shortcut-label">Fav</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-signal"></i> <span class="shortcut-label">Stats</span> </a><a class="shortcut" href="javascript:;"> <i class="shortcut-icon icon-comment"></i><span class="shortcut-label">Msg</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-user"></i><span class="shortcut-label">Users</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-file"></i><span class="shortcut-label">Notes</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-picture"></i> <span class="shortcut-label">Photos</span> </a><a class="shortcut" href="javascript:;"> <i class="shortcut-icon icon-tag"></i><span class="shortcut-label">Tags</span> </a> </div>
+                <div class="shortcuts"> <a class="shortcut" href="@Url.Action("Index","Menus")"><i class="shortcut-icon icon-list-alt"></i><span class="shortcut-label">選單管理</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-bookmark"></i><span class="shortcut-label">Fav</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-signal"></i> <span class="shortcut-label">Stats</span> </a><a class="shortcut" href="javascript:;"> <i class="shortcut-icon icon-comment"></i><span class="shortcut-label">Msg</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-user"></i><span class="shortcut-label">帳號管理</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-file"></i><span class="shortcut-label">Notes</span> </a><a class="shortcut" href="javascript:;"><i class="shortcut-icon icon-picture"></i> <span class="shortcut-label">Photos</span> </a><a class="shortcut" href="javascript:;"> <i class="shortcut-icon icon-tag"></i><span class="shortcut-label">Tags</span> </a> </div>
                 <!-- /shortcuts -->
             </div>
             <!-- /widget-content -->

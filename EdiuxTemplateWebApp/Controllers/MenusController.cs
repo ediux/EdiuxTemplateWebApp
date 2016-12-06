@@ -222,7 +222,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (disposing)
             {
-                _menuRepo.Dispose();
+                //_menuRepo.Dispose();
             }
             base.Dispose(disposing);
         }

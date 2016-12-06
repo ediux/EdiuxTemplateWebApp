@@ -17,7 +17,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // GET: Demo
         public ActionResult Index()
         {
-            return View();
+            return RedirectToAction("Index", "Manage");
         }
 
         public ActionResult General()

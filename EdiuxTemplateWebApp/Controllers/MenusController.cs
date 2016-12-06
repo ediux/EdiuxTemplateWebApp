@@ -202,7 +202,6 @@ namespace EdiuxTemplateWebApp.Controllers
         
         [AllowAnonymous]
         [ChildActionOnly]
-        [OutputCache(Duration = 1800)]
         public ActionResult SingInOutShortcutMenu(int? id)
         {
             //登出/登入快速選單

@@ -94,9 +94,10 @@
           <Property Name="CreateTime" Type="smalldatetime" Nullable="false" />
           <Property Name="LastUpdateUserId" Type="int" />
           <Property Name="LastUpdateTime" Type="smalldatetime" />
-          <Property Name="System_ControllerActionsId" Type="int" />
           <Property Name="AllowAnonymous" Type="bit" Nullable="false" />
+          <Property Name="System_ControllerActionsId" Type="int" />
           <Property Name="Order" Type="int" Nullable="false" />
+          <Property Name="ApplicationId" Type="int" />
         </EntityType>
         <EntityType Name="MenusInRoles">
           <Key>
@@ -105,6 +106,13 @@
           </Key>
           <Property Name="MenuId" Type="int" Nullable="false" />
           <Property Name="RoleId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="System_Applications">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="256" Nullable="false" />
         </EntityType>
         <EntityType Name="System_ControllerActions">
           <Key>
@@ -174,18 +182,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ApplicationRole_ApplicationRole">
-          <End Role="ApplicationRole" Type="Self.ApplicationRole" Multiplicity="1" />
-          <End Role="ApplicationRole1" Type="Self.ApplicationRole" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="ApplicationRole">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ApplicationRole1">
-              <PropertyRef Name="Id" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_ApplicationUserClaim_ToApplicationUser">
           <End Role="ApplicationUser" Type="Self.ApplicationUser" Multiplicity="1" />
           <End Role="ApplicationUserClaim" Type="Self.ApplicationUserClaim" Multiplicity="*" />
@@ -210,6 +206,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ApplicationUserRole_ToApplicationRole">
+          <End Role="ApplicationRole" Type="Self.ApplicationRole" Multiplicity="1" />
+          <End Role="ApplicationUserRole" Type="Self.ApplicationUserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ApplicationRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ApplicationUserRole">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_ApplicationUserRole_ToApplicationUser">
           <End Role="ApplicationUser" Type="Self.ApplicationUser" Multiplicity="1" />
           <End Role="ApplicationUserRole" Type="Self.ApplicationUserRole" Multiplicity="*" />
@@ -223,14 +231,14 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_Menus_ParentMenus">
-          <End Role="Menus" Type="Self.Menus" Multiplicity="0..1" />
-          <End Role="Menus1" Type="Self.Menus" Multiplicity="*" />
+          <End Role="System_Applications" Type="Self.System_Applications" Multiplicity="0..1" />
+          <End Role="Menus" Type="Self.Menus" Multiplicity="*" />
           <ReferentialConstraint>
-            <Principal Role="Menus">
+            <Principal Role="System_Applications">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="Menus1">
-              <PropertyRef Name="ParentMenuId" />
+            <Dependent Role="Menus">
+              <PropertyRef Name="ApplicationId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -327,6 +335,7 @@
           <EntitySet Name="ApplicationUserRole" EntityType="Self.ApplicationUserRole" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Menus" EntityType="Self.Menus" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MenusInRoles" EntityType="Self.MenusInRoles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="System_Applications" EntityType="Self.System_Applications" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="System_ControllerActions" EntityType="Self.System_ControllerActions" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="System_Controllers" EntityType="Self.System_Controllers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="System_Notifications" EntityType="Self.System_Notifications" Schema="dbo" store:Type="Tables" />
@@ -338,10 +347,6 @@
             <End Role="System_ControllerActions" EntitySet="System_ControllerActions" />
             <End Role="ActionsInRoles" EntitySet="ActionsInRoles" />
           </AssociationSet>
-          <AssociationSet Name="FK_ApplicationRole_ApplicationRole" Association="Self.FK_ApplicationRole_ApplicationRole">
-            <End Role="ApplicationRole" EntitySet="ApplicationRole" />
-            <End Role="ApplicationRole1" EntitySet="ApplicationRole" />
-          </AssociationSet>
           <AssociationSet Name="FK_ApplicationUserClaim_ToApplicationUser" Association="Self.FK_ApplicationUserClaim_ToApplicationUser">
             <End Role="ApplicationUser" EntitySet="ApplicationUser" />
             <End Role="ApplicationUserClaim" EntitySet="ApplicationUserClaim" />
@@ -350,13 +355,17 @@
             <End Role="ApplicationUser" EntitySet="ApplicationUser" />
             <End Role="ApplicationUserLogin" EntitySet="ApplicationUserLogin" />
           </AssociationSet>
+          <AssociationSet Name="FK_ApplicationUserRole_ToApplicationRole" Association="Self.FK_ApplicationUserRole_ToApplicationRole">
+            <End Role="ApplicationRole" EntitySet="ApplicationRole" />
+            <End Role="ApplicationUserRole" EntitySet="ApplicationUserRole" />
+          </AssociationSet>
           <AssociationSet Name="FK_ApplicationUserRole_ToApplicationUser" Association="Self.FK_ApplicationUserRole_ToApplicationUser">
             <End Role="ApplicationUser" EntitySet="ApplicationUser" />
             <End Role="ApplicationUserRole" EntitySet="ApplicationUserRole" />
           </AssociationSet>
           <AssociationSet Name="FK_Menus_ParentMenus" Association="Self.FK_Menus_ParentMenus">
+            <End Role="System_Applications" EntitySet="System_Applications" />
             <End Role="Menus" EntitySet="Menus" />
-            <End Role="Menus1" EntitySet="Menus" />
           </AssociationSet>
           <AssociationSet Name="FK_Menus_System_ControllerActions" Association="Self.FK_Menus_System_ControllerActions">
             <End Role="System_ControllerActions" EntitySet="System_ControllerActions" />
@@ -496,6 +505,8 @@
               <LongDescription>可視系統角色清單</LongDescription>
             </Documentation>
           </NavigationProperty>
+          <Property Name="ApplicationId" Type="Int32" />
+          <NavigationProperty Name="System_Applications" Relationship="WbParkSystemModel.FK_Menus_ParentMenus1" FromRole="Menus" ToRole="System_Applications" />
         </EntityType>
         <EntityType Name="System_ControllerActions">
           <Key>
@@ -659,6 +670,11 @@
             <End Role="System_Notifications" EntitySet="System_Notifications" />
             <End Role="System_Notifications1" EntitySet="System_Notifications" />
           </AssociationSet>
+          <EntitySet Name="System_Applications" EntityType="WbParkSystemModel.System_Applications" />
+          <AssociationSet Name="FK_Menus_ParentMenus1" Association="WbParkSystemModel.FK_Menus_ParentMenus1">
+            <End Role="System_Applications" EntitySet="System_Applications" />
+            <End Role="Menus" EntitySet="Menus" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="System_Notifications">
           <Key>
@@ -723,6 +739,26 @@
             </Principal>
             <Dependent Role="System_Notifications1">
               <PropertyRef Name="RelayNotificationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="System_Applications">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Menus" Relationship="WbParkSystemModel.FK_Menus_ParentMenus1" FromRole="System_Applications" ToRole="Menus" />
+        </EntityType>
+        <Association Name="FK_Menus_ParentMenus1">
+          <End Type="WbParkSystemModel.System_Applications" Role="System_Applications" Multiplicity="0..1" />
+          <End Type="WbParkSystemModel.Menus" Role="Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="System_Applications">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Menus">
+              <PropertyRef Name="ApplicationId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -796,6 +832,7 @@
           <EntitySetMapping Name="Menus">
             <EntityTypeMapping TypeName="WbParkSystemModel.Menus">
               <MappingFragment StoreEntitySet="Menus">
+                <ScalarProperty Name="ApplicationId" ColumnName="ApplicationId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="IconCSS" ColumnName="IconCSS" />
@@ -884,6 +921,14 @@
               <ScalarProperty Name="Id" ColumnName="RoleId" />
             </EndProperty>
           </AssociationSetMapping>
+          <EntitySetMapping Name="System_Applications">
+            <EntityTypeMapping TypeName="WbParkSystemModel.System_Applications">
+              <MappingFragment StoreEntitySet="System_Applications">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

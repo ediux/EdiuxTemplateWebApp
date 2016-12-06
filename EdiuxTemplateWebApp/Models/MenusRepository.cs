@@ -51,32 +51,51 @@ namespace EdiuxTemplateWebApp.Models
 
                 ApplicationUser user = findbyIdTask.Result;
 
-                if (user != null)
-                {
-                    var getmenus = user.ApplicationRole
-                        .SelectMany(s => s.Menus)
-                        .Where(w => w.Void == false && w.AllowAnonymous == false 
-                        && w.System_ControllerActions.System_Controllers.Namespace.Contains(AppRuntimeType.Namespace))
-                        .Union(ObjectSet.Where(w => w.IsExternalLinks == true || (w.AllowAnonymous == true
-                    && w.Void == false
-                    && (w.ParentMenuId == null
-                    || w.ParentMenuId == 0))))
-                    .Distinct()
-                    .OrderBy(o => o.Order);
-
-                    UnitOfWork.Set(cacheKeyName, getmenus.ToList(), 30);    //將選單存入快取
-
-                    return getmenus.AsQueryable();
-                }
-
-                var anonoymousMenus = ObjectSet.Where(w => w.AllowAnonymous == true
+                var anonymousMenus = ObjectSet.Where(w => w.AllowAnonymous == true
                     && w.Void == false
                     && (w.ParentMenuId == null
                     || w.ParentMenuId == 0)).OrderBy(o => o.Order);
 
-                UnitOfWork.Set(cacheKeyName, anonoymousMenus.ToList(), 30); //將選單存入快取
+                if (user != null)
+                {
+                    var getmenus = user.ApplicationRole
+                        .SelectMany(s => s.Menus)
+                        .OrderBy(o => o.Order);
 
-                return anonoymousMenus;
+                    if (getmenus != null)
+                    {
+                        var getauthMenus = getmenus.Where(w => w.Void == false && w.AllowAnonymous == false);
+
+                        if (getauthMenus != null && getauthMenus.Any())
+                        {
+                            getauthMenus = getauthMenus.
+                                Where(s => s.System_ControllerActions != null);
+
+                            if (getauthMenus != null && getauthMenus.Any())
+                            {
+                                getauthMenus = getauthMenus.
+                                Where(s => s.System_ControllerActions.System_Controllers != null);
+
+                                if (getauthMenus != null && getauthMenus.Any())
+                                {
+                                    getauthMenus = getauthMenus.
+                                        Where(s => s.System_ControllerActions.System_Controllers.Namespace.Contains(AppRuntimeType.Namespace));
+
+                                    if(getauthMenus != null && getauthMenus.Any())
+                                    {
+                                        var cacheSet = getauthMenus.Union(anonymousMenus);
+                                        UnitOfWork.Set(cacheKeyName, cacheSet.ToList(), CacheExpiredTime);
+                                        return cacheSet.AsQueryable();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                UnitOfWork.Set(cacheKeyName, anonymousMenus.ToList(), 30); //將選單存入快取
+
+                return anonymousMenus;
 
             }
             catch (Exception ex)

@@ -25,6 +25,8 @@
         <AssociationConnector Association="WbParkSystemModel.FK_System_Notifications_FromApplicationUser" />
         <AssociationConnector Association="WbParkSystemModel.FK_System_Notifications_TargetApplicationUser" />
         <AssociationConnector Association="WbParkSystemModel.FK_System_Notifications_OriginalSystem_Notifications" />
+        <EntityTypeShape EntityType="WbParkSystemModel.System_Applications" Width="1.5" PointX="0.75" PointY="0.875" />
+        <AssociationConnector Association="WbParkSystemModel.FK_Menus_ParentMenus1" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

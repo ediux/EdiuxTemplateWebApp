@@ -62,7 +62,8 @@ namespace EdiuxTemplateWebApp.Controllers
                 : message == ManageMessageId.AddPhoneSuccess ? "已新增您的電話號碼。"
                 : message == ManageMessageId.RemovePhoneSuccess ? "已移除您的電話號碼。"
                 : "";
-
+            ViewBag.AccountTotalCount = UserManager.Users.Count();
+            ViewBag.NewRegisterCount = UserManager.Users.Where(w => w.CreateTime >= DateTime.Now.AddMinutes(-30)).Count();
             var userId = User.Identity.GetUserId<int>();
             var model = new IndexViewModel
             {

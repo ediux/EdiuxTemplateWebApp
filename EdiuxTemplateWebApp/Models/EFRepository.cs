@@ -63,18 +63,19 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 //使用EF的快取
-                IQueryable<T> getFromL1Cache = ObjectSet.Local.AsQueryable().Where(expression);
+                 ObjectSet.Where(expression).Load();
 
+                IQueryable<T> getFromL1Cache = ObjectSet.Local.AsQueryable();
+                
                 //Local快取(L1)有結果          
-                if (getFromL1Cache != null && getFromL1Cache.Count() > 0)
-                {                    
-                    return getFromL1Cache;
-                }
+                //if (getFromL1Cache != null && getFromL1Cache.Count() > 0)
+                //{                    
+                //    return getFromL1Cache;
+                //}
 
-                getFromL1Cache.Load();  //對資料庫進行查詢並將結果快取到記憶體內 DB->L1->L2      
-                    
-                getFromL1Cache = ObjectSet.Local.AsQueryable().Where(expression);
-
+                //getFromL1Cache = getFromL1Cache.Where(expression);  //對資料庫進行查詢並將結果快取到記憶體內 DB->L1->L2      
+                //getFromL1Cache.Load();
+               
                 return getFromL1Cache;
             }
             catch (Exception ex)

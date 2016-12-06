@@ -32,9 +32,9 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
             }
-            private set 
-            { 
-                _signInManager = value; 
+            private set
+            {
+                _signInManager = value;
             }
         }
 
@@ -322,9 +322,19 @@ namespace EdiuxTemplateWebApp.Controllers
             return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
         }
         #region User Profile Manage
-        public ActionResult UserProfile()
+        public async Task<ActionResult> UserProfile()
         {
+
             UserProfileViewModel model = new UserProfileViewModel();
+            var userId = User.Identity.GetUserId<int>();
+            model.UserAccountManage = new IndexViewModel
+            {
+                HasPassword = HasPassword(),
+                PhoneNumber = await UserManager.GetPhoneNumberAsync(userId),
+                TwoFactor = await UserManager.GetTwoFactorEnabledAsync(userId),
+                Logins = await UserManager.GetLoginsAsync(userId),
+                BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
+            };
             return View(model);
         }
         #endregion
@@ -339,7 +349,7 @@ namespace EdiuxTemplateWebApp.Controllers
             base.Dispose(disposing);
         }
 
-#region Helper
+        #region Helper
         // 新增外部登入時用來當做 XSRF 保護
         private const string XsrfKey = "XsrfId";
 
@@ -390,6 +400,6 @@ namespace EdiuxTemplateWebApp.Controllers
             Error
         }
 
-#endregion
+        #endregion
     }
 }

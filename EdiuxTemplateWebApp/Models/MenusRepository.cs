@@ -12,9 +12,20 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                var result = base.All().Include(m => m.ChildMenus).Include(m => m.System_ControllerActions)
-                     .Where(w => w.Void == false)
-                     .AsQueryable();
+                ISystem_ApplicationsRepository sysAppRepo = RepositoryHelper.GetSystem_ApplicationsRepository(UnitOfWork);
+
+                string typeName = typeof(MvcApplication).Namespace;
+
+                System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == typeof(MvcApplication).Name);
+
+                int appId = (app != null) ? app.Id : 0;
+               
+                var result = base.All()
+                    .Include(m => m.ChildMenus)
+                    .Include(m => m.System_ControllerActions)
+                    .Where(w => w.Void == false 
+                    && w.ApplicationId==appId)
+                    .AsQueryable();
 
                 if (result.Count() > 0)
                     return result;
@@ -40,7 +51,7 @@ namespace EdiuxTemplateWebApp.Models
 
                 System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == AppRuntimeType.Name);
 
-             
+
 
                 int currentUserId = getCurrentLoginedUserId();
                 string cacheKeyName = string.Format("UserMenu_{0}", currentUserId);
@@ -77,8 +88,8 @@ namespace EdiuxTemplateWebApp.Models
 
                     if (getmenus != null)
                     {
-                        var getauthMenus = getmenus.Where(w => w.ApplicationId == app.Id 
-                        && w.Void == false 
+                        var getauthMenus = getmenus.Where(w => w.ApplicationId == app.Id
+                        && w.Void == false
                         && w.AllowAnonymous == false);
 
                         if (getauthMenus != null && getauthMenus.Any())
@@ -96,7 +107,7 @@ namespace EdiuxTemplateWebApp.Models
                                     getauthMenus = getauthMenus.
                                         Where(s => s.System_ControllerActions.System_Controllers.Namespace.Contains(AppRuntimeType.Namespace));
 
-                                    if(getauthMenus != null && getauthMenus.Any())
+                                    if (getauthMenus != null && getauthMenus.Any())
                                     {
                                         var cacheSet = getauthMenus.Union(anonymousMenus);
                                         UnitOfWork.Set(cacheKeyName, cacheSet.ToList(), CacheExpiredTime);

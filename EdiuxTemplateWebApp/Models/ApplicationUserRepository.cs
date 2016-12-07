@@ -264,8 +264,11 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(user));  //C# 6.0 ·s»yªk
 
                 ApplicationUser newUser = Add(user);
-                await AddToRoleAsync(newUser, "Users");
+                UnitOfWork.Commit();
+                //newUser = Reload(newUser);
+                //await AddToRoleAsync(newUser, "Users");
                 user = await ReloadAsync(newUser);
+
             }
             catch (Exception ex)
             {
@@ -681,13 +684,17 @@ namespace EdiuxTemplateWebApp.Models
 
                 ApplicationUser userInDb = Get(user.Id);
 
-                userInDb.AccessFailedCount = 0;
-                userInDb.LastUpdateTime = DateTime.UtcNow;
-                userInDb.LastActivityTime = DateTime.UtcNow;
-                userInDb.LastUpdateUserId = getCurrentLoginedUserId();
-                userInDb.LastUpdateUserId = getCurrentLoginedUserId();
+                if (userInDb != null)
+                {
+                    userInDb.AccessFailedCount = 0;
+                    userInDb.LastUpdateTime = DateTime.UtcNow;
+                    userInDb.LastActivityTime = DateTime.UtcNow;
+                    userInDb.LastUpdateUserId = getCurrentLoginedUserId();
+                    userInDb.LastUpdateUserId = getCurrentLoginedUserId();
 
-                UpdateAsync(userInDb).Wait();
+                    UpdateAsync(userInDb).Wait();
+                }
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -1029,7 +1036,7 @@ namespace EdiuxTemplateWebApp.Models
                         UserId = user.Id
                     });
                     await UpdateAsync(userinDB);
-                }        
+                }
             }
             catch (Exception ex)
             {
@@ -1075,10 +1082,10 @@ namespace EdiuxTemplateWebApp.Models
                 if (userinDB != null)
                 {
                     List<ApplicationUserClaim> removeList = userinDB.ApplicationUserClaim.ToList();
-                    foreach(ApplicationUserClaim listitem in removeList)
+                    foreach (ApplicationUserClaim listitem in removeList)
                     {
                         userinDB.ApplicationUserClaim.Remove(listitem);
-                    }                    
+                    }
                     await UpdateAsync(userinDB);
                 }
 

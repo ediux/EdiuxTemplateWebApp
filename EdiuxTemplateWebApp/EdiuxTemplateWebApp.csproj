@@ -234,6 +234,7 @@
       <DependentUpon>ApplicationDbModel.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\ApplicationLevelModels\ControllerActionViewModel.cs" />
+    <Compile Include="Models\ApplicationLevelModels\RegisterForAdminsViewModel.cs" />
     <Compile Include="Models\ApplicationLevelModels\UserProfileViewModel.cs" />
     <Compile Include="Models\ApplicationRole.cs">
       <DependentUpon>ApplicationDbModel.tt</DependentUpon>

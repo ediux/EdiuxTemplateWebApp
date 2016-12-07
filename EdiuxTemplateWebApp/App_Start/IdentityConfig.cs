@@ -97,6 +97,38 @@ namespace EdiuxTemplateWebApp
         }
     }
 
+    public class ApplicationRoleManager : RoleManager<ApplicationRole, int>
+    {
+        public ApplicationRoleManager(IRoleStore<ApplicationRole, int> store) :
+            base(store)
+        {
+
+        }
+
+        public static ApplicationRoleManager Create(IdentityFactoryOptions<ApplicationRoleManager> options, IOwinContext context)
+        {
+            var roleManager = new ApplicationRoleManager(new EdiuxAspNetSqlUserStore(context.Get<IUnitOfWork>()));
+            roleManager.RoleValidator = new RoleValidator<ApplicationRole, int>(roleManager);
+
+            return roleManager;
+        }
+
+        public async override Task<IdentityResult> UpdateAsync(ApplicationRole role)
+        {
+            try
+            {
+                await Store.UpdateAsync(role);
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                throw;
+            }
+
+        }
+    }
+
     // 設定在此應用程式中使用的應用程式登入管理員。
     public class ApplicationSignInManager : SignInManager<ApplicationUser, int>
     {

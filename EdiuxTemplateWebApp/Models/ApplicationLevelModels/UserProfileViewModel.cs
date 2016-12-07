@@ -2,20 +2,62 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace EdiuxTemplateWebApp.Models
 {
-    public class UserProfileViewModel
+    public class UserProfileViewModel : ApplicationUser
     {
-        public UserProfileViewModel()
+
+        private IApplicationRoleRepository roleRepo;
+
+        public UserProfileViewModel() : base()
         {
             avatarFilePath = "/Content/images/user.jpg";
             positinTitle = "Development manager";
             companyName = "Riaxe";
             companyWebSiteURL = "http://www.riaxe.com/";
-            UserAccountManage = new IndexViewModel();
+
+            roleRepo = RepositoryHelper.GetApplicationRoleRepository();
         }
+
+        public void SetUnitOfWork(IUnitOfWork unitofwork)
+        {
+            roleRepo.UnitOfWork = unitofwork;
+        }
+        public UserProfileViewModel(IUnitOfWork unitofwork) : base()
+        {
+            roleRepo = RepositoryHelper.GetApplicationRoleRepository(unitofwork);
+        }
+
+        private int getRoleId()
+        {
+            if (ApplicationRole.Any())
+            {
+                return ApplicationRole.First().Id;
+            }
+
+            return 0;
+        }
+
+        private void setRoleId(int value)
+        {
+            int currentroleid = getRoleId();
+            if (currentroleid != value)
+            {
+                //先移除現在的
+                ApplicationRole.Clear();
+
+                //再加入新增的
+                Task<ApplicationRole> getRoleTask = roleRepo.FindByIdAsync(currentroleid);
+                getRoleTask.Wait();
+                ApplicationRole.Add(getRoleTask.Result);
+            }
+        }
+
+        public int RoleId { get { return getRoleId(); } set { setRoleId(value); } }
+
 
         public IndexViewModel UserAccountManage { get; set; }
 

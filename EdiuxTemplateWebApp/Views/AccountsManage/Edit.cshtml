@@ -1,215 +1,442 @@
-﻿@model EdiuxTemplateWebApp.Models.ApplicationUser
+﻿@model EdiuxTemplateWebApp.Models.UserProfileViewModel
 
 @{
     ViewBag.Title = "Edit";
 }
 
-<h2>Edit</h2>
-
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-    
-    <div class="form-horizontal">
-        <h4>ApplicationUser</h4>
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        @Html.HiddenFor(model => model.Id)
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.UserName, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
+<!-- begin profile-container -->
+<div class="profile-container">
+    <!-- begin profile-section -->
+    <div class="profile-section">
+        <!-- begin profile-left -->
+        <div class="profile-left">
+            <!-- begin profile-image -->
+            <div class="profile-image">
+                <img src="~/assets/img/user-13.jpg" />
+                <i class="fa fa-user hide"></i>
             </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+            <!-- end profile-image -->
+            <div class="m-b-10">
+                @*<a href="#" class="btn btn-warning btn-block btn-sm">Change Picture</a>*@
             </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.PasswordHash, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.PasswordHash, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.PasswordHash, "", new { @class = "text-danger" })
+            <!-- begin profile-highlight -->
+            <div class="profile-highlight">
+                @*<h4><i class="fa fa-cog"></i> Only My Contacts</h4>
+                    <div class="checkbox m-b-5 m-t-0">
+                        <label><input type="checkbox" /> Show my timezone</label>
+                    </div>
+                    <div class="checkbox m-b-0">
+                        <label><input type="checkbox" /> Show i have 14 contacts</label>
+                    </div>*@
             </div>
+            <!-- end profile-highlight -->
         </div>
+        <!-- end profile-left -->
+        <!-- begin profile-right -->
+        <div class="profile-right">
+            <!-- begin profile-info -->
+            <div class="profile-info">
+                <!-- begin table -->
+                <div class="table-responsive">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @*<table class="table table-profile">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>
+                                                <h4 class="col-md-6"> <small>@Model.UserName</small></h4>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="highlight">
+                                            <td class="field"></td>
+                                            <td>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.SecurityStamp, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.SecurityStamp, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.SecurityStamp, "", new { @class = "text-danger" })
-            </div>
-        </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="divider">
+                                            <td colspan="2"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="field"></td>
+                                            <td><i class="fa fa-mobile fa-lg m-r-5"></i> <div class="col-md-5">
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.TwoFactorEnabled, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.TwoFactorEnabled)
-                    @Html.ValidationMessageFor(model => model.TwoFactorEnabled, "", new { @class = "text-danger" })
+                            </div></td>
+                                        </tr>
+                                        @*<tr>
+                                                <td class="field">Home</td>
+                                                <td><a href="#">Add Number</a></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="field">Office</td>
+                                                <td><a href="#">Add Number</a></td>
+                                            </tr>*@
+                        @*<tr class="divider">
+                                <td colspan="2"></td>
+                            </tr>*@
+                        @*<tr class="highlight">
+                                            <td class="field">About Me</td>
+                                            <td><a href="#">Add Description</a></td>
+                                        </tr>
+                                    <tr class="divider">
+                                        <td colspan="2"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="field">Country/Region</td>
+                                        <td>
+                                            <select class="form-control input-inline input-xs" name="region">
+                                                <option value="US" selected>United State</option>
+                                                <option value="AF">Afghanistan</option>
+                                                <option value="AL">Albania</option>
+                                                <option value="DZ">Algeria</option>
+                                                <option value="AS">American Samoa</option>
+                                                <option value="AD">Andorra</option>
+                                                <option value="AO">Angola</option>
+                                                <option value="AI">Anguilla</option>
+                                                <option value="AQ">Antarctica</option>
+                                                <option value="AG">Antigua and Barbuda</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="field">City</td>
+                                        <td>Los Angeles</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="field">State</td>
+                                        <td><a href="#">Add State</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="field">Website</td>
+                                        <td><a href="#">Add Webpage</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="field">Gender</td>
+                                        <td>
+                                            <select class="form-control input-inline input-xs" name="gender">
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="field">Birthdate</td>
+                                        <td>
+                                            <select class="form-control input-inline input-xs" name="day">
+                                                <option value="04" selected>04</option>
+                                            </select>
+                                            -
+                                            <select class="form-control input-inline input-xs" name="month">
+                                                <option value="11" selected>11</option>
+                                            </select>
+                                            -
+                                            <select class="form-control input-inline input-xs" name="year">
+                                                <option value="1989" selected>1989</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="field">Language</td>
+                                        <td>
+                                            <select class="form-control input-inline input-xs" name="language">
+                                                <option value="" selected>English</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>*@
+                        <div class="form-horizontal col-md-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            @Html.HiddenFor(model => model.Id)
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.UserName, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    <label class="control-label form-control-static">@Html.DisplayTextFor(model => model.UserName)</label>
+                                </div>
+                            </div>
+                            @Html.HiddenFor(model => model.UserName)
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    [
+                                    @Html.ActionLink("變更密碼", "ChangePassword", new { id = Model.Id })
+                                    ]
+                                </div>
+                            </div>
+                            @Html.HiddenFor(model => model.PasswordHash)
+                            @Html.HiddenFor(model => model.SecurityStamp)
+                            @Html.HiddenFor(model => model.TwoFactorEnabled)
+                            @Html.HiddenFor(model => model.Void)
+                            @Html.HiddenFor(model => model.EMailConfirmed)
+                            @Html.HiddenFor(model => model.PhoneConfirmed)
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.DisplayName, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.DisplayName, new { htmlAttributes = new { @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.DisplayName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.EMail, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.EMail, new { htmlAttributes = new { @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.EMail, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.PhoneNumber, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { @class = "form-control col-md-5" } })
+                                    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.RoleId, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @{
+                                        var role = Model.ApplicationRole.FirstOrDefault();
+                                        string roleName = string.Empty;
+
+                                        if (role != null)
+                                        {
+                                            roleName = role.Name;
+                                        }
+                                    }
+                                    <label class="control-label">@roleName</label>
+                                </div>
+                            </div>
+
+                            @Html.HiddenFor(model => model.CreateUserId)
+                            @Html.HiddenFor(model => model.CreateTime)
+                            @Html.HiddenFor(model => model.LastUpdateUserId)
+                            @Html.HiddenFor(model => model.LastUpdateTime)
+                            @Html.HiddenFor(model => model.LastActivityTime)
+                            @Html.HiddenFor(model => model.LastUnlockedTime)
+                            @Html.HiddenFor(model => model.LastLoginFailTime)
+                            @Html.HiddenFor(model => model.AccessFailedCount)
+                            @Html.HiddenFor(model => model.LockoutEnabled)
+                            @Html.HiddenFor(model => model.LockoutEndDate)
+                            @Html.HiddenFor(model => model.ResetPasswordToken)
+                            <div class="form-group">
+                                <div class="pull-right">
+                                    @if (ViewBag.returnUrl != null)
+                                    {
+                                        <a href="@ViewBag.returnUrl" class="btn btn-default">返回上一頁</a>
+                                    }
+                                    else
+                                    {
+                                        @Html.ActionLink("回到帳號清單", "Index", null, new { @class = "btn btn-default" })
+                                    }
+                                    <input type="submit" value="儲存" class="btn btn-warning" />
+                                    @Html.Hidden("returnUrl", (string)ViewBag.returnUrl)
+                                </div>
+                            </div>
+                        </div>
+                                        }
                 </div>
+                <!-- end table -->
             </div>
+            <!-- end profile-info -->
         </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Void, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.Void)
-                    @Html.ValidationMessageFor(model => model.Void, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.DisplayName, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.DisplayName, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.DisplayName, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.EMail, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.EMail, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.EMail, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.EMailConfirmed, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.EMailConfirmed)
-                    @Html.ValidationMessageFor(model => model.EMailConfirmed, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.PhoneNumber, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.PhoneConfirmed, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.PhoneConfirmed)
-                    @Html.ValidationMessageFor(model => model.PhoneConfirmed, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.CreateUserId, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.CreateUserId, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.CreateUserId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.CreateTime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.CreateTime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.CreateTime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LastUpdateUserId, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LastUpdateUserId, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LastUpdateUserId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LastUpdateTime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LastUpdateTime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LastUpdateTime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LastActivityTime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LastActivityTime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LastActivityTime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LastUnlockedTime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LastUnlockedTime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LastUnlockedTime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LastLoginFailTime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LastLoginFailTime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LastLoginFailTime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.AccessFailedCount, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.AccessFailedCount, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.AccessFailedCount, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LockoutEnabled, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.LockoutEnabled)
-                    @Html.ValidationMessageFor(model => model.LockoutEnabled, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LockoutEndDate, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LockoutEndDate, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LockoutEndDate, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ResetPasswordToken, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.ResetPasswordToken, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.ResetPasswordToken, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Save" class="btn btn-default" />
-            </div>
-        </div>
+        <!-- end profile-right -->
     </div>
-}
-
-<div>
-    @Html.ActionLink("Back to List", "Index")
+    <!-- end profile-section -->
+    <!-- begin profile-section -->
+    <div class="profile-section">
+        <!-- begin row -->
+        @*<div class="row">
+                <!-- begin col-4 -->
+                <div class="col-md-4">
+                    <h4 class="title">Message <small>56 messages</small></h4>
+                    <!-- begin scrollbar -->
+                    <div data-scrollbar="true" data-height="280px" class="bg-silver">
+                        <!-- begin chats -->
+                        <ul class="chats">
+                            <li class="left">
+                                <span class="date-time">yesterday 11:23pm</span>
+                                <a href="javascript:;" class="name">Sowse Bawdy</a>
+                                <a href="javascript:;" class="image"><img alt="" src="assets/img/user-12.jpg"></a>
+                                <div class="message">
+                                    Lorem ipsum dolor sit amet, consectetuer adipiscing elit volutpat. Praesent mattis interdum arcu eu feugiat.
+                                </div>
+                            </li>
+                            <li class="right">
+                                <span class="date-time">08:12am</span>
+                                <a href="#" class="name"><span class="label label-primary">ADMIN</span> Me</a>
+                                <a href="javascript:;" class="image"><img alt="" src="assets/img/user-13.jpg"></a>
+                                <div class="message">
+                                    Nullam posuere, nisl a varius rhoncus, risus tellus hendrerit neque.
+                                </div>
+                            </li>
+                            <li class="left">
+                                <span class="date-time">09:20am</span>
+                                <a href="#" class="name">Neck Jolly</a>
+                                <a href="javascript:;" class="image"><img alt="" src="assets/img/user-10.jpg"></a>
+                                <div class="message">
+                                    Euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+                                </div>
+                            </li>
+                            <li class="left">
+                                <span class="date-time">11:15am</span>
+                                <a href="#" class="name">Shag Strap</a>
+                                <a href="javascript:;" class="image"><img alt="" src="assets/img/user-14.jpg"></a>
+                                <div class="message">
+                                    Nullam iaculis pharetra pharetra. Proin sodales tristique sapien mattis placerat.
+                                </div>
+                            </li>
+                        </ul>
+                        <!-- end chats -->
+                    </div>
+                    <!-- end scrollbar -->
+                </div>
+                <!-- end col-4 -->
+                <!-- begin col-4 -->
+                <div class="col-md-4">
+                    <h4 class="title">Sales <small>3 sales</small></h4>
+                    <!-- begin scrollbar -->
+                    <div data-scrollbar="true" data-height="280px" class="bg-silver">
+                        <!-- begin table -->
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Product</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="col-md-1 p-r-5">
+                                        <a href="javascript:;" class="pull-left">
+                                            <img src="assets/img/product/product-1.png" width="40px" alt="">
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <h5 class="m-t-0 m-b-5">iPad Air 3</h5>
+                                    </td>
+                                    <td>$349.00</td>
+                                    <td>13/02/2013</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-1 p-r-5">
+                                        <a href="javascript:;" class="pull-left">
+                                            <img src="assets/img/product/product-2.png" width="40px" alt="">
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <h5 class="m-t-0 m-b-5">Iphone6</h5>
+                                    </td>
+                                    <td>$399.00</td>
+                                    <td>13/02/2013</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-1 p-r-5">
+                                        <a href="javascript:;" class="pull-left">
+                                            <img src="assets/img/product/product-3.png" width="40px" alt="">
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <h5 class="m-t-0 m-b-5">Macbook Pro</h5>
+                                    </td>
+                                    <td>$499.00</td>
+                                    <td>13/02/2013</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-1 p-r-5">
+                                        <a href="javascript:;">
+                                            <img src="assets/img/product/product-4.png" width="40px" alt="">
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <h5 class="m-t-0 m-b-5">Samsung Galaxy s4</h5>
+                                    </td>
+                                    <td>$230.00</td>
+                                    <td>13/02/2013</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-1 p-r-5">
+                                        <a href="javascript:;" class="pull-left">
+                                            <img src="assets/img/product/product-5.png" width="40px" alt="">
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <h5 class="m-t-0 m-b-5">Samsung Note 4</h5>
+                                    </td>
+                                    <td>$500.00</td>
+                                    <td>13/02/2013</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- end table -->
+                    </div>
+                    <!-- end scrollbar -->
+                </div>
+                <!-- end col-4 -->
+                <!-- begin col-4 -->
+                <div class="col-md-4">
+                    <h4 class="title">Task <small>24 pending</small></h4>
+                    <!-- begin scrollbar -->
+                    <div data-scrollbar="true" data-height="280px" class="bg-silver">
+                        <!-- begin todolist -->
+                        <ul class="todolist">
+                            <li class="active">
+                                <a href="javascript:;" class="todolist-container active" data-click="todolist">
+                                    <div class="todolist-input"><i class="fa fa-square-o"></i></div>
+                                    <div class="todolist-title">Donec vehicula pretium nisl, id lacinia nisl tincidunt id.</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:;" class="todolist-container" data-click="todolist">
+                                    <div class="todolist-input"><i class="fa fa-square-o"></i></div>
+                                    <div class="todolist-title">Duis a ullamcorper massa.</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:;" class="todolist-container" data-click="todolist">
+                                    <div class="todolist-input"><i class="fa fa-square-o"></i></div>
+                                    <div class="todolist-title">Phasellus bibendum, odio nec vestibulum ullamcorper.</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:;" class="todolist-container" data-click="todolist">
+                                    <div class="todolist-input"><i class="fa fa-square-o"></i></div>
+                                    <div class="todolist-title">Duis pharetra mi sit amet dictum congue.</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:;" class="todolist-container" data-click="todolist">
+                                    <div class="todolist-input"><i class="fa fa-square-o"></i></div>
+                                    <div class="todolist-title">Duis pharetra mi sit amet dictum congue.</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:;" class="todolist-container" data-click="todolist">
+                                    <div class="todolist-input"><i class="fa fa-square-o"></i></div>
+                                    <div class="todolist-title">Phasellus bibendum, odio nec vestibulum ullamcorper.</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:;" class="todolist-container active" data-click="todolist">
+                                    <div class="todolist-input"><i class="fa fa-square-o"></i></div>
+                                    <div class="todolist-title">Donec vehicula pretium nisl, id lacinia nisl tincidunt id.</div>
+                                </a>
+                            </li>
+                        </ul>
+                        <!-- end todolist -->
+                    </div>
+                    <!-- end scrollbar -->
+                </div>
+                <!-- end col-4 -->
+            </div>*@
+        <!-- end row -->
+    </div>
+    <!-- end profile-section -->
 </div>
+<!-- end profile-container -->

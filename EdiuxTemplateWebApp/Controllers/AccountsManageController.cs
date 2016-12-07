@@ -8,38 +8,74 @@ using System.Web;
 using System.Web.Mvc;
 using EdiuxTemplateWebApp.Models;
 using PagedList;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.AspNet.Identity;
+using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
     public class AccountsManageController : Controller
     {
-        private IApplicationUserRepository db = RepositoryHelper.GetApplicationUserRepository();
+        private IApplicationUserRepository db;
+        private IApplicationRoleRepository roleRepo;
+
+        private ApplicationUserManager _userManager;
+        private ApplicationRoleManager _roleManager;
+
+        public ApplicationUserManager UserManager
+        {
+            get
+            {
+                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            }
+            private set
+            {
+                _userManager = value;
+            }
+        }
+
+        public ApplicationRoleManager RoleManager
+        {
+            get
+            {
+                return _roleManager ?? new ApplicationRoleManager(new EdiuxAspNetSqlUserStore(HttpContext.GetOwinContext().Get<IUnitOfWork>()));
+            }
+            private set
+            {
+                _roleManager = value;
+            }
+        }
+
+        public AccountsManageController()
+        {
+            db = RepositoryHelper.GetApplicationUserRepository();
+            roleRepo = RepositoryHelper.GetApplicationRoleRepository(db.UnitOfWork);
+        }
 
         // GET: AccountsManage
         public ActionResult Index(int? pageid, int? pageSize)
         {
-            return View(db.Where(w => w.Void == false).OrderBy(o => o.Id).ToPagedList(pageid ?? 1, pageSize ?? 10));           
+            return View(db.Where(w => w.Void == false).OrderBy(o => o.Id).ToPagedList(pageid ?? 1, pageSize ?? 10));
         }
 
         // GET: AccountsManage/Details/5
-        public ActionResult Details(int? id)
+        public async Task<ActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            ApplicationUser applicationUser = db.Get(id);
-            if (applicationUser == null)
-            {
+            var user = await UserManager.FindByIdAsync(id??0);
+
+            if (user == null)
                 return HttpNotFound();
-            }
-            return View(applicationUser);
+
+
+            ViewBag.RoleName = (user.ApplicationRole != null) ? string.Join(";", user.ApplicationRole.Select(s => s.Name).ToArray()) : "訪客";
+            return View(user);
         }
 
         // GET: AccountsManage/Create
         public ActionResult Create()
         {
-            return View();
+            ViewBag.RoleId = new SelectList(roleRepo.Where(w => w.Void == false), "Id", "Name");
+            return View(new RegisterForAdminsViewModel());
         }
 
         // POST: AccountsManage/Create
@@ -47,31 +83,42 @@ namespace EdiuxTemplateWebApp.Controllers
         // 詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkId=317598。
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,UserName,Password,PasswordHash,SecurityStamp,TwoFactorEnabled,Void,DisplayName,EMail,EMailConfirmed,PhoneNumber,PhoneConfirmed,CreateUserId,CreateTime,LastUpdateUserId,LastUpdateTime,LastActivityTime,LastUnlockedTime,LastLoginFailTime,AccessFailedCount,LockoutEnabled,LockoutEndDate,ResetPasswordToken")] ApplicationUser applicationUser)
+        public ActionResult Create([Bind(Include = "UserName,DisplayName,Password,ConfirmPassword,RoleId,Email")] RegisterForAdminsViewModel registerViewModel)
         {
             if (ModelState.IsValid)
             {
-                db.Add(applicationUser);
-                db.UnitOfWork.Commit();
-                return RedirectToAction("Index");
-            }
+                ApplicationUser user = ApplicationUser.Create();
+                user.UserName = registerViewModel.UserName;
+                user.DisplayName = registerViewModel.DisplayName;
+                user.EMail = registerViewModel.Email;
+                user.Password = registerViewModel.Password;
+       
+                user.PasswordHash = UserManager.PasswordHasher.HashPassword(registerViewModel.Password);
 
-            return View(applicationUser);
+                IdentityResult result = UserManager.Create(user);
+                if (result.Succeeded)
+                {
+                    user = UserManager.FindByName(registerViewModel.UserName);
+
+                    if (user != null)
+                    {
+                        var role = RoleManager.FindById(registerViewModel.RoleId);
+                        //user.ApplicationRole.Add(role);
+                        UserManager.AddToRole(user.Id, role.Name);
+                        UserManager.Update(user);
+
+                        return RedirectToAction("Index");
+                    }
+                }
+            }
+            ViewBag.RoleId = new SelectList(RoleManager.Roles.Where(w => w.Void == false), "Id", "Name");
+            return View(registerViewModel);
         }
 
         // GET: AccountsManage/Edit/5
-        public ActionResult Edit(int? id)
+        public ActionResult Edit(int? id,string returnUrl)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            ApplicationUser applicationUser = db.Get(id);
-            if (applicationUser == null)
-            {
-                return HttpNotFound();
-            }
-            return View(applicationUser);
+            return RedirectToAction("UserProfile", "Manage", new { id });
         }
 
         // POST: AccountsManage/Edit/5

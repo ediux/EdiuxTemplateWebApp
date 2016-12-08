@@ -14,6 +14,13 @@ namespace EdiuxTemplateWebApp.Models
             // 注意 authenticationType 必須符合 CookieAuthenticationOptions.AuthenticationType 中定義的項目
             var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
             // 在這裡新增自訂使用者宣告
+            if (ApplicationUserClaim.Count > 0)
+            {
+                foreach(var item in ApplicationUserClaim)
+                {
+                    userIdentity.AddClaim(new Claim(item.ClaimType, item.ClaimValue));
+                }
+            }
             return userIdentity;
         }
     }

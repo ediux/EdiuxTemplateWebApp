@@ -59,8 +59,9 @@ namespace EdiuxTemplateWebApp.Models
             };
         }
 
-        public void CloneFrom(ApplicationUser source)
-        {           
+        public virtual void CloneFrom(ApplicationUser source)
+        {
+            Id = source.Id;
             AccessFailedCount = source.AccessFailedCount;
             CreateTime = source.CreateTime;
             CreateUserId = source.CreateUserId;
@@ -83,61 +84,100 @@ namespace EdiuxTemplateWebApp.Models
             TwoFactorEnabled = source.TwoFactorEnabled;
             UserName = source.UserName;
             Void = source.Void;
+
+            ApplicationRole = source.ApplicationRole;
+            ApplicationUserClaim = source.ApplicationUserClaim;
+            ApplicationUserLogin = source.ApplicationUserLogin;
         }
     }
-    
+
     public partial class ApplicationUserMetaData
     {
         [Required]
         public int Id { get; set; }
-        
-        [StringLength(50, ErrorMessage="欄位長度不得大於 50 個字元")]
+
+        [StringLength(50, ErrorMessage = "欄位長度不得大於 50 個字元")]
         [Required]
+        [Display(Name = "帳號名稱")]
         public string UserName { get; set; }
-        
-        [StringLength(50, ErrorMessage="欄位長度不得大於 50 個字元")]
+
+        [StringLength(50, ErrorMessage = "欄位長度不得大於 50 個字元")]
+        [Display(Name = "密碼")]
         public string Password { get; set; }
+        [Display(Name = "雜湊的密碼")]
         public string PasswordHash { get; set; }
+        [Display(Name = "安全性戳記")]
         public string SecurityStamp { get; set; }
         [Required]
+        [Display(Name = "兩步驟驗證機制")]
+        [UIHint("EnabledDisplay")]
         public bool TwoFactorEnabled { get; set; }
         [Required]
+        [Display(Name = "狀態")]
+        [UIHint("VoidDisplay")]
         public bool Void { get; set; }
-        
-        [StringLength(50, ErrorMessage="欄位長度不得大於 50 個字元")]
+
+        [StringLength(50, ErrorMessage = "欄位長度不得大於 50 個字元")]
         [Required]
+        [Display(Name = "顯示名稱")]
         public string DisplayName { get; set; }
-        
-        [StringLength(512, ErrorMessage="欄位長度不得大於 512 個字元")]
+
+        [StringLength(512, ErrorMessage = "欄位長度不得大於 512 個字元")]
+        [Display(Name = "電子郵件")]
         public string EMail { get; set; }
         [Required]
+        [UIHint("YesNoDisplay")]
+        [Display(Name = "電子郵件驗證")]
         public bool EMailConfirmed { get; set; }
-        
-        [StringLength(10, ErrorMessage="欄位長度不得大於 10 個字元")]
+
+        [StringLength(10, ErrorMessage = "欄位長度不得大於 10 個字元")]
+        [Display(Name = "電話號碼")]
         public string PhoneNumber { get; set; }
         [Required]
+        [UIHint("YesNoDisplay")]
+        [Display(Name = "電話號碼驗證")]
         public bool PhoneConfirmed { get; set; }
         [Required]
+        [UIHint("UserIDMappingDisplay")]
+        [Display(Name = "建立者")]
         public int CreateUserId { get; set; }
         [Required]
+        [Display(Name = "建立時間")]
+        [UIHint("UTCLocalTimeDisplay")]
         public System.DateTime CreateTime { get; set; }
         [Required]
+        [UIHint("UserIDMappingDisplay")]
+        [Display(Name = "更新者")]
         public int LastUpdateUserId { get; set; }
         [Required]
+        [Display(Name = "最後修改時間")]
+        [UIHint("UTCLocalTimeDisplay")]
         public System.DateTime LastUpdateTime { get; set; }
+        [Display(Name = "最後活動時間")]
+        [UIHint("UTCLocalTimeDisplay")]
         public Nullable<System.DateTime> LastActivityTime { get; set; }
+        [Display(Name = "最後解鎖時間")]
+        [UIHint("UTCLocalTimeDisplay")]
         public Nullable<System.DateTime> LastUnlockedTime { get; set; }
+        [Display(Name = "最後登入失敗時間")]
+        [UIHint("UTCLocalTimeDisplay")]
         public Nullable<System.DateTime> LastLoginFailTime { get; set; }
         [Required]
+        [Display(Name = "登入失敗次數")]
         public int AccessFailedCount { get; set; }
+        [Display(Name = "鎖定狀態")]
         public Nullable<bool> LockoutEnabled { get; set; }
+        [Display(Name = "結束鎖定日期")]
+        [UIHint("UTCLocalDateDisplay")]
         public Nullable<System.DateTime> LockoutEndDate { get; set; }
-        
-        [StringLength(512, ErrorMessage="欄位長度不得大於 512 個字元")]
+
+        [StringLength(512, ErrorMessage = "欄位長度不得大於 512 個字元")]
+        [Display(Name = "重設密碼權杖")]
         public string ResetPasswordToken { get; set; }
-    
+
         public virtual ICollection<ApplicationUserClaim> ApplicationUserClaim { get; set; }
         public virtual ICollection<ApplicationUserLogin> ApplicationUserLogin { get; set; }
+        [Display(Name = "角色")]
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }
     }
 }

@@ -55,7 +55,13 @@ namespace EdiuxTemplateWebApp.Controllers
         // GET: AccountsManage
         public ActionResult Index(int? pageid, int? pageSize)
         {
-            return View(db.Where(w => w.Void == false).OrderBy(o => o.Id).ToPagedList(pageid ?? 1, pageSize ?? 10));
+            int iSize = pageSize ?? 5;
+            if (iSize == -1)
+            {
+                var result = db.Where(w => w.Void == false).OrderBy(o => o.Id);
+                return View(result.ToPagedList(1, result.Count()));
+            }
+            return View(db.Where(w => w.Void == false).OrderBy(o => o.Id).ToPagedList(pageid ?? 1, pageSize ?? 5));
         }
 
         // GET: AccountsManage/Details/5
@@ -163,6 +169,17 @@ namespace EdiuxTemplateWebApp.Controllers
             return RedirectToAction("Index");
         }
 
+        public ActionResult RemoveUserFromRole(int id,int roleId)
+        {
+            ApplicationUser applicationUser = db.Get(id);
+            if (applicationUser != null)
+            {
+                ApplicationRole role = roleRepo.Get(roleId);
+                applicationUser.ApplicationRole.Remove(role);
+                db.UpdateAsync(applicationUser).Wait();
+            }
+            return RedirectToAction("UserProfile", "Manage", new { id = id });
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)

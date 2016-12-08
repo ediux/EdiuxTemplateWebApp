@@ -6,23 +6,19 @@
 
 <div class="row">
     <div class="col-md-12">
-        <div class="panel panel-inverse">
-            <div class="panel-heading">
-                <div class="panel-heading-btn">
-                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
-                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
-                </div>
-                <h4 class="panel-title">@ViewBag.Title</h4>
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-user"></i>
+                <h3>@ViewBag.Title</h3>
             </div>
-            <div class="panel-toolbar">
-                <div class="btn-group m-r-5" role="group" aria-label="First group">
-                    <a href="@Url.Action("Index")" class="btn btn-white" title="回到帳號清單"><i class="glyphicon glyphicon-arrow-left"></i></a>
+            <div class="widget-content">
+                <div class="btn-group" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index")" class="btn btn-primary" title="回到帳號清單"><i class="glyphicon glyphicon-arrow-left"></i></a>
                 </div>
-                <div class="btn-group m-r-5" role="group" aria-label="Second group">
-                    <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-white" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>
+                <div class="btn-group" role="group" aria-label="Second group">
+                    <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-info" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>
                 </div>
-            </div>
-            <div class="panel-body">
+                <hr/>
                 <div>
                     <dl class="dl-horizontal">
                         <dt>
@@ -55,8 +51,6 @@
                         <dd>
                             @Html.DisplayFor(model => model.EMailConfirmed)
                         </dd>
-
-
 
                         <dt>
                             @Html.DisplayNameFor(model => model.PhoneNumber)

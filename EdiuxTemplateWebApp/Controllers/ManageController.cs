@@ -327,7 +327,14 @@ namespace EdiuxTemplateWebApp.Controllers
         {
 
             UserProfileViewModel model = new UserProfileViewModel();
-            var userId = id?? User.Identity.GetUserId<int>();
+
+            var userId = id ?? User.Identity.GetUserId<int>();
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+
+                model.CloneFrom(user);
+            }
             model.UserAccountManage = new IndexViewModel
             {
                 HasPassword = HasPassword(),
@@ -336,7 +343,19 @@ namespace EdiuxTemplateWebApp.Controllers
                 Logins = await UserManager.GetLoginsAsync(userId),
                 BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
             };
+            IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UserManager.UnitOfWork);
+            var roleList = user.ApplicationRole.AsEnumerable();
+            var options = roleRepo.All().AsEnumerable();
+            options = options.Except(roleList);
+            //options.Insert(0, new ApplicationRole() { Id = 0, Name = "請選擇" });
+            ViewBag.RoleId = new SelectList(options, "Id", "Name");
             return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult UserProfile(int id, UserProfileViewModel userProfile)
+        {
+            return View();
         }
         #endregion
         protected override void Dispose(bool disposing)

@@ -43,12 +43,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                //取得記憶體快取中的資料
-                //只傳回未被標記為刪除的資料集合    
-                if (ObjectSet.Local.Count > 0)
-                    return ObjectSet.Local.AsQueryable();
+                ObjectSet.Load();
 
-                ObjectSet.Load();            
+                ////取得記憶體快取中的資料
+                ////只傳回未被標記為刪除的資料集合    
+                //if (ObjectSet.Local.Count > 0)
+                //    return ObjectSet.Local.AsQueryable();
+
                 return ObjectSet.Local.AsQueryable();
             }
             catch (Exception ex)

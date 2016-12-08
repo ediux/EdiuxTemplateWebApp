@@ -344,8 +344,25 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\css\bootstrap.css" />
+    <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\css\demo_page.css" />
+    <Content Include="Content\css\demo_table.css" />
+    <Content Include="Content\css\font-awesome.css" />
+    <Content Include="Content\css\thin-admin.css" />
     <Content Include="Content\fonts\fontawesome-webfont.svg" />
     <Content Include="Content\PagedList.css" />
+    <Content Include="Content\style\dashboard.css" />
+    <Content Include="Content\style\dropzone.css" />
+    <Content Include="Content\style\fullcalendar.css" />
+    <Content Include="Content\style\fullcalendar.print.css" />
+    <Content Include="Content\style\jquery.jqplot.min.css" />
+    <Content Include="Content\style\lightbox.css" />
+    <Content Include="Content\style\nestable.css" />
+    <Content Include="Content\style\screen.css" />
+    <Content Include="Content\style\slider.css" />
+    <Content Include="Content\style\style - Copy.css" />
+    <Content Include="Content\style\style.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -491,14 +508,12 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Content\assets\" />
-    <Folder Include="Content\css\" />
     <Folder Include="Content\font-awesome-4.0.3\" />
     <Folder Include="Content\font\" />
     <Folder Include="Content\images\" />
     <Folder Include="Content\img\" />
     <Folder Include="Content\javascript\" />
     <Folder Include="Content\js\" />
-    <Folder Include="Content\style\" />
     <Folder Include="Filters\" />
     <Folder Include="Html\" />
     <Folder Include="Views\Error\" />

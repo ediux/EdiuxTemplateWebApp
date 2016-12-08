@@ -56,6 +56,30 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
+        public override void CloneFrom(ApplicationUser source)
+        {
+            base.CloneFrom(source);
+
+            if (ApplicationUserClaim.Count > 0)
+            {
+                foreach (var item in ApplicationUserClaim)
+                {
+                    switch (item.ClaimType)
+                    {
+                        case "FirstName":
+                            FirstName = item.ClaimValue;
+                            break;
+                        case "MiddleName":
+                            MiddleName = item.ClaimValue;
+                            break;
+                        case "LastName":
+                            LastName = item.ClaimValue;
+                            break;
+                    }
+                   
+                }
+            }
+        }
         public int RoleId { get { return getRoleId(); } set { setRoleId(value); } }
 
 

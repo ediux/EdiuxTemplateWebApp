@@ -10,7 +10,7 @@
 }
 <div class="row">
     <div class="col-lg-12">
-        <h2 class="page-title">User Profile Demo<small> Out of the box form</small></h2>
+        <h2 class="page-title">個人化設定<small> 管理您的資訊 </small></h2>
     </div>
 </div>
 <div class="row">
@@ -18,21 +18,24 @@
         <div class="widget">
             <div class="widget-header">
                 <i class="icon-user"></i>
-                <h3>User Profile</h3>
+                <h3>個人化設定</h3>
             </div>
             <div class="widget-content">
                 <div class="body">
-                    <form data-validate="parsley" method="post" novalidate class="form-horizontal label-left" id="user-form">
+                    @using (Html.BeginForm("UserProfile", "Manage", FormMethod.Post, new { @data_validate = "parsley", novalidate = "", @class = "form-horizontal", @id = "user-form" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(model=>model.Id)
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="text-align-center"> <img style="height: 112px;" alt="64x64" src="@Model.AvatarFilePath" class="img-circle"> </div>
                             </div>
                             <div class="col-md-8">
-                                <h3 class="no-margin">@string.Format("{0}{1}{2}", Model.FirstName, Model.MiddleName, Model.LastName)</h3>
+                                <h3 class="no-margin">@Model.DisplayName</h3>
                                 <address>
                                     <strong>@Model.PositionTitle</strong> 於 <strong><a href="@Model.CompanyWebSiteURL">@Model.CompanyName</a></strong><br>
-                                    <abbr title="Work email">e-mail:</abbr> <a href="mailto:#">ramanip@riaxe.com</a><br>
-                                    <abbr title="Work Phone">phone:</abbr> (123) 456-7890
+                                    <abbr title="Work email">e-mail:</abbr> <a href="mailto:@Model.EMail">@Model.EMail</a><br>
+                                    <abbr title="Work Phone">phone:</abbr> @Model.PhoneNumber
                                 </address>
                             </div>
                         </div>
@@ -47,7 +50,7 @@
                                 <dd>
                                     [
                                     @if (Model.UserAccountManage.HasPassword)
-            {
+                                    {
                                         @Html.ActionLink("變更密碼", "ChangePassword")
                                     }
                                     else
@@ -62,101 +65,91 @@
                                     @Html.ActionLink("管理", "ManageLogins") ]
                                 </dd>
                                 @*
-                電話號碼可以當做雙因素驗證系統中的第二個驗證因素。
+                                    電話號碼可以當做雙因素驗證系統中的第二個驗證因素。
 
-                 請參閱<a href="http://go.microsoft.com/fwlink/?LinkId=403804">此文章</a>
-                    以了解設定此 ASP.NET 應用程式以支援使用 SMS 進行雙因素驗證的詳細資料。
+                                     請參閱<a href="http://go.microsoft.com/fwlink/?LinkId=403804">此文章</a>
+                                        以了解設定此 ASP.NET 應用程式以支援使用 SMS 進行雙因素驗證的詳細資料。
 
-                雙因素驗證設定完成之後，請取消註解以下區塊
+                                    雙因素驗證設定完成之後，請取消註解以下區塊
                                 *@
                                 @*
-                <dt>電話號碼:</dt>
-                <dd>
-                    @(Model.PhoneNumber ?? "None")
-                    @if (Model.PhoneNumber != null)
-                    {
-                        <br />
-                        <text>[&nbsp;&nbsp;@Html.ActionLink("Change", "AddPhoneNumber")&nbsp;&nbsp;]</text>
-                        using (Html.BeginForm("RemovePhoneNumber", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <text>[<input type="submit" value="Remove" class="btn-link" />]</text>
-                        }
-                    }
-                    else
-                    {
-                        <text>[&nbsp;&nbsp;@Html.ActionLink("Add", "AddPhoneNumber")
-                    }
-                </dd>
+                                    <dt>電話號碼:</dt>
+                                    <dd>
+                                        @(Model.PhoneNumber ?? "None")
+                                        @if (Model.PhoneNumber != null)
+                                        {
+                                            <br />
+                                            <text>[&nbsp;&nbsp;@Html.ActionLink("Change", "AddPhoneNumber")&nbsp;&nbsp;]</text>
+                                            using (Html.BeginForm("RemovePhoneNumber", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <text>[<input type="submit" value="Remove" class="btn-link" />]</text>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <text>[&nbsp;&nbsp;@Html.ActionLink("Add", "AddPhoneNumber")
+                                        }
+                                    </dd>
                                 *@
                                 <dt>雙因素驗證:</dt>
                                 <dd>
-                                    <p>
-                                        並未設定雙因素驗證提供者。請參閱<a href="http://go.microsoft.com/fwlink/?LinkId=403804">此文章</a>
-                                        以了解設定此 ASP.NET 應用程式以支援雙因素驗證的詳細資料。
-                                    </p>
-                                    @*@if (Model.TwoFactor)
-                    {
-                        using (Html.BeginForm("DisableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <text>已啟用
-                            <input type="submit" value="停用" class="btn btn-link" />
-                            </text>
-                        }
-                    }
-                    else
-                    {
-                        using (Html.BeginForm("EnableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <text>已停用
-                            <input type="submit" value="啟用" class="btn btn-link" />
-                            </text>
-                        }
-                    }*@
+                                    @if (Model.TwoFactorEnabled == false)
+                                    {
+                                        <p>
+                                            並未設定雙因素驗證提供者。請參閱<a href="http://go.microsoft.com/fwlink/?LinkId=403804">此文章</a>
+                                            以了解設定此 ASP.NET 應用程式以支援雙因素驗證的詳細資料。
+                                        </p>
+                                    }
+
+                                    
                                 </dd>
                             </dl>
                         </fieldset>
                         <fieldset>
-                            <legend class="section">Personal Info</legend>
+                            <legend class="section">個人基本資料</legend>
                             <div class="control-group">
                                 <div class="col-md-3">
-                                    <label for="prefix" class="control-label">Prefix</label>
+                                    @Html.LabelFor(model=>model.PositionTitle,new  { @for=Html.IdFor(p=>p.PositionTitle), @class= "control-label" })                     
                                 </div>
                                 <div class="col-md-9">
                                     <div class="form-group">
-                                        <input type="text" class="col-sm-6 col-xs-12" name="prefix" id="prefix">
+                                        @Html.TextBoxFor(model=>model.PositionTitle,new { @class= "col-sm-6 col-xs-12" })
+                                        @Html.ValidationMessageFor(p => p.PositionTitle, "", new { @class = "help-block text-danger" })
                                     </div>
                                 </div>
                             </div>
                             <div class="control-group">
                                 <div class="col-md-3">
-                                    <label for="first-name" class="control-label">First Name <span class="required">*</span></label>
+                                    @Html.LabelFor(model => model.FirstName, new { @for = Html.IdFor(p => p.FirstName), @class = "control-label" })
                                 </div>
                                 <div class="col-md-9">
                                     <div class="form-group">
-                                        <input type="text" class="col-xs-12 parsley-validated" required name="first-name" id="first-name">
+                                        @Html.TextBoxFor(p => p.FirstName, new { @class = "col-xs-12 parsley-validated" })
+                                        @Html.ValidationMessageFor(p => p.FirstName, "", new { @class = "help-block text-danger" })
                                     </div>
                                 </div>
                             </div>
                             <div class="control-group">
                                 <div class="col-md-3">
-                                    <label for="last-name" class="control-label">Last Name <span class="required">*</span></label>
+                                    @Html.LabelFor(model => model.LastName, new { @for = Html.IdFor(p => p.LastName), @class = "control-label" })
+                                   
                                 </div>
                                 <div class="col-md-9">
                                     <div class="form-group">
-                                        <input type="text" class="col-xs-12 parsley-validated" required name="last-name" id="last-name">
+                                        @Html.TextBoxFor(p => p.LastName, new { @class = "col-xs-12 parsley-validated" })
+                                        @Html.ValidationMessageFor(p => p.LastName, "", new { @class = "help-block text-danger" })
                                     </div>
                                 </div>
                             </div>
                             <div class="control-group">
                                 <div class="col-md-3">
-                                    <label class="control-label" for="middle-name">Middle Name / Initial</label>
+                                    @Html.LabelFor(model => model.MiddleName, new { @for = Html.IdFor(p => p.MiddleName), @class = "control-label" })
                                 </div>
                                 <div class="col-md-9">
                                     <div class="form-group">
-                                        <input type="text" value="" name="middle-name" class="col-xs-12" id="middle-name">
+                                        @Html.TextBoxFor(p => p.MiddleName, new { @class = "col-xs-12 parsley-validated" })
+                                        @Html.ValidationMessageFor(p=>p.MiddleName, "", new { @class = "help-block text-danger" })
                                     </div>
                                 </div>
                             </div>
@@ -191,32 +184,27 @@
                             </div>
                         </fieldset>
                         <fieldset>
-                            <legend class="section">Contact Info</legend>
+                            <legend class="section">聯絡資訊</legend>
                             <div class="control-group">
                                 <div class="col-md-3">
-                                    <label class="control-label" for="email" id="email-label">Email <span class="required">*</span></label>
+                                    @Html.LabelFor(model => model.EMail, new { @for = Html.IdFor(p => p.EMail), @class = "control-label" })
                                 </div>
                                 <div class="col-md-9">
-                                    <div class="form-group">
-                                        <div class="col-xs-12 col-sm-8">
-                                            <div class="input-group">
-                                                <input type="email" name="email" class="form-control parsley-validated" required data-trigger="change" id="email">
-                                                <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-success">Write an email</button>
-                                                </span>
-                                            </div>
-                                        </div>
+                                    <div class="form-group">             
+                                            @Html.TextBoxFor(p => p.EMail, new { @class = "col-sm-6 col-xs-12 parsley-validated" })
+                                            @Html.ValidationMessageFor(p => p.EMail, "", new { @class = "text-danger" })
                                     </div>
                                 </div>
                             </div>
                             <div class="control-group">
                                 <div class="col-md-3">
-                                    <label class="control-label" for="phone">Phone <span class="required">*</span></label>
+                                    @Html.LabelFor(model => model.PhoneNumber, new { @for = Html.IdFor(p => p.PhoneNumber), @class = "control-label" })
                                 </div>
                                 <div class="col-md-9">
                                     <div class="form-group">
-                                        <div class="col-xs-12 col-sm-8">
-                                            <div class="input-group">
+                                            @Html.TextBoxFor(p => p.PhoneNumber, new { @class = "col-sm-6 col-xs-12 parsley-validated" })
+                                            @Html.ValidationMessageFor(p => p.PhoneNumber, "", new { @class = "text-danger" })
+                                            @*<div class="input-group">
                                                 <input type="text" maxlength="28" name="phone" required class="form-control  mask parsley-validated" id="phone">
                                                 <span class="input-group-btn">
                                                     <select data-style="btn-default" class="selectpicker" id="phone-type" style="display: none;">
@@ -233,38 +221,45 @@
                                                         </ul>
                                                     </div>
                                                 </span>
-                                            </div>
-                                        </div>
+                                            </div>*@
+                                       
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <legend class="section">角色</legend>
+                            <div class="control-group">
+                                <div class="col-md-3">
+                                    @Html.LabelFor(p=>p.ApplicationRole, new { @for=Html.IdFor(p=>p.ApplicationRole) , @class="control-label" })
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="col-md-7">
+                                        @Html.DropDownListFor(model => model.RoleId, null, new { @class = "form-control" })
+                                    </div>
+                                    <div class="col-md-1">
+                                        <a class="btn btn-primary" title="加入"><i class="glyphicon glyphicon-plus"></i></a>
                                     </div>
                                 </div>
                             </div>
                             <div class="control-group">
-                                <div class="col-md-3">
-                                    <label class="control-label" for="fax">Fax</label>
-                                </div>
-                                <div class="col-md-9">
-                                    <div class="form-group">
-                                        <div class="col-xs-12 col-sm-8">
-                                            <div class="input-group">
-                                                <input type="text" maxlength="28" name="phone" class="form-control" id="fax">
-                                                <span class="input-group-btn">
-                                                    <select data-style="btn-default" class="selectpicker" id="fax-type" style="display: none;">
-                                                        <option>Mobile</option>
-                                                        <option>Home</option>
-                                                        <option>Work</option>
-                                                    </select>
-                                                    <div class="btn-group bootstrap-select">
-                                                        <button data-toggle="dropdown" class="btn dropdown-toggle clearfix btn-default" id="fax-type"><span class="filter-option">Mobile</span>&nbsp;<i class="icon-caret-down"></i></button>
-                                                        <ul role="menu" class="dropdown-menu" style="overflow-y: auto; min-height: 60px; max-height: 48.75px;">
-                                                            <li rel="0"><a class="" href="#" tabindex="-1">Mobile</a></li>
-                                                            <li rel="1"><a class="" href="#" tabindex="-1">Home</a></li>
-                                                            <li rel="2"><a class="" href="#" tabindex="-1">Work</a></li>
-                                                        </ul>
-                                                    </div>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="col-md-push-3 col-md-6">
+                                    <table class="table table-bordered table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    角色名稱
+                                                </th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var role in Model.ApplicationRole)
+                                            {
+                                                <tr><td>@role.Name</td><td><a href="@Url.Action("RemoveUserFromRole","AccountsManage", new { id = Model.Id, roleId=role.Id })" class="btn btn-danger btn-xs m-r-5" title="刪除"><i class="glyphicon glyphicon-remove"></i></a></td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </fieldset>
@@ -272,7 +267,7 @@
                             <button class="btn btn-primary" type="submit">Validate &amp; Submit</button>
                             <button class="btn btn-default" type="button">Cancel</button>
                         </div>
-                    </form>
+                    }
                 </div>
             </div>
         </div>

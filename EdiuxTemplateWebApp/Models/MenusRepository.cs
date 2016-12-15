@@ -16,13 +16,14 @@ namespace EdiuxTemplateWebApp.Models
 
                 string typeName = typeof(MvcApplication).Namespace;
 
-                System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == typeof(MvcApplication).Name);
+                System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == typeof(MvcApplication).Namespace);
 
                 int appId = (app != null) ? app.Id : 0;
-               
-                var result = base.All() 
-                    .Where(w => w.Void == false 
-                    && w.ApplicationId==appId)
+
+                var result = base.All()
+                    .Where(w => w.Void == false
+                    && w.ApplicationId == appId)
+                    .Include(m => m.System_Applications)
                     .Include(m => m.ChildMenus)
                     .Include(m => m.System_ControllerActions);
 
@@ -54,11 +55,10 @@ namespace EdiuxTemplateWebApp.Models
                 IApplicationUserRepository userRepo = RepositoryHelper.GetApplicationUserRepository(UnitOfWork);
                 ISystem_ApplicationsRepository sysAppRepo = RepositoryHelper.GetSystem_ApplicationsRepository(UnitOfWork);
 
-                System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == AppRuntimeType.Name);
-
-
+                System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == AppRuntimeType.Namespace);
 
                 int currentUserId = getCurrentLoginedUserId();
+
                 string cacheKeyName = string.Format("UserMenu_{0}", currentUserId);
 
                 if (UnitOfWork.IsSet(cacheKeyName))

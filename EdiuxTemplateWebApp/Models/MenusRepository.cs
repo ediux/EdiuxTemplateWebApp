@@ -20,17 +20,22 @@ namespace EdiuxTemplateWebApp.Models
 
                 int appId = (app != null) ? app.Id : 0;
                
-                var result = base.All()
-                    .Include(m => m.ChildMenus)
-                    .Include(m => m.System_ControllerActions)
+                var result = base.All() 
                     .Where(w => w.Void == false 
                     && w.ApplicationId==appId)
-                    .AsQueryable();
-
-                if (result.Count() > 0)
-                    return result;
+                    .Include(m => m.ChildMenus)
+                    .Include(m => m.System_ControllerActions);
 
                 result.Load();
+
+                if (UnitOfWork.IsSet(nameof(Menus)))
+                {
+                    var cache = GetCache();
+                    System.Collections.ObjectModel.ObservableCollection<Menus> newCache =
+                        new System.Collections.ObjectModel.ObservableCollection<Menus>(
+                            cache.Union(ObjectSet.Local).AsEnumerable());
+                    UnitOfWork.Set(nameof(ApplicationUser), newCache, CacheExpiredTime);
+                }
 
                 return result;
             }

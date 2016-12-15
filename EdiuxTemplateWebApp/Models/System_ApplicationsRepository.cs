@@ -7,8 +7,20 @@ namespace EdiuxTemplateWebApp.Models
 {   
 	public  partial class System_ApplicationsRepository : EFRepository<System_Applications>, ISystem_ApplicationsRepository
 	{
-
-	}
+        public override IQueryable<System_Applications> All()
+        {
+            try
+            {
+                return GetCache().AsQueryable();
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+           
+        }
+    }
 
 	public  partial interface ISystem_ApplicationsRepository : IRepositoryBase<System_Applications>
 	{

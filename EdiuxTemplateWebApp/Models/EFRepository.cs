@@ -43,14 +43,29 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+
+                string keyName = typeof(T).Name;
+
+                System.Collections.ObjectModel.ObservableCollection<T> cacheSet = null;
+
+                //檢查是否有L2快取
+                if (UnitOfWork.IsSet(keyName))
+                {
+                    cacheSet = GetCache();
+                    if (cacheSet != null && cacheSet.Count>0)
+                        return GetCache().AsQueryable();
+                }
+
                 ObjectSet.Load();
+
+                cacheSet =
+                    new System.Collections.ObjectModel.ObservableCollection<T>(ObjectSet.Local.AsEnumerable());
 
                 ////取得記憶體快取中的資料
                 ////只傳回未被標記為刪除的資料集合    
-                //if (ObjectSet.Local.Count > 0)
-                //    return ObjectSet.Local.AsQueryable();
+                UnitOfWork.Set(keyName, cacheSet, CacheExpiredTime);
 
-                return ObjectSet.Local.AsQueryable();
+                return cacheSet.AsQueryable();
             }
             catch (Exception ex)
             {
@@ -63,20 +78,24 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                string keyName = typeof(T).Name;
+
                 //使用EF的快取
-                 ObjectSet.Where(expression).Load();
+                ObjectSet.Where(expression).Load();
 
                 IQueryable<T> getFromL1Cache = ObjectSet.Local.AsQueryable();
-                
-                //Local快取(L1)有結果          
-                //if (getFromL1Cache != null && getFromL1Cache.Count() > 0)
-                //{                    
-                //    return getFromL1Cache;
-                //}
+
+                //如果有L2,嘗試更新查詢聯集快取        
+                if (UnitOfWork.IsSet(keyName))
+                {
+                    System.Collections.ObjectModel.ObservableCollection<T> newCacheSet =
+                       new System.Collections.ObjectModel.ObservableCollection<T>(GetCache().Union(getFromL1Cache));
+                    UnitOfWork.Set(keyName, newCacheSet, CacheExpiredTime);
+                }
 
                 //getFromL1Cache = getFromL1Cache.Where(expression);  //對資料庫進行查詢並將結果快取到記憶體內 DB->L1->L2      
                 //getFromL1Cache.Load();
-               
+
                 return getFromL1Cache;
             }
             catch (Exception ex)
@@ -91,11 +110,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                string keyName = typeof(T).Name;
+
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
                 //先取得目前快取
-                entity = ObjectSet.Add(entity); //=> add to L1               
+                entity = ObjectSet.Add(entity); //=> add to L1   
+
                 return entity;
             }
             catch (Exception ex)
@@ -110,6 +132,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                string keyName = typeof(T).Name;
+
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity));  //C# 6.0 新語法
 
@@ -142,6 +166,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                string keyName = typeof(T).Name;
+
                 return ((DbSet<T>)ObjectSet).AddRange(entities).ToList();
             }
             catch (Exception ex)
@@ -170,7 +196,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(Get(values)); 
+                return Task.FromResult(Get(values));
             }
             catch (Exception ex)
             {
@@ -182,7 +208,7 @@ namespace EdiuxTemplateWebApp.Models
         public virtual T Reload(T entity)
         {
             try
-            {                
+            {
                 UnitOfWork.Context.Entry(entity).Reload();
                 return entity;
             }
@@ -233,13 +259,14 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
 
-                string KeyName = nameof(T);
+                string KeyName = typeof(T).Name;
 
                 if (UnitOfWork.IsSet(KeyName) == false)
                 {
                     //IQueryable<T> asyncResult = ObjectSet.AsQueryable();
                     ObjectSet.Load();//<--直接載入記憶體副本 Db=>L1
-                    System.Collections.ObjectModel.ObservableCollection<T> _cache = new System.Collections.ObjectModel.ObservableCollection<T>(ObjectSet.Local.AsEnumerable()); //L1 Save=> RAM
+                    System.Collections.ObjectModel.ObservableCollection<T> _cache =
+                        new System.Collections.ObjectModel.ObservableCollection<T>(ObjectSet.Local.AsEnumerable()); //L1 Save=> RAM
                     UnitOfWork.Set(KeyName, _cache, CacheExpiredTime); //快取保留30分鐘
                     return _cache;
                 }
@@ -357,7 +384,7 @@ namespace EdiuxTemplateWebApp.Models
                 if (System.Web.HttpContext.Current != null)
                 {
                     return System.Web.HttpContext.Current.User.Identity.GetUserId<int>();
-                }                
+                }
 
                 return 0;
             }

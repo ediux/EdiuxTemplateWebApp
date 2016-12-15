@@ -226,13 +226,60 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return base.All().Where(w => w.Void == false);
+                var querySet = base.All().Where(w => w.Void == false)
+                    .Include(s=>s.ApplicationRole)
+                    .Include(s=>s.ApplicationUserClaim)
+                    .Include(s=>s.ApplicationUserLogin)
+                    .Include(s=>s.System_Notifications);
+
+                querySet.Load();
+
+                if (UnitOfWork.IsSet(nameof(ApplicationUser)))
+                {
+                    var cache = GetCache();
+                    System.Collections.ObjectModel.ObservableCollection<ApplicationUser> newCache =
+                        new System.Collections.ObjectModel.ObservableCollection<Models.ApplicationUser>(
+                            cache.Union(ObjectSet.Local).AsEnumerable());
+                    UnitOfWork.Set(nameof(ApplicationUser), newCache, CacheExpiredTime);
+                }
+
+                return querySet;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
                 throw ex;
             }
+        }
+
+        public override IQueryable<ApplicationUser> Where(Expression<Func<ApplicationUser, bool>> expression)
+        {
+            try
+            {
+                var querySet = base.Where(expression).Include(s => s.ApplicationRole)
+                    .Include(s => s.ApplicationUserClaim)
+                    .Include(s => s.ApplicationUserLogin)
+                    .Include(s => s.System_Notifications);
+
+                querySet.Load();
+
+                if (UnitOfWork.IsSet(nameof(ApplicationUser)))
+                {
+                    var cache = GetCache();
+                    System.Collections.ObjectModel.ObservableCollection<ApplicationUser> newCache =
+                        new System.Collections.ObjectModel.ObservableCollection<Models.ApplicationUser>(
+                            cache.Union(querySet).AsEnumerable());
+                    UnitOfWork.Set(nameof(ApplicationUser), newCache, CacheExpiredTime);
+                }
+
+                return querySet;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+           
         }
 
         public override IList<ApplicationUser> BatchAdd(IEnumerable<ApplicationUser> entities)
@@ -324,7 +371,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task UpdateAsync(ApplicationUser user)
+        public async Task UpdateAsync(ApplicationUser user)
         {
             try
             {
@@ -341,10 +388,7 @@ namespace EdiuxTemplateWebApp.Models
                     = dbUser.LastUpdateTime = DateTime.UtcNow;
 
                 UnitOfWork.Context.Entry(dbUser).State = EntityState.Modified;
-                Task commitTask = UnitOfWork.CommitAsync();
-                commitTask.Wait();
-
-                return commitTask;
+                await UnitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {

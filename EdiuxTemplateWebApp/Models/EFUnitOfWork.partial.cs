@@ -8,6 +8,16 @@ namespace EdiuxTemplateWebApp.Models
 {
     public partial class EFUnitOfWork : IUnitOfWork
     {
+
+        private List<string> allKeys=new List<string>();
+
+        public string[] AllKeys
+        {
+            get
+            {
+                return allKeys.ToArray();
+            }
+        }
         public object Get(string key)
         {
             try
@@ -29,7 +39,11 @@ namespace EdiuxTemplateWebApp.Models
             {
                 CacheItemPolicy policy = new CacheItemPolicy();
                 policy.AbsoluteExpiration = DateTime.Now + TimeSpan.FromMinutes(cacheTime);
-                MemoryCache.Default.Add(new CacheItem(key, data), policy);
+                MemoryCache.Default.AddOrGetExisting(new CacheItem(key, data), policy);
+                if (allKeys.Contains(key) == false)
+                {
+                    allKeys.Add(key);
+                }
             }
             catch (Exception ex)
             {
@@ -43,7 +57,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return (MemoryCache.Default[key] != null);
+                return allKeys.Contains(key);
             }
             catch (Exception ex)
             {
@@ -57,6 +71,7 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 MemoryCache.Default.Remove(key);
+                allKeys.Remove(key);
             }
             catch (Exception ex)
             {

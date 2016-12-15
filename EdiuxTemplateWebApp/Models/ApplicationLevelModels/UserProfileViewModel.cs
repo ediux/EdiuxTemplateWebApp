@@ -75,8 +75,15 @@ namespace EdiuxTemplateWebApp.Models
                         case "LastName":
                             LastName = item.ClaimValue;
                             break;
+                        case "Gender":
+                            bool isMale = false;
+                            if(bool.TryParse(item.ClaimValue,out isMale) == false)
+                            {
+                                Gender = false;
+                            }
+                            break;
                     }
-                   
+
                 }
             }
         }
@@ -90,7 +97,6 @@ namespace EdiuxTemplateWebApp.Models
         /// <summary>
         /// 頭像檔案路徑
         /// </summary>
-        [Required]
         [Display(Name = "頭像檔案路徑")]
         public string AvatarFilePath { get { return avatarFilePath; } set { avatarFilePath = value; } }
 
@@ -128,5 +134,8 @@ namespace EdiuxTemplateWebApp.Models
         [Display(Name = "公司網站")]
         public string CompanyWebSiteURL { get { return companyWebSiteURL; } set { companyWebSiteURL = value; } }
 
+        [Required]
+        [Display(Name = "性別")]
+        public bool Gender { get; set; }
     }
 }

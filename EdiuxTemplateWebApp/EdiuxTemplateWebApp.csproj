@@ -209,6 +209,10 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MenusController.cs" />
     <Compile Include="Controllers\NotificationsController.cs" />
+    <Compile Include="Filters\AjaxValidateAntiForgeryTokenAttribute.cs" />
+    <Compile Include="Filters\ComponentRegistrationAttribute.cs" />
+    <Compile Include="Filters\DbAuthorizeAttribute.cs" />
+    <Compile Include="Filters\ElmahErrorAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -514,7 +518,6 @@
     <Folder Include="Content\img\" />
     <Folder Include="Content\javascript\" />
     <Folder Include="Content\js\" />
-    <Folder Include="Filters\" />
     <Folder Include="Html\" />
     <Folder Include="Views\Error\" />
   </ItemGroup>

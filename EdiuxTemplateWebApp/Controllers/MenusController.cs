@@ -67,10 +67,13 @@ namespace EdiuxTemplateWebApp.Controllers
         // GET: Menus/Create
         public ActionResult Create()
         {
+            string appNameSapce = typeof(MvcApplication).Namespace;
+
             ViewBag.ParentMenuId = new SelectList(_menuRepo.All().Where(w => w.Void == false).ToList(), "Id", "Name");
             ViewBag.System_ControllerActionsId = new SelectList(
                 _actionsRepo
                 .All()
+                .Where(w=>w.System_Controllers.Namespace.Contains(appNameSapce))
                .Select(s => new ControllerActionViewModel() {
                    Id = s.Id,
                    Name = s.Name + "(" + s.System_Controllers.Name + ")"
@@ -95,16 +98,23 @@ namespace EdiuxTemplateWebApp.Controllers
 
                 _menuRepo.Add(menus);
                 _menuRepo.UnitOfWork.Commit();
-                return RedirectToAction("MenuList");
+                return RedirectToAction("Index");
             }
-
+            string appNameSapce = typeof(MvcApplication).Namespace;
             ViewBag.ParentMenuId = new SelectList(_menuRepo
-                .All()
+                .All()               
                 .Where(w => w.Void == false)
                 .ToList(), "Id", "Name");
             //ViewBag.System_ControllerActionsId = new SelectList(_actionRepo.All().Where(w => w.Void == false).ToList(), "Id", "Name");
-            ViewBag.System_ControllerActionsId = new SelectList(_actionsRepo.All().Where(w => w.Void == false)
-               .Select(s => new ControllerActionViewModel() { Id = s.Id, Name = s.Name + "(" + s.System_Controllers.Name + ")" }).ToList(), "Id", "Name");
+            ViewBag.System_ControllerActionsId = new SelectList(
+                _actionsRepo
+                .All()
+                .Where(w => w.System_Controllers.Namespace.Contains(appNameSapce))
+               .Select(s => new ControllerActionViewModel()
+               {
+                   Id = s.Id,
+                   Name = s.Name + "(" + s.System_Controllers.Name + ")"
+               }).ToList(), "Id", "Name");
             return View(menus);
 
         }

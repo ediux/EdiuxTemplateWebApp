@@ -21,7 +21,8 @@ namespace EdiuxTemplateWebApp.Models
                 Context.SaveChanges();
                 if (allKeys.Count > 0)
                 {
-                    foreach(string key in allKeys)
+                    var keys = allKeys.ToArray();
+                    foreach(string key in keys)
                     {
                         Invalidate(key);
                     }

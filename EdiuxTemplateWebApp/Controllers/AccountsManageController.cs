@@ -67,7 +67,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // GET: AccountsManage/Details/5
         public async Task<ActionResult> Details(int? id)
         {
-            var user = await UserManager.FindByIdAsync(id??0);
+            var user = await UserManager.FindByIdAsync(id ?? 0);
 
             if (user == null)
                 return HttpNotFound();
@@ -98,7 +98,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 user.DisplayName = registerViewModel.DisplayName;
                 user.EMail = registerViewModel.Email;
                 user.Password = registerViewModel.Password;
-       
+
                 user.PasswordHash = UserManager.PasswordHasher.HashPassword(registerViewModel.Password);
 
                 IdentityResult result = UserManager.Create(user);
@@ -122,7 +122,7 @@ namespace EdiuxTemplateWebApp.Controllers
         }
 
         // GET: AccountsManage/Edit/5
-        public ActionResult Edit(int? id,string returnUrl)
+        public ActionResult Edit(int? id, string returnUrl)
         {
             return RedirectToAction("UserProfile", "Manage", new { id });
         }
@@ -169,7 +169,20 @@ namespace EdiuxTemplateWebApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult RemoveUserFromRole(int id,int roleId)
+        [HttpPost]
+        public async Task<ActionResult> AddUserToRole(int id, int RoleId)
+        {
+            ApplicationUser applicationUser = db.Get(id);
+            if (applicationUser != null)
+            {
+                ApplicationRole role = roleRepo.Get(RoleId);
+                applicationUser.ApplicationRole.Add(role);
+                await db.UpdateAsync(applicationUser);
+            }
+            return RedirectToAction("UserProfile", "Manage", new { id = id });
+        }
+
+        public ActionResult RemoveUserFromRole(int id, int roleId)
         {
             ApplicationUser applicationUser = db.Get(id);
             if (applicationUser != null)

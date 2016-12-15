@@ -334,6 +334,33 @@ namespace EdiuxTemplateWebApp.Controllers
             {
 
                 model.CloneFrom(user);
+                if (user.ApplicationUserClaim.Any())
+                {
+                    foreach(var claim in user.ApplicationUserClaim)
+                    {
+                        switch (claim.ClaimType)
+                        {
+                            case "FirstName":
+                                model.FirstName = claim.ClaimValue;
+                                break;
+                            case "MiddleName":
+                                model.MiddleName = claim.ClaimValue;
+                                break;
+                            case "LastName":
+                                model.LastName = claim.ClaimValue;
+                                break;
+                            case "Gender":
+                                bool isMale = false;
+                                if(bool.TryParse(claim.ClaimValue,out isMale))
+                                model.Gender = isMale;
+                                break;
+                            case "PositionTitle":
+                                model.PositionTitle = claim.ClaimValue;
+                                break;
+                        }
+                     
+                    }
+                }
             }
             model.UserAccountManage = new IndexViewModel
             {
@@ -353,9 +380,134 @@ namespace EdiuxTemplateWebApp.Controllers
         }
 
         [HttpPost]
-        public ActionResult UserProfile(int id, UserProfileViewModel userProfile)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> UserProfile(int id, UserProfileViewModel userProfile)
         {
-            return View();
+            IApplicationUserClaimRepository claimRepo = RepositoryHelper.GetApplicationUserClaimRepository(UserManager.UnitOfWork);
+            var userId = id;
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                user = userProfile;
+
+                if (!string.IsNullOrEmpty(userProfile.FirstName))
+                {
+                   if(user.ApplicationUserClaim
+                        .Any(s => s.ClaimType.Equals("FirstName", StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        ApplicationUserClaim data = user.ApplicationUserClaim
+                            .Single(s => s.ClaimType.Equals("FirstName", StringComparison.InvariantCultureIgnoreCase));
+
+                        data.ClaimValue = userProfile.FirstName;
+
+                    }else
+                    {
+                        ApplicationUserClaim data = new ApplicationUserClaim();
+                        data.ClaimType = "FirstName";
+                        data.ClaimValue = userProfile.FirstName;
+                        data.UserId = userProfile.Id;
+
+                        claimRepo.Add(data);
+                        
+                        user.ApplicationUserClaim.Add(data);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(userProfile.MiddleName))
+                {
+                    if (user.ApplicationUserClaim
+                        .Any(s => s.ClaimType.Equals("MiddleName", StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        ApplicationUserClaim data = user.ApplicationUserClaim
+                            .Single(s => s.ClaimType.Equals("MiddleName", StringComparison.InvariantCultureIgnoreCase));
+
+                        data.ClaimValue = userProfile.MiddleName;
+
+                    }
+                    else
+                    {
+                        ApplicationUserClaim data = new ApplicationUserClaim();
+                        data.ClaimType = "MiddleName";
+                        data.ClaimValue = userProfile.MiddleName;
+                        data.UserId = userProfile.Id;
+
+                        claimRepo.Add(data);
+                        user.ApplicationUserClaim.Add(data);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(userProfile.LastName))
+                {
+                    if (user.ApplicationUserClaim
+    .Any(s => s.ClaimType.Equals("LastName", StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        ApplicationUserClaim data = user.ApplicationUserClaim
+                            .Single(s => s.ClaimType.Equals("LastName", StringComparison.InvariantCultureIgnoreCase));
+
+                        data.ClaimValue = userProfile.LastName;
+
+                    }
+                    else
+                    {
+                        ApplicationUserClaim data = new ApplicationUserClaim();
+                        data.ClaimType = "LastName";
+                        data.ClaimValue = userProfile.LastName;
+                        data.UserId = userProfile.Id;
+
+
+                        claimRepo.Add(data);
+                        user.ApplicationUserClaim.Add(data);
+                    }
+                }
+
+                if (user.ApplicationUserClaim
+    .Any(s => s.ClaimType.Equals("Gender", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    ApplicationUserClaim data = user.ApplicationUserClaim
+                        .Single(s => s.ClaimType.Equals("Gender", StringComparison.InvariantCultureIgnoreCase));
+
+                    data.ClaimValue = userProfile.Gender.ToString();
+
+                }
+                else
+                {
+                    ApplicationUserClaim data = new ApplicationUserClaim();
+                    data.ClaimType = "Gender";
+                    data.ClaimValue = userProfile.Gender.ToString();
+                    data.UserId = userProfile.Id;
+
+                    claimRepo.Add(data);
+                    user.ApplicationUserClaim.Add(data);
+                }
+
+                if (!string.IsNullOrEmpty(userProfile.PositionTitle))
+                {
+                    if (user.ApplicationUserClaim
+      .Any(s => s.ClaimType.Equals("PositionTitle", StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        ApplicationUserClaim data = user.ApplicationUserClaim
+                            .Single(s => s.ClaimType.Equals("PositionTitle", StringComparison.InvariantCultureIgnoreCase));
+
+                        data.ClaimValue = userProfile.PositionTitle;
+
+                    }
+                    else
+                    {
+                        ApplicationUserClaim data = new ApplicationUserClaim();
+                        data.ClaimType = "PositionTitle";
+                        data.ClaimValue = userProfile.PositionTitle;
+                        data.UserId = userProfile.Id;
+                        
+                        claimRepo.Add(data);
+                        user.ApplicationUserClaim.Add(data);
+                       
+                    }
+                }
+                
+                await UserManager.UpdateAsync(user);
+            }
+         
+            return RedirectToAction("UserProfile", new { Id = userProfile.Id });
         }
         #endregion
         protected override void Dispose(bool disposing)

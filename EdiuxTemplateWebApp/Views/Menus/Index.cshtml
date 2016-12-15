@@ -12,21 +12,23 @@
                 <h3>@ViewBag.Title</h3>
             </div>
             <div class="widget-content">
+
                 <div class="btn-group m-r-5" role="group" aria-label="First group">
-                    <a href="@Url.Action("Index","Manage")" class="btn btn-white" title="回到選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                    <a href="@Url.Action("Index","Manage")" class="btn btn-primary" title="回到選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
                 </div>
                 <div class="btn-group m-l-5" role="group" aria-label="First group">
-                    <a href="@Url.Action("Create")" class="btn btn-white" title="新增選單"><i class="glyphicon glyphicon-plus"></i></a>
+                    <a href="@Url.Action("Create")" class="btn btn-info" title="新增選單"><i class="glyphicon glyphicon-plus"></i></a>
                 </div>
+                <hr />
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover ">
                         <thead>
                             <tr class="info">
-                                <th>
-                                    @Html.DisplayNameFor(model => model.Name)
-                                </th>
                                 <th class="hidden-xs hidden-sm">
                                     @Html.DisplayNameFor(model => model.IconCSS)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Name)
                                 </th>
                                 <th class="hidden-xs hidden-sm">
                                     @Html.DisplayNameFor(model => model.CreateUserId)
@@ -50,13 +52,11 @@
                             @foreach (var item in Model)
                             {
                                 <tr>
-                                    <td class="text-justify">
-                                        <i class="@item.IconCSS visible-xs visible-sm"></i>
-                                        @Html.DisplayFor(modelItem => item.Name)
+                                    <td class="hidden-xs hidden-sm " title="@item.IconCSS">
+                                        <i class="@item.IconCSS text-center"></i>
                                     </td>
-                                    <td class="hidden-xs hidden-sm">
-                                        <i class="@item.IconCSS hidden-sm"></i>
-                                        @Html.DisplayFor(modelItem => item.IconCSS)
+                                    <td class="text-justify">
+                                        @Html.DisplayFor(modelItem => item.Name)
                                     </td>
                                     <td class="hidden-xs hidden-sm">
                                         @Html.DisplayFor(modelItem => item.CreateUserId)
@@ -74,16 +74,15 @@
                                         @Html.DisplayFor(modelItem => item.ParentMenu.Name)
                                     </td>
                                     <td>
-                                        <a href="@Url.Action("EditMenu", new { id = item.Id })" class="btn btn-primary btn-xs m-r-5" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>
-                                        <a href="@Url.Action("MenuDetails", new { id = item.Id })" class="btn btn-info btn-xs m-r-5" title="詳細"><i class="glyphicon glyphicon-info-sign"></i></a>
-                                        <a href="@Url.Action("DeleteMenu", new { id = item.Id })" class="btn btn-danger btn-xs m-r-5" title="刪除"><i class="glyphicon glyphicon-remove"></i></a>
+                                        <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-primary btn-xs m-r-5" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>
+                                        <a href="@Url.Action("Details", new { id = item.Id })" class="btn btn-info btn-xs m-r-5" title="詳細"><i class="glyphicon glyphicon-info-sign"></i></a>
+                                        <a href="@Url.Action("Delete", new { id = item.Id })" class="btn btn-danger btn-xs m-r-5" title="刪除"><i class="glyphicon glyphicon-remove"></i></a>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>

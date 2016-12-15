@@ -1,78 +1,94 @@
 ﻿@model EdiuxTemplateWebApp.Models.Menus
 
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "編輯選單";
 }
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-8">
         <div class="widget">
             <div class="widget-header">
-                <i class="icon-user"></i>
+                <i class="icon-list"></i>
                 <h3>@ViewBag.Title</h3>
             </div>
             <div class="widget-content">
                 <div class="btn-group m-r-5" role="group" aria-label="First group">
                     <a href="@Url.Action("Index")" class="btn btn-primary" title="返回選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
                 </div>
-                @using (Html.BeginForm())
+                @using (Html.BeginForm("Edit", "Menu", FormMethod.Post, new { @class = "form-horizontal", @id = "menuForm" }))
                 {
-                    
+
                     @Html.AntiForgeryToken()
-
-                    <div class="form-horizontal">
-                        <div class="control-group">
-                            <div class="col-md-12">
-                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    <div class="control-group">
+                        <div class="col-xs-12">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    @Html.HiddenFor(model => model.Id)
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.Name, htmlAttributes: new { @for = Html.IdFor(model => model.Name), @class = "control-label" })
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-group">
+                                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
                             </div>
                         </div>
-                        @Html.HiddenFor(model => model.Id)
-                        <div class="control-group">
-                            <div class="col-md-3">
-                                @Html.LabelFor(model => model.Name, htmlAttributes: new { @for=Html.IdFor(model=>model.Name), @class = "control-label" })                                
-                            </div>
-                            <div class="col-md-9">
-                                <div class="form-group">
-                                    @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
-                                    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.IconCSS, htmlAttributes: new { @for = Html.IdFor(model => model.IconCSS), @class = "control-label" })
                         </div>
-
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.IconCSS, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-1 text-center m-t-5 m-b-5 ">
+                        <div class="col-md-10">
+                            <div class="col-md-1 text-center m-t-5 m-b-5">
                                 <i class="@Model.IconCSS" id="previewIcon"></i>
                             </div>
-                            <div class="col-md-9">
-                                @Html.EditorFor(model => model.IconCSS, new { htmlAttributes = new { @class = "form-control" } })
-                                @Html.ValidationMessageFor(model => model.IconCSS, "", new { @class = "text-danger" })
+                            <div class="col-md-11">
+                                <div class="form-group">
+                                    @Html.EditorFor(model => model.IconCSS, new { htmlAttributes = new { @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.IconCSS, "", new { @class = "text-danger" })
+                                </div>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.AllowAnonymous, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-10">
+                    </div>
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.AllowAnonymous, htmlAttributes: new
+                      {
+                          @for = Html.IdFor(model => model.AllowAnonymous)
+                          ,
+                          @class = "control-label"
+                      })
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-group">
                                 <div class="checkbox">
                                     @Html.CheckBoxFor(model => model.AllowAnonymous, new { @data_render = "switchery", @data_theme = "default" })
-                                    @Html.ValidationMessageFor(model => model.AllowAnonymous, "", new { @class = "text-danger" })
                                 </div>
+                                @Html.ValidationMessageFor(model => model.AllowAnonymous, "", new { @class = "text-danger" })
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.IsExternalLinks, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-10">
+                    </div>
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.IsExternalLinks, htmlAttributes: new { @for = Html.IdFor(model => model.IsExternalLinks), @class = "control-label" })
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-group">
                                 <div class="checkbox">
-                                    @Html.CheckBoxFor(model => model.IsExternalLinks, new { @data_render = "switchery", @data_theme = "default" })
-                                    @Html.ValidationMessageFor(model => model.IsExternalLinks, "", new { @class = "text-danger" })
+                                    @Html.CheckBoxFor(model => model.IsExternalLinks, new { @data_render = "switchery", @data_theme = "default" })                                  
                                 </div>
+                                @Html.ValidationMessageFor(model => model.IsExternalLinks, "", new { @class = "text-danger" })
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.ExternalURL, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-10">
+                    </div>
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.ExternalURL, htmlAttributes: new { @for = Html.IdFor(model => model.ExternalURL), @class = "control-label" })
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-group">
                                 @if (Model.IsExternalLinks)
                                 {
                                     @Html.TextBoxFor(model => model.ExternalURL, new { @class = "form-control" })
@@ -84,177 +100,70 @@
                                 @Html.ValidationMessageFor(model => model.ExternalURL, "", new { @class = "text-danger" })
                             </div>
                         </div>
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.Order, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-10">
+                    </div>
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.Order, htmlAttributes: new { @for = Html.IdFor(model => model.Order), @class = "control-label" })
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-group">
                                 @Html.EditorFor(model => model.Order, new { htmlAttributes = new { @class = "form-control" } })
                                 @Html.ValidationMessageFor(model => model.Order, "", new { @class = "text-danger" })
                             </div>
                         </div>
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.ParentMenu, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-10">
+                    </div>
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.ParentMenu, htmlAttributes: new { @for = Html.IdFor(model => model.ParentMenuId), @class = "control-label" })
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-group">
                                 @Html.DropDownList("ParentMenuId", null, "請選擇...", htmlAttributes: new { @class = "form-control" })
                                 @Html.ValidationMessageFor(model => model.ParentMenuId, "", new { @class = "text-danger" })
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.System_ControllerActions, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-10">
+                    </div>
+                    <div class="control-group">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.System_ControllerActions, htmlAttributes: new { @for = Html.IdFor(model => model.System_ControllerActionsId), @class = "control-label" })
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-group">
                                 @Html.DropDownList("System_ControllerActionsId", null, "請選擇...", htmlAttributes: new { @class = "form-control" })
                                 @Html.ValidationMessageFor(model => model.System_ControllerActionsId, "", new { @class = "text-danger" })
                             </div>
                         </div>
-
-                </div>
-         
-                    <div class="panel-footer">
-                        <div class="text-right">
-                            <input type="submit" value="儲存" class="btn btn-success" />
-                        </div>
-                    </div>
-
+                    </div>                       
                 }
-
-
+            </div>
+            <div class="widget-footer">
+                <div class="text-right">
+                    <input type="submit" value="儲存" onclick="javascript: $('#menuForm').submit();" class="btn btn-success" />
+                </div>
             </div>
         </div>
-
-
     </div>
 </div>
 
-<h2>Edit</h2>
+@section scripts{
+    <script type="text/javascript">
+        function init() {
+            FormSliderSwitcher.init();
+            $.ajaxSetup({ cache: false });
+            $('#@Html.IdFor(model=>model.IsExternalLinks)').on('change', function () {
 
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-    
-    <div class="form-horizontal">
-        <h4>Menus</h4>
-        <hr />
-
-        @Html.HiddenFor(model => model.Id)
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.IconCSS, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.IconCSS, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.IconCSS, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.IsExternalLinks, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.IsExternalLinks)
-                    @Html.ValidationMessageFor(model => model.IsExternalLinks, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ExternalURL, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.ExternalURL, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.ExternalURL, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Void, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.Void)
-                    @Html.ValidationMessageFor(model => model.Void, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ParentMenuId, "ParentMenuId", htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DropDownList("ParentMenuId", null, htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.ParentMenuId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.CreateUserId, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.CreateUserId, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.CreateUserId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.CreateTime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.CreateTime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.CreateTime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LastUpdateUserId, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LastUpdateUserId, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LastUpdateUserId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.LastUpdateTime, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.LastUpdateTime, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.LastUpdateTime, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.AllowAnonymous, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.AllowAnonymous)
-                    @Html.ValidationMessageFor(model => model.AllowAnonymous, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.System_ControllerActionsId, "System_ControllerActionsId", htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DropDownList("System_ControllerActionsId", null, htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.System_ControllerActionsId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Order, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Order, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Order, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Save" class="btn btn-default" />
-            </div>
-        </div>
-    </div>
+                if ($('#@Html.IdFor(model=>model.IsExternalLinks)').prop('checked')) {
+                    $('#@Html.IdFor(model => model.ExternalURL)').removeProp('disabled');
+                } else {
+                    $('#@Html.IdFor(model => model.ExternalURL)').val('');
+                    $('#@Html.IdFor(model => model.ExternalURL)').prop('disabled', true);
+                }
+            });
+            $('#@Html.IdFor(model => model.IconCSS)').on('input propertychange paste', function () {
+                $('#previewIcon').prop('class', $('#@Html.IdFor(model => model.IconCSS)').val());
+            });
+            //console.debug('event registered.');
+            //autoReload();
+        }
+    </script>
 }
-
-<div>
-    @Html.ActionLink("Back to List", "Index")
-</div>

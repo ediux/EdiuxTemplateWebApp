@@ -79,6 +79,10 @@ namespace EdiuxTemplateWebApp.Controllers
                    Name = s.Name + "(" + s.System_Controllers.Name + ")"
                }).ToList(), "Id", "Name");
             var newmodel = new Menus();
+            ISystem_ApplicationsRepository sysAppRepo = RepositoryHelper.GetSystem_ApplicationsRepository(_menuRepo.UnitOfWork);
+            System_Applications app = sysAppRepo.All().SingleOrDefault(s => s.Name == typeof(MvcApplication).Namespace);
+
+            newmodel.ApplicationId = (app != null) ? app.Id : 0;
             return View(newmodel);         
         }
 
@@ -87,7 +91,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // 詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkId=317598。
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Name,IconCSS,IsExternalLinks,ExternalURL,Void,ParentMenuId,CreateUserId,CreateTime,LastUpdateUserId,LastUpdateTime,AllowAnonymous,System_ControllerActionsId,Order")] Menus menus)
+        public ActionResult Create([Bind(Include = "Id,Name,IconCSS,IsExternalLinks,ExternalURL,Void,ParentMenuId,CreateUserId,CreateTime,LastUpdateUserId,LastUpdateTime,AllowAnonymous,System_ControllerActionsId,Order,ApplicationId")] Menus menus)
         {
 
             if (ModelState.IsValid)
@@ -95,7 +99,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 menus.LastUpdateUserId = menus.CreateUserId = User.Identity.GetUserId<int>();
                 menus.LastUpdateTime = menus.CreateTime = DateTime.Now;
                 menus.Void = false;
-
+               
                 _menuRepo.Add(menus);
                 _menuRepo.UnitOfWork.Commit();
                 return RedirectToAction("Index");

@@ -1,128 +1,82 @@
 ﻿@model EdiuxTemplateWebApp.Models.Menus
 
 @{
-    ViewBag.Title = "Delete";
+    ViewBag.Title = "刪除選單";
 }
+<div class="row">
+    <div class="col-md-6">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-list"></i>
+                <h3>@ViewBag.Title</h3>
+            </div>
+            <div class="widget-content">
+                <div class="btn-group m-r-5" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index")" class="btn btn-primary" title="返回選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                </div>
+                <h3>您確定要刪除這個選單嗎?</h3>
+                <dl class="dl-horizontal">
+                    <dt>
+                        @Html.DisplayNameFor(model => model.Name)
+                    </dt>
 
-<h2>Delete</h2>
+                    <dd>
+                        <i class="@Model.IconCSS"></i> @Html.DisplayFor(model => model.Name)
+                    </dd>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Menus</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
+                    <dt>
+                        @Html.DisplayNameFor(model => model.IsExternalLinks)
+                    </dt>
 
-        <dd>
-            @Html.DisplayFor(model => model.Name)
-        </dd>
+                    <dd>
+                        @Html.DisplayFor(model => model.IsExternalLinks)
+                    </dd>
+                    @if (Model.IsExternalLinks)
+                    {
+                        <dt>
+                            @Html.DisplayNameFor(model => model.ExternalURL)
+                        </dt>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.IconCSS)
-        </dt>
+                        <dd>
+                            @Html.DisplayFor(model => model.ExternalURL)
+                        </dd>
+                    }
 
-        <dd>
-            @Html.DisplayFor(model => model.IconCSS)
-        </dd>
+                    <dt>
+                        @Html.DisplayNameFor(model => model.AllowAnonymous)
+                    </dt>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.IsExternalLinks)
-        </dt>
+                    <dd>
+                        @Html.DisplayFor(model => model.AllowAnonymous)
+                    </dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.IsExternalLinks)
-        </dd>
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ParentMenu)
+                    </dt>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.ExternalURL)
-        </dt>
+                    <dd>
+                        @Html.DisplayFor(model => model.ParentMenu.Name)
+                    </dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.ExternalURL)
-        </dd>
+                    <dt>
+                        @Html.DisplayNameFor(model => model.System_ControllerActions)
+                    </dt>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.Void)
-        </dt>
+                    <dd>
+                        @Html.DisplayFor(model => model.System_ControllerActions.Name) (@Html.DisplayFor(model => model.System_ControllerActions.System_Controllers.Name))
+                    </dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.Void)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.CreateUserId)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.CreateUserId)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.CreateTime)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.CreateTime)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.LastUpdateUserId)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.LastUpdateUserId)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.LastUpdateTime)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.LastUpdateTime)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.AllowAnonymous)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.AllowAnonymous)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Order)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Order)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Menus2.Name)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Menus2.Name)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.System_ControllerActions.Name)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.System_ControllerActions.Name)
-        </dd>
-
-    </dl>
-
-    @using (Html.BeginForm()) {
-        @Html.AntiForgeryToken()
-
-        <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> |
-            @Html.ActionLink("Back to List", "Index")
+                </dl>
+            </div>
+            <div class="widget-footer text-right">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(model => model.Id)
+                    <input type="submit" value="刪除" class="btn btn-danger" />
+                }
+            </div>
         </div>
-    }
+    </div>
 </div>
+

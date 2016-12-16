@@ -40,6 +40,7 @@ namespace EdiuxTemplateWebApp.Models
         public string IconCSS { get; set; }
         [Required]
         [Display(Name = "是否為外部資源?")]
+        [UIHint("YesNoDisplay")]
         public bool IsExternalLinks { get; set; }
         
         [StringLength(2048, ErrorMessage="欄位長度不得大於 2048 個字元")]
@@ -67,6 +68,7 @@ namespace EdiuxTemplateWebApp.Models
         public Nullable<System.DateTime> LastUpdateTime { get; set; }
         [Required]
         [Display(Name = "允許匿名登入")]
+        [UIHint("YesNoDisplay")]
         public bool AllowAnonymous { get; set; }
         [Display(Name = "對應控制器動作")]
         public Nullable<int> System_ControllerActionsId { get; set; }

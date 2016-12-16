@@ -231,6 +231,11 @@ namespace EdiuxTemplateWebApp.Controllers
             return View("_MenuBarPartial", 
                 _menuRepo.getMenusbyCurrentLoginUser(typeof(MvcApplication)).ToList());
         }
+
+        public ActionResult ListMenuInRoles()
+        {
+            return View();
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)

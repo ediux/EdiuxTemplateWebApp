@@ -1,0 +1,68 @@
+﻿@model IEnumerable<EdiuxTemplateWebApp.Models.ApplicationRole>
+@{
+    Layout = "";
+}
+<div class="widget">
+    <div class="widget-header">
+        <i class="icon-edit"></i>
+        <h3>系統角色的選單權限清單</h3>
+    </div>
+    <div class="widget-content">
+        @using (Html.BeginForm("AddMenuInRole", "Manage", FormMethod.Post, new { @class = "form-inline" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("id", (int)ViewBag.MenuId)
+            <div class="control-group">
+                <div class="col-md-3">
+                    <label for="RoleId">角色:</label>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                       @Html.DropDownList("RoleId", null, "請選擇...", htmlAttributes: new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <input type="submit" class="btn btn-primary" value="加入" />
+                </div>
+            </div>
+        }
+        <hr />
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr class="info">
+                        <th>
+                            @Html.DisplayNameFor(model => model.Name)
+                        </th>
+
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Count() > 0)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-left">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+
+                                <td class="text-right">
+                                    <a href="@Url.Action("RemoveMenuFromRole", new { id = (int)ViewBag.MenuId, RoleId = item.Id })" class="btn btn-danger btn-sm m-r-5" title="移除權限"><i class="glyphicon glyphicon-remove"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center">沒有允許使用這個選單的角色</td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>

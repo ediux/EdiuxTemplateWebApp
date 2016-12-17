@@ -232,10 +232,183 @@ namespace EdiuxTemplateWebApp.Controllers
                 _menuRepo.getMenusbyCurrentLoginUser(typeof(MvcApplication)).ToList());
         }
 
-        public ActionResult ListMenuInRoles()
+        public ActionResult ListMenuInRoles(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(_menuRepo.UnitOfWork);
+
+            Menus menu = _menuRepo.Get(id);
+            var roles = roleRepo.All().Except(menu.ApplicationRole);
+            ViewBag.RoleId = new SelectList(roles.ToList(), "Id", "Name");
+            ViewBag.MenuId = id;
+            if (menu == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(menu.ApplicationRole.Where(w => w.Void == false).ToList());
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ListMenuInRoles(int? id,FormCollection collection)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Menus menu = _menuRepo.Get(id);
+
+            if (string.IsNullOrEmpty(collection["RoleId"]) == false)
+            {
+                int RoleId = 0;
+
+                if (int.TryParse(collection["RoleId"], out RoleId) == false)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+
+                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(_menuRepo.UnitOfWork);
+                ISystem_ControllersRepository ctrlRepo = RepositoryHelper.GetSystem_ControllersRepository(_menuRepo.UnitOfWork);
+
+                ApplicationRole role = roleRepo.Get(RoleId);
+
+                System_ControllerActions action = _actionsRepo.Get(menu.System_ControllerActionsId ?? 0);
+
+                if (action != null)
+                {
+                    System_Controllers ctrl = ctrlRepo.Get(action.ControllerId ?? 0);
+
+                    if (ctrl != null)
+                    {
+                        if (ctrl.System_ControllerActions.Any())
+                        {
+                            role.System_ControllerActions.Clear();
+
+                            foreach (var item in ctrl.System_ControllerActions)
+                            {
+                                role.System_ControllerActions.Add(item);
+                            }
+
+                        }
+                    }
+                }
+
+                menu.ApplicationRole.Add(role);
+
+                _menuRepo.UnitOfWork.Context.Entry(role).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Context.Entry(menu).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Commit();
+            }
+
+            return RedirectToAction("ListMenuInRoles", new { id = id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddMenuInRole(int? id, FormCollection collection)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Menus menu = _menuRepo.Get(id);
+
+            if (string.IsNullOrEmpty(collection["RoleId"]) == false)
+            {
+                int RoleId = 0;
+
+                if (int.TryParse(collection["RoleId"], out RoleId) == false)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(_menuRepo.UnitOfWork);
+                ISystem_ControllersRepository ctrlRepo = RepositoryHelper.GetSystem_ControllersRepository(_menuRepo.UnitOfWork);
+
+                ApplicationRole role = roleRepo.Get(RoleId);
+
+                System_ControllerActions action = _actionsRepo.Get(menu.System_ControllerActionsId ?? 0);
+
+                if (action != null)
+                {
+                    System_Controllers ctrl = ctrlRepo.Get(action.ControllerId ?? 0);
+
+                    if (ctrl != null)
+                    {
+                        if (ctrl.System_ControllerActions.Any())
+                        {
+                            role.System_ControllerActions.Clear();
+
+                            foreach (var item in ctrl.System_ControllerActions)
+                            {
+                                role.System_ControllerActions.Add(item);
+                            }
+
+                        }
+                    }
+                }
+
+                menu.ApplicationRole.Add(role);
+
+                _menuRepo.UnitOfWork.Context.Entry(role).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Context.Entry(menu).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Commit();
+            }
+
+            return RedirectToAction("Edit", new { id = id });
+        }
+
+        public ActionResult RemoveMenuFromRole(int? id, int? RoleId)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            if (RoleId == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Menus menu = _menuRepo.Get(id);
+
+            IApplicationRoleRepository _roleRepo = RepositoryHelper.GetApplicationRoleRepository(_menuRepo.UnitOfWork);
+            ISystem_ControllersRepository ctrlRepo = RepositoryHelper.GetSystem_ControllersRepository(_menuRepo.UnitOfWork);
+
+            ApplicationRole role = _roleRepo.Get(RoleId);
+
+            menu.LastUpdateUserId = User.Identity.GetUserId<int>();
+            menu.LastUpdateTime = DateTime.Now;
+            menu.ApplicationRole.Remove(role);
+
+            System_ControllerActions action = _actionsRepo.Get(menu.System_ControllerActionsId ?? 0);
+
+            if (action != null)
+            {
+                System_Controllers ctrl = ctrlRepo.Get(action.ControllerId ?? 0);
+
+                if (ctrl != null)
+                {
+                    if (ctrl.System_ControllerActions.Any())
+                    {
+                        role.System_ControllerActions.Clear();
+                    }
+                }
+            }
+
+            _menuRepo.UnitOfWork.Context.Entry(role).State = EntityState.Modified;
+            _menuRepo.UnitOfWork.Context.Entry(menu).State = EntityState.Modified;
+            _menuRepo.UnitOfWork.Commit();
+
+            return RedirectToAction("Edit", new { id = id });
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

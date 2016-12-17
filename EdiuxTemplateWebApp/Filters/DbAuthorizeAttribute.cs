@@ -54,44 +54,46 @@ namespace EdiuxTemplateWebApp.Filters
                 if (action.System_Controllers.AllowAnonymous)
                     return;
 
-                //檢查角色授權(選單)
-                if (currentUser.Result.ApplicationRole.Count > 0)
+                if (currentUser.Result != null)
                 {
-                    if (action.Menus != null)
+                    if (currentUser.Result.ApplicationRole != null)
                     {
-                        if (action.Menus
-                            .SelectMany(s => s.ApplicationRole)
-                            .Where(w => w.ApplicationUser.Where(s => s.Id == currentUser.Id).Any()).Any())
+                        //檢查角色授權(選單)
+                        if (currentUser.Result.ApplicationRole.Count > 0)
                         {
-                            return;
-                        }
-
-                        var userMenus = currentUser.Result.ApplicationRole
-                           .SelectMany(s => s.Menus);
-
-                        if (userMenus != null && userMenus.Any())
-                        {
-                            userMenus = userMenus.Where(w => w.System_ControllerActions != null);
-                            if (userMenus
-                                   .Where(w => w.System_ControllerActions.Name == actionName
-                                   && w.System_ControllerActions.System_Controllers.ClassName == controllerClassName
-                                   && w.System_ControllerActions.System_Controllers.Namespace == controllerNamespace)
-                                   .Any(m => m.AllowAnonymous == true))
+                            if (action.Menus != null)
                             {
-                                return;
-                            }
-            
+                                if (action.Menus
+                                    .SelectMany(s => s.ApplicationRole)
+                                    .Where(w => w.ApplicationUser.Where(s => s.Id == currentUser.Id).Any()).Any())
+                                {
+                                    return;
+                                }
 
+                                var userMenus = currentUser.Result.ApplicationRole
+                                   .SelectMany(s => s.Menus);
+
+                                if (userMenus != null && userMenus.Any())
+                                {
+                                    userMenus = userMenus.Where(w => w.System_ControllerActions != null);
+                                    if (userMenus
+                                           .Where(w => w.System_ControllerActions.Name == actionName
+                                           && w.System_ControllerActions.System_Controllers.ClassName == controllerClassName
+                                           && w.System_ControllerActions.System_Controllers.Namespace == controllerNamespace)
+                                           .Any(m => m.AllowAnonymous == true))
+                                    {
+                                        return;
+                                    }
+                                }
+
+                            }
 
                         }
-
                     }
-
                 }
+                
             }
-
-
-
+        
             if (filterContext.ActionDescriptor.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
                 return;
 

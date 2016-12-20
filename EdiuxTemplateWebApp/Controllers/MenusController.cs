@@ -242,9 +242,11 @@ namespace EdiuxTemplateWebApp.Controllers
             IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(_menuRepo.UnitOfWork);
 
             Menus menu = _menuRepo.Get(id);
-            var roles = roleRepo.All().Except(menu.ApplicationRole);
+            var roles = roleRepo.getUnSelectedRoles(menu.ApplicationRole);
+
             ViewBag.RoleId = new SelectList(roles.ToList(), "Id", "Name");
             ViewBag.MenuId = id;
+
             if (menu == null)
             {
                 return HttpNotFound();

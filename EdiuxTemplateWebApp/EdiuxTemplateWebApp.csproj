@@ -209,6 +209,7 @@
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MenusController.cs" />
     <Compile Include="Controllers\NotificationsController.cs" />
+    <Compile Include="Controllers\SystemApplicationsController.cs" />
     <Compile Include="Filters\AjaxValidateAntiForgeryTokenAttribute.cs" />
     <Compile Include="Filters\ComponentRegistrationAttribute.cs" />
     <Compile Include="Filters\DbAuthorizeAttribute.cs" />
@@ -509,6 +510,11 @@
     <Content Include="Views\AccountsManage\Edit.cshtml" />
     <Content Include="Views\AccountsManage\Index.cshtml" />
     <Content Include="Views\Menus\ListMenuInRoles.cshtml" />
+    <Content Include="Views\SystemApplications\Create.cshtml" />
+    <Content Include="Views\SystemApplications\Delete.cshtml" />
+    <Content Include="Views\SystemApplications\Details.cshtml" />
+    <Content Include="Views\SystemApplications\Edit.cshtml" />
+    <Content Include="Views\SystemApplications\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

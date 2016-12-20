@@ -91,6 +91,8 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
+
+
         public async Task UpdateAsync(ApplicationRole role)
         {
             try
@@ -107,7 +109,25 @@ namespace EdiuxTemplateWebApp.Models
                 throw ex;
             }
         }
-        #endregion   
+        #endregion
+
+        #region Functions for Toolkit
+        public IQueryable<ApplicationRole> getUnSelectedRoles(IEnumerable<ApplicationRole> selectedRolesSet)
+        {
+            try
+            {
+                if (selectedRolesSet == null)
+                    throw new ArgumentNullException(nameof(selectedRolesSet));
+
+                return All().Except(selectedRolesSet);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+        #endregion
     }
 
     public partial interface IApplicationRoleRepository : IRepositoryBase<ApplicationRole>
@@ -118,6 +138,10 @@ namespace EdiuxTemplateWebApp.Models
         Task DeleteAsync(ApplicationRole role);
         Task<ApplicationRole> FindByIdAsync(int roleId);
         Task<ApplicationRole> FindByNameAsync(string roleName);
+        #endregion
+
+        #region Functions for Toolkit
+        IQueryable<ApplicationRole> getUnSelectedRoles(IEnumerable<ApplicationRole> selectedRolesSet);
         #endregion
     }
 }

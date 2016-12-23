@@ -211,6 +211,7 @@
     <Compile Include="Controllers\NotificationsController.cs" />
     <Compile Include="Controllers\SystemApplicationsController.cs" />
     <Compile Include="Filters\AjaxValidateAntiForgeryTokenAttribute.cs" />
+    <Compile Include="Filters\ApplicationIdentifyAttribute.cs" />
     <Compile Include="Filters\ComponentRegistrationAttribute.cs" />
     <Compile Include="Filters\DbAuthorizeAttribute.cs" />
     <Compile Include="Filters\ElmahErrorAttribute.cs" />
@@ -314,6 +315,9 @@
     </Compile>
     <Compile Include="Models\System_Applications.cs">
       <DependentUpon>ApplicationDbModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\System_Applications.Partial.cs">
+      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\System_ApplicationsRepository.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>

@@ -40,7 +40,6 @@ namespace EdiuxTemplateWebApp.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Menus> ChildMenus { get; set; }
         public virtual Menus ParentMenu { get; set; }
-        public virtual System_ControllerActions System_ControllerActions { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }
         public virtual System_Applications System_Applications { get; set; }

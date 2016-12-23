@@ -17,7 +17,6 @@ namespace EdiuxTemplateWebApp.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public System_ControllerActions()
         {
-            this.Menus = new HashSet<Menus>();
             this.ApplicationRole = new HashSet<ApplicationRole>();
         }
     
@@ -31,8 +30,6 @@ namespace EdiuxTemplateWebApp.Models
         public Nullable<System.DateTime> LastUpdateTime { get; set; }
         public bool AllowAnonymous { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Menus> Menus { get; set; }
         public virtual System_Controllers System_Controllers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }

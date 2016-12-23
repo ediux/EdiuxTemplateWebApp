@@ -30,8 +30,10 @@ namespace EdiuxTemplateWebApp.Models
         public Nullable<int> LastUpdateUserId { get; set; }
         public Nullable<System.DateTime> LastUpdateTime { get; set; }
         public bool AllowAnonymous { get; set; }
+        public Nullable<int> ApplicationId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<System_ControllerActions> System_ControllerActions { get; set; }
+        public virtual System_Applications System_Applications { get; set; }
     }
 }

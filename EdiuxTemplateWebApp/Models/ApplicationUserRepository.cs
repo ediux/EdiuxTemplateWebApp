@@ -499,7 +499,7 @@ namespace EdiuxTemplateWebApp.Models
 
                 if (userfromcache == null)
                 {
-                    //load from db
+                    //load from appRepo
                     userfromcache =
                         await ObjectSet.FirstOrDefaultAsync(s => s.Id == user.Id);
 

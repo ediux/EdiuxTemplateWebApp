@@ -175,9 +175,13 @@ namespace EdiuxTemplateWebApp.Models
         [Display(Name = "重設密碼權杖")]
         public string ResetPasswordToken { get; set; }
 
+        [Display(Name = "宣告式身分資料")]
         public virtual ICollection<ApplicationUserClaim> ApplicationUserClaim { get; set; }
+        [Display(Name = "關聯的外部登入")]
         public virtual ICollection<ApplicationUserLogin> ApplicationUserLogin { get; set; }
         [Display(Name = "角色")]
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }
+        [Display(Name = "所屬應用程式")]
+        public virtual ICollection<System_Applications> System_Applications { get; set; }
     }
 }

@@ -10,14 +10,19 @@ using EdiuxTemplateWebApp.Models;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
-    public class SystemApplicationsController : Controller
+    public class SystemApplicationsController : BaseController
     {
-        private AspNetDbEntities db = new AspNetDbEntities();
+        private ISystem_ApplicationsRepository appRepo;
+
+        public SystemApplicationsController()
+        {
+            appRepo = RepositoryHelper.GetSystem_ApplicationsRepository();
+        }
 
         // GET: SystemApplications
         public ActionResult Index()
         {
-            return View(db.System_Applications.ToList());
+            return View(appRepo.All().ToList());
         }
 
         // GET: SystemApplications/Details/5
@@ -27,7 +32,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Applications system_Applications = db.System_Applications.Find(id);
+            System_Applications system_Applications = appRepo.Get(id);
             if (system_Applications == null)
             {
                 return HttpNotFound();
@@ -50,8 +55,8 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.System_Applications.Add(system_Applications);
-                db.SaveChanges();
+                appRepo.Add(system_Applications);
+                appRepo.UnitOfWork.Commit();
                 return RedirectToAction("Index");
             }
 
@@ -65,7 +70,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Applications system_Applications = db.System_Applications.Find(id);
+            System_Applications system_Applications = appRepo.Get(id);
             if (system_Applications == null)
             {
                 return HttpNotFound();
@@ -82,8 +87,8 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(system_Applications).State = EntityState.Modified;
-                db.SaveChanges();
+                appRepo.UnitOfWork.Context.Entry(system_Applications).State = EntityState.Modified;
+                appRepo.UnitOfWork.Commit();
                 return RedirectToAction("Index");
             }
             return View(system_Applications);
@@ -96,7 +101,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Applications system_Applications = db.System_Applications.Find(id);
+            System_Applications system_Applications = appRepo.Get(id);
             if (system_Applications == null)
             {
                 return HttpNotFound();
@@ -109,9 +114,9 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            System_Applications system_Applications = db.System_Applications.Find(id);
-            db.System_Applications.Remove(system_Applications);
-            db.SaveChanges();
+            System_Applications system_Applications = appRepo.Get(id);
+            appRepo.Delete(system_Applications);
+            appRepo.UnitOfWork.Commit();
             return RedirectToAction("Index");
         }
 
@@ -119,7 +124,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                appRepo.Dispose();
             }
             base.Dispose(disposing);
         }

@@ -8,9 +8,10 @@ namespace EdiuxTemplateWebApp
     {
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
-            filters.Add(new ComponentRegistrationAttribute(),0);
-            filters.Add(new DbAuthorizeAttribute(),1);
-            filters.Add(new HandleErrorAttribute(),2);
+            filters.Add(new ApplicationIdentifyAttribute(typeof(MvcApplication)),0);
+            filters.Add(new ComponentRegistrationAttribute(),1);
+            filters.Add(new DbAuthorizeAttribute(),2);
+            filters.Add(new HandleErrorAttribute(),3);
         }
     }
 }

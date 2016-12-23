@@ -9,13 +9,12 @@
         <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUser" Width="1.875" PointX="3" PointY="4.375" IsExpanded="true" />
         <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUserClaim" Width="1.5" PointX="5.25" PointY="5" IsExpanded="true" />
         <EntityTypeShape EntityType="WbParkSystemModel.ApplicationUserLogin" Width="1.5" PointX="5.25" PointY="7.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="WbParkSystemModel.Menus" Width="1.5" PointX="10.25" PointY="5.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.Menus" Width="2.875" PointX="10.25" PointY="5.125" IsExpanded="true" />
         <EntityTypeShape EntityType="WbParkSystemModel.System_ControllerActions" Width="1.5" PointX="8" PointY="5.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="WbParkSystemModel.System_Controllers" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="WbParkSystemModel.System_Controllers" Width="1.5" PointX="6.75" PointY="0.625" IsExpanded="true" />
         <AssociationConnector Association="WbParkSystemModel.FK_ApplicationUserClaim_ToApplicationUser" ManuallyRouted="false" />
         <AssociationConnector Association="WbParkSystemModel.FK_ApplicationUserLogin_ToApplicationUser" ManuallyRouted="false" />
         <AssociationConnector Association="WbParkSystemModel.FK_Menus_ParentMenus" ManuallyRouted="false" />
-        <AssociationConnector Association="WbParkSystemModel.FK_Menus_System_ControllerActions" ManuallyRouted="false" />
         <AssociationConnector Association="WbParkSystemModel.FK_System_ControllerActions_System_Controllers" ManuallyRouted="false" />
         <AssociationConnector Association="WbParkSystemModel.ActionsInRoles" ManuallyRouted="false" />
         <AssociationConnector Association="WbParkSystemModel.ApplicationUserRole" ManuallyRouted="false" />
@@ -27,6 +26,9 @@
         <AssociationConnector Association="WbParkSystemModel.FK_System_Notifications_OriginalSystem_Notifications" />
         <EntityTypeShape EntityType="WbParkSystemModel.System_Applications" Width="1.5" PointX="0.75" PointY="0.875" />
         <AssociationConnector Association="WbParkSystemModel.FK_Menus_ParentMenus1" />
+        <AssociationConnector Association="WbParkSystemModel.FK_System_Controllers_System_Applications" />
+        <AssociationConnector Association="WbParkSystemModel.ApplicationsInRoles" />
+        <AssociationConnector Association="WbParkSystemModel.UsersInApplications" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

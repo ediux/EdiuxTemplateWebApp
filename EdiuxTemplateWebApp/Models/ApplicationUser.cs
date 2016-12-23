@@ -21,6 +21,7 @@ namespace EdiuxTemplateWebApp.Models
             this.ApplicationUserLogin = new HashSet<ApplicationUserLogin>();
             this.ApplicationRole = new HashSet<ApplicationRole>();
             this.System_Notifications = new HashSet<System_Notifications>();
+            this.System_Applications = new HashSet<System_Applications>();
         }
     
         public int Id { get; set; }
@@ -55,5 +56,7 @@ namespace EdiuxTemplateWebApp.Models
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<System_Notifications> System_Notifications { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<System_Applications> System_Applications { get; set; }
     }
 }

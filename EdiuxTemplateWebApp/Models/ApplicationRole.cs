@@ -20,6 +20,7 @@ namespace EdiuxTemplateWebApp.Models
             this.System_ControllerActions = new HashSet<System_ControllerActions>();
             this.ApplicationUser = new HashSet<ApplicationUser>();
             this.Menus = new HashSet<Menus>();
+            this.System_Applications = new HashSet<System_Applications>();
         }
     
         public int Id { get; set; }
@@ -36,5 +37,7 @@ namespace EdiuxTemplateWebApp.Models
         public virtual ICollection<ApplicationUser> ApplicationUser { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Menus> Menus { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<System_Applications> System_Applications { get; set; }
     }
 }

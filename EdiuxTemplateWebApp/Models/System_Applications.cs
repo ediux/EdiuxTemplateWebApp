@@ -18,12 +18,24 @@ namespace EdiuxTemplateWebApp.Models
         public System_Applications()
         {
             this.Menus = new HashSet<Menus>();
+            this.System_Controllers = new HashSet<System_Controllers>();
+            this.ApplicationRoles = new HashSet<ApplicationRole>();
+            this.ApplicationUsers = new HashSet<ApplicationUser>();
         }
     
         public int Id { get; set; }
         public string Name { get; set; }
+        public string LoweredName { get; set; }
+        public string Description { get; set; }
+        public string Namespace { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Menus> Menus { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<System_Controllers> System_Controllers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ApplicationRole> ApplicationRoles { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ApplicationUser> ApplicationUsers { get; set; }
     }
 }

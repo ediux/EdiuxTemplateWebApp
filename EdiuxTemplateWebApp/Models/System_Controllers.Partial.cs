@@ -35,7 +35,8 @@ namespace EdiuxTemplateWebApp.Models
         public Nullable<System.DateTime> LastUpdateTime { get; set; }
         [Required]
         public bool AllowAnonymous { get; set; }
-    
+        public Nullable<int> ApplicationId { get; set; }
         public virtual ICollection<System_ControllerActions> System_ControllerActions { get; set; }
+        public virtual System_Applications System_Applications { get; set; }
     }
 }

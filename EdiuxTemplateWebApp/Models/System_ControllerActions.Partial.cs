@@ -29,7 +29,6 @@ namespace EdiuxTemplateWebApp.Models
         [Required]
         public bool AllowAnonymous { get; set; }
     
-        public virtual ICollection<Menus> Menus { get; set; }
         public virtual System_Controllers System_Controllers { get; set; }
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }
     }

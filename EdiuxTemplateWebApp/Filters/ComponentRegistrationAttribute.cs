@@ -15,6 +15,18 @@ namespace EdiuxTemplateWebApp.Filters
         {
             try
             {
+                System_Applications appInfo=null;
+
+                if (filterContext.Controller.ViewBag.ApplicationInfo != null)
+                {
+                    appInfo = (System_Applications)filterContext.Controller.ViewBag.ApplicationInfo;
+                }
+
+                if(appInfo==null)
+                {
+                   
+                }
+
                 Type ControllerType = filterContext.Controller.GetType();
 
                 string appName = ControllerType.Assembly.GetName().Name;

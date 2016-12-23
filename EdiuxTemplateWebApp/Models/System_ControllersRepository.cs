@@ -38,6 +38,11 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
+        public bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc)
+        {
+            
+        }
+
         public void ScanForComponentRegistration(Type WebAppType)
         {
             ISystem_ControllerActionsRepository actionRepo = RepositoryHelper.GetSystem_ControllerActionsRepository(UnitOfWork);
@@ -79,5 +84,6 @@ namespace EdiuxTemplateWebApp.Models
     {
         void ScanForComponentRegistration(Type WebAppType);
         System_Controllers ComponentRegistration(Type ControllerType);
+        bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc);
     }
 }

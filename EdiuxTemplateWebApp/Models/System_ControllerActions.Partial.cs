@@ -3,10 +3,26 @@ namespace EdiuxTemplateWebApp.Models
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    
+    using System.Linq;
+
     [MetadataType(typeof(System_ControllerActionsMetaData))]
     public partial class System_ControllerActions
     {
+        public bool isUserAuthorizend(ApplicationUser user)
+        {
+            bool isPassed = ApplicationRole.Any(w => w.ApplicationUser.Any(s => s.Id == user.Id));
+
+            if (isPassed == false)
+            {                                
+                if (AllowAnonymous)
+                    isPassed = true;
+
+                if (System_Controllers.AllowAnonymous)
+                    isPassed = true;
+            }
+
+            return isPassed;
+        }
     }
     
     public partial class System_ControllerActionsMetaData

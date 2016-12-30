@@ -41,7 +41,7 @@ namespace EdiuxTemplateWebApp.Models
             return 0;
         }
 
-        private void setRoleId(int value)
+        private async Task setRoleId(int value)
         {
             int currentroleid = getRoleId();
             if (currentroleid != value)
@@ -50,9 +50,9 @@ namespace EdiuxTemplateWebApp.Models
                 ApplicationRole.Clear();
 
                 //再加入新增的
-                Task<ApplicationRole> getRoleTask = roleRepo.FindByIdAsync(currentroleid);
-                getRoleTask.Wait();
-                ApplicationRole.Add(getRoleTask.Result);
+                ApplicationRole getRoleTask = await roleRepo.FindByIdAsync(currentroleid);
+                
+                ApplicationRole.Add(getRoleTask);
             }
         }
 

@@ -7,6 +7,10 @@ namespace EdiuxTemplateWebApp.Models
     [MetadataType(typeof(System_ControllersMetaData))]
     public partial class System_Controllers
     {
+        public bool isUserAuthorizend(ApplicationUser user)
+        {
+            return AllowAnonymous;
+        }
     }
     
     public partial class System_ControllersMetaData

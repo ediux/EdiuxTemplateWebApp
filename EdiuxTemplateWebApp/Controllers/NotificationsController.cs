@@ -22,7 +22,7 @@ namespace EdiuxTemplateWebApp.Controllers
             db = RepositoryHelper.GetSystem_NotificationsRepository();
             userRepo = RepositoryHelper.GetApplicationUserRepository(db.UnitOfWork);
         }
-
+        [AllowAnonymous]
         [ChildActionOnly]
         public ActionResult NotificationsBar()
         {

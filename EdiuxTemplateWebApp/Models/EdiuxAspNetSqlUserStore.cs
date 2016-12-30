@@ -351,7 +351,7 @@ namespace EdiuxTemplateWebApp.Models
                 WriteErrorLog(ex);
                 throw ex;
             }
-           
+
         }
 
         public async Task ResetAccessFailedCountAsync(ApplicationUser user)
@@ -384,7 +384,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-               return await userRepo.GetLockoutEnabledAsync(user);
+                return await userRepo.GetLockoutEnabledAsync(user);
             }
             catch (Exception ex)
             {
@@ -408,12 +408,11 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Login Store
-        public Task AddLoginAsync(ApplicationUser user, UserLoginInfo login)
+        public async Task AddLoginAsync(ApplicationUser user, UserLoginInfo login)
         {
             try
             {
-                userloginRepo.AddLoginAsync(user, login).Wait();
-                return Task.CompletedTask;
+                await userloginRepo.AddLoginAsync(user, login);
             }
             catch (Exception ex)
             {
@@ -436,13 +435,11 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<IList<UserLoginInfo>> GetLoginsAsync(ApplicationUser user)
+        public async Task<IList<UserLoginInfo>> GetLoginsAsync(ApplicationUser user)
         {
             try
             {
-                Task<IList<UserLoginInfo>> getLoginTask = userloginRepo.GetLoginsAsync(user);
-                getLoginTask.Wait();
-                return getLoginTask;
+                return await userloginRepo.GetLoginsAsync(user);
             }
             catch (Exception ex)
             {
@@ -451,13 +448,11 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<ApplicationUser> FindAsync(UserLoginInfo login)
+        public async Task<ApplicationUser> FindAsync(UserLoginInfo login)
         {
             try
             {
-                Task<ApplicationUser> getFindTask = userloginRepo.FindAsync(login);
-                getFindTask.Wait();
-                return getFindTask;
+                return await userloginRepo.FindAsync(login);
             }
             catch (Exception ex)
             {
@@ -473,7 +468,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user, passwordHash);
-                setSetPasswordTask.Wait();
                 return setSetPasswordTask;
             }
             catch (Exception ex)
@@ -488,7 +482,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task<string> getPasswordHashTask = userRepo.GetPasswordHashAsync(user);
-                getPasswordHashTask.Wait();
                 return getPasswordHashTask;
             }
             catch (Exception ex)
@@ -503,7 +496,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task<bool> hasPasswordTask = userRepo.HasPasswordAsync(user);
-                hasPasswordTask.Wait();
                 return hasPasswordTask;
             }
             catch (Exception ex)
@@ -520,7 +512,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task setPhoneNumberTask = userRepo.SetPhoneNumberAsync(user, phoneNumber);
-                setPhoneNumberTask.Wait();
                 return setPhoneNumberTask;
             }
             catch (Exception ex)
@@ -535,7 +526,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task<string> getPhoneNumberTask = userRepo.GetPhoneNumberAsync(user);
-                getPhoneNumberTask.Wait();
                 return getPhoneNumberTask;
             }
             catch (Exception ex)
@@ -550,7 +540,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task<bool> getPhoneNumberConfirmedTask = userRepo.GetPhoneNumberConfirmedAsync(user);
-                getPhoneNumberConfirmedTask.Wait();
                 return getPhoneNumberConfirmedTask;
             }
             catch (Exception ex)
@@ -565,7 +554,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task setPhoneNumberConfirmed = userRepo.SetPhoneNumberConfirmedAsync(user, confirmed);
-                setPhoneNumberConfirmed.Wait();
                 return setPhoneNumberConfirmed;
             }
             catch (Exception ex)
@@ -582,7 +570,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task setSecurityStampTask = userRepo.SetSecurityStampAsync(user, stamp);
-                setSecurityStampTask.Wait();
                 return setSecurityStampTask;
             }
             catch (Exception ex)
@@ -597,7 +584,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task<string> getSecurityStampTask = userRepo.GetSecurityStampAsync(user);
-                getSecurityStampTask.Wait();
                 return getSecurityStampTask;
             }
             catch (Exception ex)
@@ -614,7 +600,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task setTwoFactorEnabledTask = userRepo.SetTwoFactorEnabledAsync(user, enabled);
-                setTwoFactorEnabledTask.Wait();
                 return setTwoFactorEnabledTask;
             }
             catch (Exception ex)
@@ -629,7 +614,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task<bool> getTwoFactorEnabledTask = userRepo.GetTwoFactorEnabledAsync(user);
-                getTwoFactorEnabledTask.Wait();
                 return getTwoFactorEnabledTask;
             }
             catch (Exception ex)
@@ -646,7 +630,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task<IList<Claim>> getClaimsTask = userRepo.GetClaimsAsync(user);
-                getClaimsTask.Wait();
                 return getClaimsTask;
             }
             catch (Exception ex)
@@ -661,7 +644,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task addClaimTask = userRepo.AddClaimAsync(user, claim);
-                addClaimTask.Wait();
                 return addClaimTask;
             }
             catch (Exception ex)
@@ -676,7 +658,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Task removeClaimTask = userRepo.RemoveClaimAsync(user, claim);
-                removeClaimTask.Wait();
                 return removeClaimTask;
             }
             catch (Exception ex)
@@ -711,7 +692,7 @@ namespace EdiuxTemplateWebApp.Models
                 if (disposing)
                 {
                     // TODO: 處置 Managed 狀態 (Managed 物件)。
-           
+
                 }
 
                 // TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。

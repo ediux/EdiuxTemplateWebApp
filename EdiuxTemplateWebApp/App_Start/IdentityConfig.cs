@@ -146,5 +146,10 @@ namespace EdiuxTemplateWebApp
         {
             return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
         }
+
+        public override Task<SignInStatus> PasswordSignInAsync(string userName, string password, bool isPersistent, bool shouldLockout)
+        {
+            return base.PasswordSignInAsync(userName, password, isPersistent, shouldLockout);
+        }
     }
 }

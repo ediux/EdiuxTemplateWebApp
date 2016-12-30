@@ -20,19 +20,15 @@ namespace EdiuxTemplateWebApp.Filters
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            string appNamespace = _appType.Namespace;
+            object fromCache = appRepo.UnitOfWork.Get("ApplicationInfo");
 
-            Models.System_Applications appInfo = appRepo.All().SingleOrDefault(w => w.Namespace == appNamespace);
-
-            if (appInfo == null)
+            if (fromCache == null)
             {
-                appInfo = new Models.System_Applications() { Id = 0, Namespace = appNamespace, Name = _appType.Name, LoweredName = _appType.Name.ToLowerInvariant(), Description = "" };
-                appRepo.Add(appInfo);
-                appRepo.UnitOfWork.Commit();
-                appInfo = appRepo.Reload(appInfo);               
+                fromCache = appRepo.getInfoByType(filterContext.Controller.GetType());
+                appRepo.UnitOfWork.Set("ApplicatinInfo", fromCache, 30);
             }
-            
-            filterContext.Controller.ViewBag.ApplicationInfo = appInfo;
+
+            filterContext.Controller.ViewBag.ApplicationInfo = fromCache;
         }
     }
 }

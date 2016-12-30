@@ -1,19 +1,31 @@
 ﻿@using EdiuxTemplateWebApp.Models
 @model List<Menus>
+@{    
+    var appInfo = (System_Applications)ViewBag.ApplicationInfo;
+    var controllers = appInfo.System_Controllers;
+}
 <ul class="sub-menu">
     @foreach (Menus item in Model)
     {
+        var action = controllers.SelectMany(x => x.System_ControllerActions).SingleOrDefault(s => s.Id == item.System_ControllerActionsId);
+
+        if (action == null)
+        {
+            continue;
+        }
+
+
         if (item.IsExternalLinks)
         {
             <li><a href="@item.ExternalURL"><i class="icon-angle-right"></i>@item.Name</a></li>
         }
         else
         {
-            if (item.System_ControllerActions != null)
+            if (action != null)
             {
-                if (item.System_ControllerActions.System_Controllers != null)
+                if (action.System_Controllers != null)
                 {
-                    <li><a href="@Url.Action(item.System_ControllerActions.Name,item.System_ControllerActions.System_Controllers.Name)"><i class="icon-angle-right"></i>@item.Name</a></li>
+                    <li><a href="@Url.Action(action.Name,action.System_Controllers.Name)"><i class="icon-angle-right"></i>@item.Name</a></li>
                 }
             }            
         }

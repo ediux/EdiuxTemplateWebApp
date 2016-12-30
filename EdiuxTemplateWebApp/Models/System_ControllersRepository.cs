@@ -3,6 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
+using EdiuxTemplateWebApp.Models;
 
 namespace EdiuxTemplateWebApp.Models
 {
@@ -26,7 +28,7 @@ namespace EdiuxTemplateWebApp.Models
                 ctrcls.Namespace = ControllerType.Namespace;
                 ctrcls.Void = false;
                 ctrcls.AllowAnonymous = ControllerType.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any();
-                
+
 
                 Add(ctrcls);
                 return ctrcls;
@@ -38,10 +40,52 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc)
-        {
-            
-        }
+        //public bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc)
+        //{
+        //    System_Applications appInfo = null;
+        //    ApplicationUser currentLoginedUser = null;
+
+        //    if (filterContent.Controller.ViewBag.ApplicationInfo != null)
+        //    {
+        //        appInfo = (System_Applications)filterContent.Controller.ViewBag.ApplicationInfo;
+        //    }
+        //    else
+        //    {
+        //        return false;
+        //    }
+
+        //    if (filterContent.Controller.ViewBag.CurrentLoginedUser != null)
+        //    {
+        //        currentLoginedUser = (ApplicationUser)filterContent.Controller.ViewBag.CurrentLoginedUser;
+        //    }
+        //    else
+        //    {
+        //        int currentLoginedUserId = filterContent.HttpContext.User.Identity.GetUserId<int>();
+        //        IApplicationUserRepository userRepo = RepositoryHelper.GetApplicationUserRepository(UnitOfWork);
+        //        currentLoginedUser = userRepo.Get(currentLoginedUserId);
+        //    }
+        //    string controllerName = actionDesc.ControllerDescriptor.ControllerName;
+        //    string controllerClassName = actionDesc.ControllerDescriptor.ControllerType.Name;
+        //    string controllerNamespace = actionDesc.ControllerDescriptor.ControllerType.Namespace;
+
+        //    System_Controllers currentControllerClassInfo;
+
+        //    currentControllerClassInfo = All().SingleOrDefault(w => w.Name == controllerName && w.ClassName == controllerClassName && w.Namespace == controllerNamespace);
+
+        //    if (currentControllerClassInfo == null)
+        //    {
+        //        filterContent.Controller.ViewBag.HasControllerAuthorized = false;
+        //        filterContent.Controller.ViewBag.HasAuthorized = false;
+        //        return false;
+        //    }
+
+        //    if (actionDesc.ControllerDescriptor.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
+        //    {
+        //        filterContent.Controller.ViewBag.HasControllerAuthorized = true;
+        //        filterContent.Controller.ViewBag.HasAuthorized = true;
+        //        return true;
+        //    }
+        //}
 
         public void ScanForComponentRegistration(Type WebAppType)
         {
@@ -84,6 +128,6 @@ namespace EdiuxTemplateWebApp.Models
     {
         void ScanForComponentRegistration(Type WebAppType);
         System_Controllers ComponentRegistration(Type ControllerType);
-        bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc);
+        //bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc);
     }
 }

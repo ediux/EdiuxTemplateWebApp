@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using EdiuxTemplateWebApp.Models;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNet.Identity;
+using System.Collections.Generic;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
@@ -228,8 +229,21 @@ namespace EdiuxTemplateWebApp.Controllers
         public ActionResult MenuBar()
         {
             //選單列
-            return View("_MenuBarPartial", 
-                _menuRepo.getMenusbyCurrentLoginUser(typeof(MvcApplication)).ToList());
+
+            if(ViewBag.ApplicationInfo!=null)
+            {
+                var appInfo = (System_Applications)ViewBag.ApplicationInfo;
+                var currentLoginedUser = appInfo.getUserByName(User.Identity.Name);
+         
+
+                if (currentLoginedUser!=null && currentLoginedUser.Length >= 1)
+                {
+                    return View("_MenuBarPartial", appInfo.getMenusbyCurrentLoginUser(currentLoginedUser.First()).ToList());
+                }                
+            }
+
+            return View("_MenuBarPartial",new List<Menus>());
+
         }
 
         public ActionResult ListMenuInRoles(int? id)

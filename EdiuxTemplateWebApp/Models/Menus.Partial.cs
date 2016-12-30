@@ -79,8 +79,8 @@ namespace EdiuxTemplateWebApp.Models
         public virtual ICollection<Menus> ChildMenus { get; set; }
         [Display(Name = "父選單")]
         public virtual Menus ParentMenu { get; set; }
-        [Display(Name = "對應控制器動作")]
-        public virtual System_ControllerActions System_ControllerActions { get; set; }
+        //[Display(Name = "對應控制器動作")]
+        //public virtual System_ControllerActions System_ControllerActions { get; set; }
         [Display(Name = "授權角色")]
         public virtual ICollection<ApplicationRole> ApplicationRole { get; set; }
     }

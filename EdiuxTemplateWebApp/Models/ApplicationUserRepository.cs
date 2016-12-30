@@ -58,7 +58,6 @@ namespace EdiuxTemplateWebApp.Models
                     {
                         Task<ApplicationUser> findbyNameTask
                             = FindByNameAsync("root");
-                        findbyNameTask.Wait();
 
                         ApplicationUser updatedUser
                             = findbyNameTask.Result;
@@ -193,8 +192,7 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentNullException(nameof(entity));
 
                 Task<ApplicationUser> findUserByIdTask = FindByIdAsync(entity.Id);
-                findUserByIdTask.Wait();
-
+  
                 existedUser = findUserByIdTask.Result;
 
                 if (existedUser == null)
@@ -399,7 +397,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Role Store
-        public Task AddToRoleAsync(ApplicationUser user, string roleName)
+        public async Task AddToRoleAsync(ApplicationUser user, string roleName)
         {
             try
             {
@@ -413,17 +411,14 @@ namespace EdiuxTemplateWebApp.Models
                     throw new ArgumentException(nameof(roleName));
                 }
 
-                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UnitOfWork);
+                IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UnitOfWork);            
 
-                Task<ApplicationRole> roleTask = roleRepo.FindByNameAsync(roleName);
-                roleTask.Wait();
-
-                ApplicationRole role = roleTask.Result;
+                ApplicationRole role = await roleRepo.FindByNameAsync(roleName);
                 user.ApplicationRole.Clear();
                 user.ApplicationRole.Add(role);
-                roleRepo.UnitOfWork.Context.Entry(role).State = EntityState.Modified;
-                UpdateAsync(user).Wait();
-                return Task.CompletedTask;
+                roleRepo.UnitOfWork.Context.Entry(role).State = EntityState.Modified;                
+                await UpdateAsync(user);
+              
             }
             catch (Exception ex)
             {
@@ -507,10 +502,10 @@ namespace EdiuxTemplateWebApp.Models
                         throw new NullReferenceException(string.Format("User '{0}' is not existed.", user.UserName));
                 }
 
-                Task<bool> isInRole = IsInRoleAsync(user, roleName);
-                isInRole.Wait();
+                bool isInRole = await IsInRoleAsync(user, roleName);
+           
 
-                if (isInRole.Result)
+                if (isInRole)
                 {
                     user.ApplicationRole.Remove(userfromcache.
                         ApplicationRole.SingleOrDefault(w => w.Name.Equals(roleName,
@@ -666,7 +661,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
+        public async Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
         {
             try
             {
@@ -680,8 +675,7 @@ namespace EdiuxTemplateWebApp.Models
                 userInDb.LastUpdateUserId = getCurrentLoginedUserId();
                 userInDb.LockoutEndDate = new DateTime(lockoutEnd.Ticks).ToUniversalTime();
 
-                UpdateAsync(userInDb).Wait();
-                return Task.CompletedTask;
+                await UpdateAsync(userInDb);                
             }
             catch (Exception ex)
             {
@@ -690,7 +684,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
+        public async Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
         {
             try
             {
@@ -705,12 +699,12 @@ namespace EdiuxTemplateWebApp.Models
                     userInDb.LastUpdateTime = DateTime.UtcNow;
                     userInDb.LastActivityTime = DateTime.UtcNow;
                     userInDb.LastUpdateUserId = getCurrentLoginedUserId();
-                    UpdateAsync(userInDb).Wait();
+                    await UpdateAsync(userInDb);
                     userInDb = Reload(userInDb);
-                    return Task.FromResult(userInDb.AccessFailedCount);
+                    return userInDb.AccessFailedCount;
                 }
 
-                return Task.FromResult(0);
+                return 0;
             }
             catch (Exception ex)
             {
@@ -719,7 +713,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task ResetAccessFailedCountAsync(ApplicationUser user)
+        public async Task ResetAccessFailedCountAsync(ApplicationUser user)
         {
             try
             {
@@ -736,10 +730,8 @@ namespace EdiuxTemplateWebApp.Models
                     userInDb.LastUpdateUserId = getCurrentLoginedUserId();
                     userInDb.LastUpdateUserId = getCurrentLoginedUserId();
 
-                    UpdateAsync(userInDb).Wait();
-                }
-
-                return Task.CompletedTask;
+                   await  UpdateAsync(userInDb);
+                }                
             }
             catch (Exception ex)
             {
@@ -779,7 +771,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
+        public async Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
         {
             try
             {
@@ -794,8 +786,7 @@ namespace EdiuxTemplateWebApp.Models
                 userInDb.LastUpdateUserId = getCurrentLoginedUserId();
                 userInDb.LockoutEnabled = enabled;
 
-                UpdateAsync(userInDb).Wait();
-                return Task.CompletedTask;
+                await UpdateAsync(userInDb);                
             }
             catch (Exception ex)
             {
@@ -1157,7 +1148,6 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     Task<ApplicationUser> findbyNameTask
                         = FindByNameAsync("root");
-                    findbyNameTask.Wait();
 
                     ApplicationUser updatedUser
                         = findbyNameTask.Result;

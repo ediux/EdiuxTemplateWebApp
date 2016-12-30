@@ -9,7 +9,7 @@ namespace EdiuxTemplateWebApp.Models
 {
     public partial class System_ControllerActionsRepository : EFRepository<System_ControllerActions>, ISystem_ControllerActionsRepository
     {
-        public System_ControllerActions ComponentRegistration( System_Controllers Controller, MethodBase action)
+        public System_ControllerActions ComponentRegistration(System_Controllers Controller, MethodBase action)
         {
 
             try
@@ -29,7 +29,7 @@ namespace EdiuxTemplateWebApp.Models
                 actiondata.Name = action.Name;
                 actiondata.Void = false;
                 actiondata.AllowAnonymous = action.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any();
-               
+
                 actiondata = Add(actiondata);
 
                 return actiondata;
@@ -73,148 +73,89 @@ namespace EdiuxTemplateWebApp.Models
 
         }
 
-        public bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc)
-        {
-            System_Applications appInfo = null;
-            ApplicationUser currentLoginedUser = null;
+        //public bool IsUserVerified(System_Applications appInfo, ApplicationUser user, ActionDescriptor actionDesc)
+        //{
+        //    ApplicationUser currentLoginedUser = user;
 
-            if (filterContent.Controller.ViewBag.ApplicationInfo != null)
-            {
-                appInfo = (System_Applications)filterContent.Controller.ViewBag.ApplicationInfo;
-            }
-            else
-            {
-                return false;
-            }
+        //    if (appInfo == null)
+        //    {
+        //        return false;
+        //    }
 
-            if (filterContent.Controller.ViewBag.CurrentLoginedUser != null)
-            {
-                currentLoginedUser = (ApplicationUser)filterContent.Controller.ViewBag.CurrentLoginedUser;
-            }
-            else
-            {
-                int currentLoginedUserId = getCurrentLoginedUserId();
-                
-                return false;
-            }
+        //    if (user == null)
+        //    {
+        //        return false;
+        //    }
 
-            //取得目前的控制器方法
-            string actionName = actionDesc.ActionName;
-            string controllerName = actionDesc.ControllerDescriptor.ControllerName;
-            string controllerClassName = actionDesc.ControllerDescriptor.ControllerType.Name;
-            string controllerNamespace = actionDesc.ControllerDescriptor.ControllerType.Namespace;
+        //    System_ControllerActions actionInfo = appInfo.getMVCActionInfo(actionDesc);
 
-            //在資料庫中尋找動作方法資訊
-            IQueryable<System_ControllerActions> actions = All().Where(s => s.Name == actionName);
+        //    if (actionInfo != null)
+        //    {
 
-            if (actions.Any())
-            {
-                IQueryable<ApplicationRole> roles = actions.SelectMany(s => s.ApplicationRole).Distinct();
+        //    }
+        //    //取得目前的控制器方法
+        //    string actionName = actionDesc.ActionName;
+        //    string controllerName = actionDesc.ControllerDescriptor.ControllerName;
+        //    string controllerClassName = actionDesc.ControllerDescriptor.ControllerType.Name;
+        //    string controllerNamespace = actionDesc.ControllerDescriptor.ControllerType.Namespace;
 
-                if (roles.Any())
-                {
-                    IQueryable<ApplicationUser> users = roles.SelectMany(w => w.ApplicationUser).Distinct();
+        //    //在資料庫中尋找動作方法資訊
+        //    IQueryable<System_ControllerActions> actions = All().Where(s => s.Name == actionName);
 
-                    if(users.Where(w=>w.Id == currentLoginedUser.Id).Any())
-                    {
-                        return true;
-                    }
-                }
+        //    if (actions.Any())
+        //    {
+        //        IQueryable<ApplicationRole> roles = actions.SelectMany(s => s.ApplicationRole).Distinct();
 
-                if (actions.Any(w => w.AllowAnonymous == true))
-                {
-                    return true;
-                }
-            }
+        //        if (roles.Any())
+        //        {
+        //            IQueryable<ApplicationUser> users = roles.SelectMany(w => w.ApplicationUser).Distinct();
 
-            ISystem_ControllersRepository ctrlRepo = RepositoryHelper.GetSystem_ControllersRepository(UnitOfWork);
+        //            if (users.Where(w => w.Id == currentLoginedUser.Id).Any())
+        //            {
+        //                //           filterContent.Controller.ViewBag.HasActionAuthorized = true;
+        //                return true;
+        //            }
+        //        }
 
-            if (ctrlRepo.IsUserVerified(filterContent, actionDesc))
-            {
-                return true;
-            }
-         
-            //&& s.System_Controllers.ClassName.Equals(controllerClassName)
-            //&& s.System_Controllers.Namespace.Equals(controllerNamespace));
+        //        if (actions.Any(w => w.AllowAnonymous == true))
+        //        {
+        //            //     filterContent.Controller.ViewBag.HasActionAuthorized = true;
+        //            //     filterContent.Controller.ViewBag.HasAuthorized = true;
+        //            return true;
+        //        }
+        //    }
 
-            if (action != null)
-            {
-                //如果有授權這個角色使用動作
-                if (action.ApplicationRole.SelectMany(s => s.ApplicationUser)
-                    .Where(s => s.Id == currentLoginedUser.Id).Any())
-                    return true;
+        //    ISystem_ControllersRepository ctrlRepo = RepositoryHelper.GetSystem_ControllersRepository(UnitOfWork);
 
-                if (action.AllowAnonymous)
-                    return;
+        //    if (ctrlRepo.IsUserVerified(filterContent, actionDesc))
+        //    {
+        //        filterContent.Controller.ViewBag.HasAuthorized = true;
+        //        return true;
+        //    }
 
-                if (action.System_Controllers.AllowAnonymous)
-                    return;
+        //    //&& s.System_Controllers.ClassName.Equals(controllerClassName)
+        //    //&& s.System_Controllers.Namespace.Equals(controllerNamespace));
 
-                //取得可以使用控制器方法的使用者(依據角色)
-                IEnumerable<ApplicationUser> hasAuthorizedUsers = action.ApplicationRole.SelectMany(s => s.ApplicationUser);
+        //    if (actionDesc.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
+        //    {
+        //        filterContent.Controller.ViewBag.HasActionAuthorized = true;
+        //        filterContent.Controller.ViewBag.HasAuthorized = true;
+        //        return true;
+        //    }
 
-                if (currentUserTask.Result != null)
-                {
-                    ApplicationUser currentUser = currentUserTask.Result;
 
-                    if (hasAuthorizedUsers.Any(w => w.Id == currentUser.Id))
-                    {
-                        //如果有找到該使用者授權關聯
-                        return;
-                    }
+        //    if (filterContent.HttpContext.User.Identity.Name.Equals("root", StringComparison.InvariantCultureIgnoreCase))
+        //    {
+        //        filterContent.Controller.ViewBag.HasSuperUserAuthorized = true;
+        //        filterContent.Controller.ViewBag.HasAuthorized = true;
+        //        return true;
+        //    }
 
-                    if (currentUser.ApplicationRole != null)
-                    {
-                        //檢查角色授權(選單)
-                        if (currentUser.ApplicationRole.Count > 0)
-                        {
-
-                            if (action.Menus != null)
-                            {
-                                if (action.Menus
-                                    .SelectMany(s => s.ApplicationRole)
-                                    .Where(w => w.ApplicationUser.Where(s => s.Id == currentUserTask.Id).Any()).Any())
-                                {
-                                    return;
-                                }
-
-                                var userMenus = currentUserTask.Result.ApplicationRole
-                                   .SelectMany(s => s.Menus);
-
-                                if (userMenus != null && userMenus.Any())
-                                {
-                                    userMenus = userMenus.Where(w => w.System_ControllerActions != null);
-                                    if (userMenus
-                                           .Where(w => w.System_ControllerActions.Name == actionName
-                                           && w.System_ControllerActions.System_Controllers.ClassName == controllerClassName
-                                           && w.System_ControllerActions.System_Controllers.Namespace == controllerNamespace)
-                                           .Any(m => m.AllowAnonymous == true))
-                                    {
-                                        return;
-                                    }
-                                }
-
-                            }
-
-                        }
-                    }
-                }
-
-            }
-
-            if (actionDesc.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
-                return true;
-
-            if (actionDesc.ControllerDescriptor.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
-                return true;
-
-            if (filterContent.HttpContext.User.Identity.Name.Equals("root", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        //    filterContent.Controller.ViewBag.HasSuperUserAuthorized = false;
+        //    filterContent.Controller.ViewBag.HasActionAuthorized = false;
+        //    filterContent.Controller.ViewBag.HasAuthorized = false;
+        //    return false;
+        //}
 
         public void ScanForComponentRegistration(Type ControllerType, System_Controllers Controller)
         {
@@ -274,9 +215,9 @@ namespace EdiuxTemplateWebApp.Models
     public partial interface ISystem_ControllerActionsRepository : IRepositoryBase<System_ControllerActions>
     {
         void ScanForComponentRegistration(Type ControllerType, System_Controllers Controller);
-        System_ControllerActions ComponentRegistration( System_Controllers Controller, ActionDescriptor action);
-        System_ControllerActions ComponentRegistration( System_Controllers Controller, MethodBase action);
+        System_ControllerActions ComponentRegistration(System_Controllers Controller, ActionDescriptor action);
+        System_ControllerActions ComponentRegistration(System_Controllers Controller, MethodBase action);
 
-        bool IsUserVerified(ControllerContext filterContent, ActionDescriptor actionDesc);
+        //bool IsUserVerified(System_Applications appInfo, ApplicationUser user, ActionDescriptor actionDesc);
     }
 }

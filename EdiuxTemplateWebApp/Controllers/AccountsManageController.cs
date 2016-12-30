@@ -182,14 +182,14 @@ namespace EdiuxTemplateWebApp.Controllers
             return RedirectToAction("UserProfile", "Manage", new { id = id });
         }
 
-        public ActionResult RemoveUserFromRole(int id, int roleId)
+        public async Task<ActionResult> RemoveUserFromRole(int id, int roleId)
         {
             ApplicationUser applicationUser = db.Get(id);
             if (applicationUser != null)
             {
                 ApplicationRole role = roleRepo.Get(roleId);
                 applicationUser.ApplicationRole.Remove(role);
-                db.UpdateAsync(applicationUser).Wait();
+                await db.UpdateAsync(applicationUser);
             }
             return RedirectToAction("UserProfile", "Manage", new { id = id });
         }

@@ -21,49 +21,21 @@ namespace EdiuxTemplateWebApp.Filters
             {
                 aspnet_Applications appInfo = null;
 
-                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+                Iaspnet_ApplicationsRepository appRepo = getApplicationInformation(filterContext, ref appInfo);
 
-                if (filterContext.Controller.ViewBag.ApplicationInfo != null)
-                {
-                    appInfo = filterContext.Controller.ViewBag.ApplicationInfo;
-                }
-
-                if (appInfo == null)
-                {
-                    Filters.ApplicationIdentifyAttribute appIdentifyAttr = new ApplicationIdentifyAttribute(typeof(MvcApplication));
-                    appIdentifyAttr.OnActionExecuting(filterContext);
-                }
-
-                //Type ControllerType = filterContext.ActionDescriptor.ControllerDescriptor.ControllerType;
-
-                //string ctrlName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
-                //string clsName = ControllerType.Name;
-                //string namespaceName = ControllerType.Namespace;
-
-                string url = UrlHelper.GenerateUrl("Default", filterContext.ActionDescriptor.ActionName, filterContext.ActionDescriptor.ControllerDescriptor.ControllerName,
-                    filterContext.RouteData.Values, RouteTable.Routes, filterContext.RequestContext, true);
+                string url = getCurrentControllerAndActionUrl(filterContext);
 
                 aspnet_Paths pathInfo;
 
                 Iaspnet_PathsRepository pathRepo = RepositoryHelper.Getaspnet_PathsRepository(appRepo.UnitOfWork);
 
-                if (pathRepo.Where(w => w.Path == url && w.ApplicationId == appInfo.ApplicationId).Any() == false)
+                if (checkPathIsRegistered(appInfo, url, pathRepo) == false)
                 {
-                    pathInfo = pathRepo.Add(new aspnet_Paths()
-                    {
-                        ApplicationId = appInfo.ApplicationId,
-                        LoweredPath = url.ToLowerInvariant(),
-                        Path = url,
-                        PathId = Guid.NewGuid()
-                    });
-
-                    pathRepo.UnitOfWork.Commit();
+                    pathInfo = registerPath(appInfo, url, pathRepo);
                 }
                 else
                 {
-                    string loweredUrl = url.ToLowerInvariant();
-                    pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
-                    && w.ApplicationId == appInfo.ApplicationId).SingleOrDefault();
+                    pathInfo = getPathInformation(appInfo, url, pathRepo);
                 }
 
                 filterContext.Controller.ViewBag.PathInfo = pathInfo;
@@ -89,6 +61,58 @@ namespace EdiuxTemplateWebApp.Filters
             }
 
         }
+
+        private static aspnet_Paths registerPath(aspnet_Applications appInfo, string url, Iaspnet_PathsRepository pathRepo)
+        {
+            aspnet_Paths pathInfo = pathRepo.Add(new aspnet_Paths()
+            {
+                ApplicationId = appInfo.ApplicationId,
+                LoweredPath = url.ToLowerInvariant(),
+                Path = url,
+                PathId = Guid.NewGuid()
+            });
+            pathRepo.UnitOfWork.Commit();
+            return pathInfo;
+        }
+
+        private static aspnet_Paths getPathInformation(aspnet_Applications appInfo, string url, Iaspnet_PathsRepository pathRepo)
+        {
+            aspnet_Paths pathInfo;
+            string loweredUrl = url.ToLowerInvariant();
+            pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
+            && w.ApplicationId == appInfo.ApplicationId).SingleOrDefault();
+            return pathInfo;
+        }
+
+        private static bool checkPathIsRegistered(aspnet_Applications appInfo, string url, Iaspnet_PathsRepository pathRepo)
+        {
+            return pathRepo.Where(w => w.Path == url && w.ApplicationId == appInfo.ApplicationId).Any();
+        }
+
+        private static string getCurrentControllerAndActionUrl(ActionExecutingContext filterContext)
+        {
+            return UrlHelper.GenerateUrl("Default", filterContext.ActionDescriptor.ActionName, filterContext.ActionDescriptor.ControllerDescriptor.ControllerName,
+                filterContext.RouteData.Values, RouteTable.Routes, filterContext.RequestContext, true);
+        }
+
+        private static Iaspnet_ApplicationsRepository getApplicationInformation(ActionExecutingContext filterContext, ref aspnet_Applications appInfo)
+        {
+            Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+            if (filterContext.Controller.ViewBag.ApplicationInfo != null)
+            {
+                appInfo = filterContext.Controller.ViewBag.ApplicationInfo;
+            }
+
+            if (appInfo == null)
+            {
+                ApplicationIdentifyAttribute appIdentifyAttr = new ApplicationIdentifyAttribute(typeof(MvcApplication));
+                appIdentifyAttr.OnActionExecuting(filterContext);
+            }
+
+            return appRepo;
+        }
+
         protected virtual void WriteErrorLog(Exception ex)
         {
             if (System.Web.HttpContext.Current == null)

@@ -10,6 +10,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using EdiuxTemplateWebApp.Models;
 
 namespace EdiuxTemplateWebApp
@@ -36,24 +37,24 @@ namespace EdiuxTemplateWebApp
 
     }
     // 設定此應用程式中使用的應用程式使用者管理員。UserManager 在 ASP.NET Identity 中定義且由應用程式中使用。
-    public class ApplicationUserManager : UserManager<ApplicationUser, int>
+    public class ApplicationUserManager : UserManager<aspnet_Users, Guid>
     {
-        public ApplicationUserManager(IUserStore<ApplicationUser, int> store)
+        public ApplicationUserManager(IUserStore<aspnet_Users, Guid> store)
             : base(store)
         {
 
         }
 
-        public IUnitOfWork UnitOfWork
+        public Models.AspNetModels.IUnitOfWork UnitOfWork
         {
-            get { return ((EdiuxAspNetSqlUserStore)Store).UnitOfWork; }
+            get { return ((Models.EdiuxAspNetSqlUserStore)Store).UnitOfWork; }
         }
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {
-            var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<IUnitOfWork>()));
+            var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<Models.AspNetModels.IUnitOfWork>()));
 
             // 設定使用者名稱的驗證邏輯
-            manager.UserValidator = new UserValidator<ApplicationUser, int>(manager)
+            manager.UserValidator = new UserValidator<aspnet_Users, Guid>(manager)
             {
                 AllowOnlyAlphanumericUserNames = false,
                 RequireUniqueEmail = false
@@ -76,11 +77,11 @@ namespace EdiuxTemplateWebApp
 
             // 註冊雙因素驗證提供者。此應用程式使用手機和電子郵件接收驗證碼以驗證使用者
             // 您可以撰寫專屬提供者，並將它外掛到這裡。
-            manager.RegisterTwoFactorProvider("電話代碼", new PhoneNumberTokenProvider<ApplicationUser, int>
+            manager.RegisterTwoFactorProvider("電話代碼", new PhoneNumberTokenProvider<aspnet_Users, Guid>
             {
                 MessageFormat = "您的安全碼為 {0}"
             });
-            manager.RegisterTwoFactorProvider("電子郵件代碼", new EmailTokenProvider<ApplicationUser, int>
+            manager.RegisterTwoFactorProvider("電子郵件代碼", new EmailTokenProvider<aspnet_Users, Guid>
             {
                 Subject = "安全碼",
                 BodyFormat = "您的安全碼為 {0}"
@@ -91,15 +92,15 @@ namespace EdiuxTemplateWebApp
             if (dataProtectionProvider != null)
             {
                 manager.UserTokenProvider =
-                    new DataProtectorTokenProvider<ApplicationUser, int>(dataProtectionProvider.Create("ASP.NET Identity"));
+                    new DataProtectorTokenProvider<aspnet_Users, Guid>(dataProtectionProvider.Create("ASP.NET Identity"));
             }
             return manager;
         }
     }
 
-    public class ApplicationRoleManager : RoleManager<ApplicationRole, int>
+    public class ApplicationRoleManager : RoleManager<aspnet_Roles, Guid>
     {
-        public ApplicationRoleManager(IRoleStore<ApplicationRole, int> store) :
+        public ApplicationRoleManager(IRoleStore<aspnet_Roles, Guid> store) :
             base(store)
         {
 
@@ -107,13 +108,13 @@ namespace EdiuxTemplateWebApp
 
         public static ApplicationRoleManager Create(IdentityFactoryOptions<ApplicationRoleManager> options, IOwinContext context)
         {
-            var roleManager = new ApplicationRoleManager(new EdiuxAspNetSqlUserStore(context.Get<IUnitOfWork>()));
-            roleManager.RoleValidator = new RoleValidator<ApplicationRole, int>(roleManager);
+            var roleManager = new ApplicationRoleManager(new EdiuxAspNetSqlUserStore(context.Get<Models.AspNetModels.IUnitOfWork>()));
+            roleManager.RoleValidator = new RoleValidator<aspnet_Roles, Guid>(roleManager);
 
             return roleManager;
         }
 
-        public async override Task<IdentityResult> UpdateAsync(ApplicationRole role)
+        public async override Task<IdentityResult> UpdateAsync(aspnet_Roles role)
         {
             try
             {
@@ -130,14 +131,14 @@ namespace EdiuxTemplateWebApp
     }
 
     // 設定在此應用程式中使用的應用程式登入管理員。
-    public class ApplicationSignInManager : SignInManager<ApplicationUser, int>
+    public class ApplicationSignInManager : SignInManager<aspnet_Users, Guid>
     {
         public ApplicationSignInManager(ApplicationUserManager userManager, IAuthenticationManager authenticationManager)
             : base(userManager, authenticationManager)
         {
         }
 
-        public override Task<ClaimsIdentity> CreateUserIdentityAsync(ApplicationUser user)
+        public override Task<ClaimsIdentity> CreateUserIdentityAsync(aspnet_Users user)
         {
             return user.GenerateUserIdentityAsync((ApplicationUserManager)UserManager);
         }

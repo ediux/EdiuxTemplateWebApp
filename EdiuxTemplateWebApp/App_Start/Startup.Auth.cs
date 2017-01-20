@@ -3,9 +3,9 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.Google;
 using Owin;
-using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Helpers;
 
 namespace EdiuxTemplateWebApp
 {
@@ -30,10 +30,10 @@ namespace EdiuxTemplateWebApp
                 {
                     // 讓應用程式在使用者登入時驗證安全性戳記。
                     // 這是您變更密碼或將外部登入新增至帳戶時所使用的安全性功能。  
-                    OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser, int>(
+                    OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, aspnet_Users, Guid>(
                         TimeSpan.FromMinutes(30)
                          , (manager, user) => user.GenerateUserIdentityAsync(manager)
-                        , (x) => x.GetUserId<int>())
+                        , (x) => x.GetUserGuid())
                 }
             });            
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);

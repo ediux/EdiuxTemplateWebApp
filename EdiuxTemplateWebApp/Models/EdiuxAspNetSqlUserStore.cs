@@ -5,62 +5,76 @@ using System.Linq;
 using System.Web;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using EdiuxTemplateWebApp.Models.AspNetModels;
+using System.Runtime.Caching;
 
 namespace EdiuxTemplateWebApp.Models
 {
-    public class EdiuxAspNetSqlUserStore : IUserStore<ApplicationUser, int>
-        , IUserRoleStore<ApplicationUser, int>, IRoleStore<ApplicationRole, int>
-        , IUserEmailStore<ApplicationUser, int>, IUserLockoutStore<ApplicationUser, int>
-        , IUserLoginStore<ApplicationUser, int>, IUserPasswordStore<ApplicationUser, int>
-        , IUserPhoneNumberStore<ApplicationUser, int>, IUserSecurityStampStore<ApplicationUser, int>
-        , IUserTwoFactorStore<ApplicationUser, int>, IUserClaimStore<ApplicationUser, int>
-        , IQueryableUserStore<ApplicationUser, int>, IQueryableRoleStore<ApplicationRole, int>
+    public class EdiuxAspNetSqlUserStore : IUserStore<aspnet_Users, Guid>
+        , IUserRoleStore<aspnet_Users, Guid>, IRoleStore<aspnet_Roles, Guid>
+        , IUserEmailStore<aspnet_Users, Guid>, IUserLockoutStore<aspnet_Users, Guid>
+        , IUserLoginStore<aspnet_Users, Guid>, IUserPasswordStore<aspnet_Users, Guid>
+        , IUserPhoneNumberStore<aspnet_Users, Guid>, IUserSecurityStampStore<aspnet_Users, Guid>
+        , IUserTwoFactorStore<aspnet_Users, Guid>, IUserClaimStore<aspnet_Users, Guid>
+        , IQueryableUserStore<aspnet_Users, Guid>, IQueryableRoleStore<aspnet_Roles, Guid>
     {
         #region 變數宣告區
-        private IApplicationUserRepository userRepo;
-        private IApplicationRoleRepository roleRepo;
-        private IApplicationUserLoginRepository userloginRepo;
+        private Iaspnet_ApplicationsRepository appRepo;
+        private Iaspnet_UsersRepository userRepo;
+        private Iaspnet_RolesRepository roleRepo;
+        private Iaspnet_UserLoginRepository userloginRepo;
+        private aspnet_Applications applicationInfo;
         #endregion
 
-        public IUnitOfWork UnitOfWork
+        public AspNetModels.IUnitOfWork UnitOfWork
         {
             get { return userRepo.UnitOfWork; }
         }
         #region 建構式
-        public EdiuxAspNetSqlUserStore(IUnitOfWork dbUnitOfWork)
+        public EdiuxAspNetSqlUserStore(AspNetModels.IUnitOfWork dbUnitOfWork)
         {
-            userRepo = RepositoryHelper.GetApplicationUserRepository(dbUnitOfWork);
-            roleRepo = RepositoryHelper.GetApplicationRoleRepository(dbUnitOfWork);
-            userloginRepo = RepositoryHelper.GetApplicationUserLoginRepository(dbUnitOfWork);
+            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(dbUnitOfWork);
+            applicationInfo = MemoryCache.Default.Get("ApplicationInfo") as aspnet_Applications;
+
+            if (applicationInfo == null)
+            {
+
+            }
+            userRepo = RepositoryHelper.Getaspnet_UsersRepository(dbUnitOfWork);
+            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(dbUnitOfWork);
+            userloginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(dbUnitOfWork);
         }
         #endregion
 
         #region Queryable User Store
-        public IQueryable<ApplicationUser> Users
+        public IQueryable<aspnet_Users> Users
         {
             get
             {
-                return userRepo.All();
+                return applicationInfo.aspnet_Users.AsQueryable();
             }
         }
         #endregion
 
         #region Queryable Role Store
-        public IQueryable<ApplicationRole> Roles
+        public IQueryable<aspnet_Roles> Roles
         {
             get
             {
-                return roleRepo.All();
+                return applicationInfo.aspnet_Roles.AsQueryable();
             }
         }
         #endregion
 
         #region User Store(使用者帳號的CRUD)
-        public Task CreateAsync(ApplicationUser user)
+        public Task CreateAsync(aspnet_Users user)
         {
             try
-            {
-                return userRepo.CreateAsync(user);
+            {                
+                applicationInfo.aspnet_Users.Add(user);
+                UnitOfWork.Commit();
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -69,7 +83,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task DeleteAsync(ApplicationUser user)
+        public Task DeleteAsync(aspnet_Users user)
         {
             try
             {
@@ -82,7 +96,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<ApplicationUser> FindByIdAsync(int userId)
+        public Task<aspnet_Users> FindByIdAsync(Guid userId)
         {
             try
             {
@@ -95,7 +109,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<ApplicationUser> FindByNameAsync(string userName)
+        public Task<aspnet_Users> FindByNameAsync(string userName)
         {
             try
             {
@@ -110,7 +124,7 @@ namespace EdiuxTemplateWebApp.Models
 
 
 
-        public Task UpdateAsync(ApplicationUser user)
+        public Task UpdateAsync(aspnet_Users user)
         {
             try
             {
@@ -125,7 +139,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Role Store
-        public Task AddToRoleAsync(ApplicationUser user, string roleName)
+        public Task AddToRoleAsync(aspnet_Users user, string roleName)
         {
             try
             {
@@ -134,11 +148,11 @@ namespace EdiuxTemplateWebApp.Models
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw;
+                return Task.FromException(ex);
             }
         }
 
-        public Task<IList<string>> GetRolesAsync(ApplicationUser user)
+        public Task<IList<string>> GetRolesAsync(aspnet_Users user)
         {
             try
             {
@@ -151,7 +165,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName)
+        public Task<bool> IsInRoleAsync(aspnet_Users user, string roleName)
         {
             try
             {
@@ -164,7 +178,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName)
+        public Task RemoveFromRoleAsync(aspnet_Users user, string roleName)
         {
             try
             {
@@ -179,7 +193,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region Role Store
-        public Task CreateAsync(ApplicationRole role)
+        public Task CreateAsync(aspnet_Roles role)
         {
             try
             {
@@ -192,7 +206,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task UpdateAsync(ApplicationRole role)
+        public Task UpdateAsync(aspnet_Roles role)
         {
             try
             {
@@ -205,7 +219,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task DeleteAsync(ApplicationRole role)
+        public Task DeleteAsync(aspnet_Roles role)
         {
             try
             {
@@ -218,7 +232,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        Task<ApplicationRole> IRoleStore<ApplicationRole, int>.FindByIdAsync(int roleId)
+        Task<aspnet_Roles> IRoleStore<aspnet_Roles, Guid>.FindByIdAsync(Guid roleId)
         {
             try
             {
@@ -231,7 +245,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        Task<ApplicationRole> IRoleStore<ApplicationRole, int>.FindByNameAsync(string roleName)
+        Task<aspnet_Roles> IRoleStore<aspnet_Roles, Guid>.FindByNameAsync(string roleName)
         {
             try
             {
@@ -246,11 +260,12 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region Email Store
-        public Task SetEmailAsync(ApplicationUser user, string email)
+        public Task SetEmailAsync(aspnet_Users user, string email)
         {
             try
             {
-                return userRepo.SetEmailAsync(user, email);
+                user.SetEmail(email);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -259,7 +274,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<string> GetEmailAsync(ApplicationUser user)
+        public Task<string> GetEmailAsync(aspnet_Users user)
         {
             try
             {
@@ -272,7 +287,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<bool> GetEmailConfirmedAsync(ApplicationUser user)
+        public Task<bool> GetEmailConfirmedAsync(aspnet_Users user)
         {
             try
             {
@@ -285,7 +300,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task SetEmailConfirmedAsync(ApplicationUser user, bool confirmed)
+        public Task SetEmailConfirmedAsync(aspnet_Users user, bool confirmed)
         {
             try
             {
@@ -298,7 +313,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<ApplicationUser> FindByEmailAsync(string email)
+        public Task<aspnet_Users> FindByEmailAsync(string email)
         {
             try
             {
@@ -314,7 +329,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Lockout Store
-        public async Task<DateTimeOffset> GetLockoutEndDateAsync(ApplicationUser user)
+        public async Task<DateTimeOffset> GetLockoutEndDateAsync(aspnet_Users user)
         {
             try
             {
@@ -327,7 +342,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public async Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset lockoutEnd)
+        public async Task SetLockoutEndDateAsync(aspnet_Users user, DateTimeOffset lockoutEnd)
         {
             try
             {
@@ -340,7 +355,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public async Task<int> IncrementAccessFailedCountAsync(ApplicationUser user)
+        public async Task<int> IncrementAccessFailedCountAsync(aspnet_Users user)
         {
             try
             {
@@ -354,7 +369,7 @@ namespace EdiuxTemplateWebApp.Models
 
         }
 
-        public async Task ResetAccessFailedCountAsync(ApplicationUser user)
+        public async Task ResetAccessFailedCountAsync(aspnet_Users user)
         {
             try
             {
@@ -367,7 +382,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public async Task<int> GetAccessFailedCountAsync(ApplicationUser user)
+        public async Task<int> GetAccessFailedCountAsync(aspnet_Users user)
         {
             try
             {
@@ -380,7 +395,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public async Task<bool> GetLockoutEnabledAsync(ApplicationUser user)
+        public async Task<bool> GetLockoutEnabledAsync(aspnet_Users user)
         {
             try
             {
@@ -393,7 +408,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public async Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled)
+        public async Task SetLockoutEnabledAsync(aspnet_Users user, bool enabled)
         {
             try
             {
@@ -408,7 +423,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Login Store
-        public async Task AddLoginAsync(ApplicationUser user, UserLoginInfo login)
+        public async Task AddLoginAsync(aspnet_Users user, UserLoginInfo login)
         {
             try
             {
@@ -421,7 +436,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task RemoveLoginAsync(ApplicationUser user, UserLoginInfo login)
+        public Task RemoveLoginAsync(aspnet_Users user, UserLoginInfo login)
         {
             try
             {
@@ -435,7 +450,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public async Task<IList<UserLoginInfo>> GetLoginsAsync(ApplicationUser user)
+        public async Task<IList<UserLoginInfo>> GetLoginsAsync(aspnet_Users user)
         {
             try
             {
@@ -448,7 +463,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public async Task<ApplicationUser> FindAsync(UserLoginInfo login)
+        public async Task<aspnet_Users> FindAsync(UserLoginInfo login)
         {
             try
             {
@@ -463,7 +478,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Password Store
-        public Task SetPasswordHashAsync(ApplicationUser user, string passwordHash)
+        public Task SetPasswordHashAsync(aspnet_Users user, string passwordHash)
         {
             try
             {
@@ -477,7 +492,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<string> GetPasswordHashAsync(ApplicationUser user)
+        public Task<string> GetPasswordHashAsync(aspnet_Users user)
         {
             try
             {
@@ -491,7 +506,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<bool> HasPasswordAsync(ApplicationUser user)
+        public Task<bool> HasPasswordAsync(aspnet_Users user)
         {
             try
             {
@@ -507,7 +522,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Phone Number Store
-        public Task SetPhoneNumberAsync(ApplicationUser user, string phoneNumber)
+        public Task SetPhoneNumberAsync(aspnet_Users user, string phoneNumber)
         {
             try
             {
@@ -521,7 +536,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<string> GetPhoneNumberAsync(ApplicationUser user)
+        public Task<string> GetPhoneNumberAsync(aspnet_Users user)
         {
             try
             {
@@ -535,7 +550,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<bool> GetPhoneNumberConfirmedAsync(ApplicationUser user)
+        public Task<bool> GetPhoneNumberConfirmedAsync(aspnet_Users user)
         {
             try
             {
@@ -549,7 +564,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task SetPhoneNumberConfirmedAsync(ApplicationUser user, bool confirmed)
+        public Task SetPhoneNumberConfirmedAsync(aspnet_Users user, bool confirmed)
         {
             try
             {
@@ -565,7 +580,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Security Stamp Store
-        public Task SetSecurityStampAsync(ApplicationUser user, string stamp)
+        public Task SetSecurityStampAsync(aspnet_Users user, string stamp)
         {
             try
             {
@@ -579,7 +594,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<string> GetSecurityStampAsync(ApplicationUser user)
+        public Task<string> GetSecurityStampAsync(aspnet_Users user)
         {
             try
             {
@@ -595,7 +610,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Two Factor Store
-        public Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled)
+        public Task SetTwoFactorEnabledAsync(aspnet_Users user, bool enabled)
         {
             try
             {
@@ -609,7 +624,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user)
+        public Task<bool> GetTwoFactorEnabledAsync(aspnet_Users user)
         {
             try
             {
@@ -625,7 +640,7 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region User Claim Store
-        public Task<IList<Claim>> GetClaimsAsync(ApplicationUser user)
+        public Task<IList<Claim>> GetClaimsAsync(aspnet_Users user)
         {
             try
             {
@@ -639,7 +654,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task AddClaimAsync(ApplicationUser user, Claim claim)
+        public Task AddClaimAsync(aspnet_Users user, Claim claim)
         {
             try
             {
@@ -653,7 +668,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public Task RemoveClaimAsync(ApplicationUser user, Claim claim)
+        public Task RemoveClaimAsync(aspnet_Users user, Claim claim)
         {
             try
             {
@@ -715,6 +730,8 @@ namespace EdiuxTemplateWebApp.Models
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+
         #endregion
     }
 }

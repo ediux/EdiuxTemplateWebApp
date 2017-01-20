@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="WbParkSystemModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Menus">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="IconCSS" Type="nvarchar" MaxLength="50" />
+          <Property Name="IsExternalLinks" Type="bit" Nullable="false" />
+          <Property Name="ExternalURL" Type="nvarchar" MaxLength="2048" />
+          <Property Name="Void" Type="bit" Nullable="false" />
+          <Property Name="ParentMenuId" Type="int" />
+          <Property Name="CreateUserId" Type="int" Nullable="false" />
+          <Property Name="CreateTime" Type="smalldatetime" Nullable="false" />
+          <Property Name="LastUpdateUserId" Type="int" />
+          <Property Name="LastUpdateTime" Type="smalldatetime" />
+          <Property Name="System_ControllerActionsId" Type="int" />
+          <Property Name="AllowAnonymous" Type="bit" Nullable="false" />
+          <Property Name="Order" Type="int" Nullable="false" />
+          <Property Name="ApplicationId" Type="int" />
+        </EntityType>
+        <Association Name="FK_Menus_ParentMenus">
+          <End Role="Menus" Type="Self.Menus" Multiplicity="0..1" />
+          <End Role="Menus1" Type="Self.Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menus">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Menus1">
+              <PropertyRef Name="ParentMenuId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="WbParkSystemModelStoreContainer">
+          <EntitySet Name="Menus" EntityType="Self.Menus" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Menus_ParentMenus" Association="Self.FK_Menus_ParentMenus">
+            <End Role="Menus" EntitySet="Menus" />
+            <End Role="Menus1" EntitySet="Menus" />
+          </AssociationSet>
+          </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="WbParkSystemModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Menus">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="256" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="IconCSS" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="IsExternalLinks" Type="Boolean" Nullable="false" />
+          <Property Name="ExternalURL" Type="String" MaxLength="2048" FixedLength="false" Unicode="true" />
+          <Property Name="Void" Type="Boolean" Nullable="false" />
+          <Property Name="ParentMenuId" Type="Int32" />
+          <Property Name="CreateUserId" Type="Int32" Nullable="false" />
+          <Property Name="CreateTime" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="LastUpdateUserId" Type="Int32" />
+          <Property Name="LastUpdateTime" Type="DateTime" Precision="0" />
+          <Property Name="AllowAnonymous" Type="Boolean" Nullable="false" />
+          <Property Name="System_ControllerActionsId" Type="Int32" />
+          <Property Name="Order" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="ChildMenus" Relationship="Self.FK_Menus_ParentMenus" FromRole="Menus" ToRole="Menus1" >
+            <Documentation>
+              <LongDescription>子選單集合</LongDescription>
+            </Documentation>
+          </NavigationProperty>
+          <NavigationProperty Name="ParentMenu" Relationship="Self.FK_Menus_ParentMenus" FromRole="Menus1" ToRole="Menus" >
+            <Documentation>
+              <LongDescription>父代選單</LongDescription>
+            </Documentation>
+          </NavigationProperty>
+          <Property Name="ApplicationId" Type="Int32" />
+        </EntityType>
+        <Association Name="FK_Menus_ParentMenus">
+          <End Role="Menus" Type="Self.Menus" Multiplicity="0..1" />
+          <End Role="Menus1" Type="Self.Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menus">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Menus1">
+              <PropertyRef Name="ParentMenuId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AspNetDbEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Menus" EntityType="Self.Menus" />
+          <AssociationSet Name="FK_Menus_ParentMenus" Association="Self.FK_Menus_ParentMenus">
+            <End Role="Menus" EntitySet="Menus" />
+            <End Role="Menus1" EntitySet="Menus" />
+          </AssociationSet>
+          </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="WbParkSystemModelStoreContainer" CdmEntityContainer="AspNetDbEntities">
+          <EntitySetMapping Name="Menus">
+            <EntityTypeMapping TypeName="WbParkSystemModel.Menus">
+              <MappingFragment StoreEntitySet="Menus">
+                <ScalarProperty Name="ApplicationId" ColumnName="ApplicationId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="IconCSS" ColumnName="IconCSS" />
+                <ScalarProperty Name="IsExternalLinks" ColumnName="IsExternalLinks" />
+                <ScalarProperty Name="ExternalURL" ColumnName="ExternalURL" />
+                <ScalarProperty Name="Void" ColumnName="Void" />
+                <ScalarProperty Name="ParentMenuId" ColumnName="ParentMenuId" />
+                <ScalarProperty Name="CreateUserId" ColumnName="CreateUserId" />
+                <ScalarProperty Name="CreateTime" ColumnName="CreateTime" />
+                <ScalarProperty Name="LastUpdateUserId" ColumnName="LastUpdateUserId" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="AllowAnonymous" ColumnName="AllowAnonymous" />
+                <ScalarProperty Name="System_ControllerActionsId" ColumnName="System_ControllerActionsId" />
+                <ScalarProperty Name="Order" ColumnName="Order" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="無" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

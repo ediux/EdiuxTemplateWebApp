@@ -11,7 +11,7 @@ namespace EdiuxTemplateWebApp.Controllers
     public class ErrorController : Controller
     {
         // GET: Error
-        public ActionResult Index(string actionName,string controllerName,int? statusCode,Exception ex)
+        public ActionResult Index(string actionName,string controllerName,int? statusCode,Exception ex=null)
         {
             ViewBag.statusCode = statusCode;
 

@@ -3,6 +3,7 @@ using Owin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Web;
 
 namespace EdiuxTemplateWebApp
@@ -25,7 +26,20 @@ namespace EdiuxTemplateWebApp
 
         private void addToMemoryCache()
         {
-            throw new NotImplementedException();
+            try
+            {
+                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+                string appName = getApplicationNameFromConfiguationFile();
+
+                MemoryCache.Default.Add("ApplicationInfo", appRepo.FindByName(appName), DateTime.UtcNow.AddMinutes(38400));
+
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
         }
 
         private void registerApplication(string v)

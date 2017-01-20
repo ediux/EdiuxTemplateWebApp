@@ -14,21 +14,23 @@ namespace EdiuxTemplateWebApp
         {
             //檢查Application是否已經註冊?
 
-            if (checkCurrentAppIsRegistered()==false)
+            if (checkCurrentAppIsRegistered() == false)
             {
-                registerApplication(getApplicationNameFromConfiguationFile());
-            }else
+                registerApplication();
+            }
+            else
             {
                 addToMemoryCache();
             }
-            
+
         }
 
-        private void addToMemoryCache()
+        private void addToMemoryCache(Iaspnet_ApplicationsRepository appRepo = null)
         {
             try
             {
-                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+                if (appRepo == null)
+                    appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
                 string appName = getApplicationNameFromConfiguationFile();
 
@@ -42,9 +44,23 @@ namespace EdiuxTemplateWebApp
             }
         }
 
-        private void registerApplication(string v)
+        private void registerApplication()
         {
-            throw new NotImplementedException();
+            try
+            {
+                string applicationName = getApplicationNameFromConfiguationFile();
+
+                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+                appRepo.Add(aspnet_Applications.Create(applicationName));
+                appRepo.UnitOfWork.Commit();
+
+                addToMemoryCache(appRepo);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         private bool checkCurrentAppIsRegistered()
@@ -67,7 +83,7 @@ namespace EdiuxTemplateWebApp
 
                 throw ex;
             }
-         
+
         }
 
         private static string getApplicationNameFromConfiguationFile()

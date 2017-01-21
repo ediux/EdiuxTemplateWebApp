@@ -86,7 +86,7 @@ namespace EdiuxTemplateWebApp
 
         }
 
-        private static string getApplicationNameFromConfiguationFile()
+        internal static string getApplicationNameFromConfiguationFile()
         {
             string appName;
             if (System.Web.Configuration.WebConfigurationManager.AppSettings.AllKeys.Contains("ApplicationName"))

@@ -9,6 +9,7 @@ using System.Data.Entity.Validation;
 using System.Web.Routing;
 using System.Reflection;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using System.Runtime.Caching;
 
 namespace EdiuxTemplateWebApp.Filters
 {
@@ -103,11 +104,14 @@ namespace EdiuxTemplateWebApp.Filters
             {
                 appInfo = filterContext.Controller.ViewBag.ApplicationInfo;
             }
-
-            if (appInfo == null)
+            else
             {
-                ApplicationIdentifyAttribute appIdentifyAttr = new ApplicationIdentifyAttribute(typeof(MvcApplication));
-                appIdentifyAttr.OnActionExecuting(filterContext);
+                if (appInfo == null)
+                {
+                    string applicationName = Startup.getApplicationNameFromConfiguationFile();
+                    appInfo = appRepo.FindByName(applicationName);
+                    MemoryCache.Default.Add("ApplicationInfo", appInfo, DateTime.UtcNow.AddMinutes(38400));
+                }
             }
 
             return appRepo;

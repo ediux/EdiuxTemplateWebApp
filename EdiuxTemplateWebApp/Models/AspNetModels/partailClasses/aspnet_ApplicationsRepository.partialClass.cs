@@ -27,7 +27,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                return Get(applicationId);
+                aspnet_Applications appInfo = Get(applicationId);
+                appInfo.ApplicationRepository = RepositoryHelper.Getaspnet_ApplicationsRepository();
+                return appInfo;
             }
             catch (Exception ex)
             {
@@ -41,8 +43,10 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             try
             {
                 string loweredApplicationName = applicationName.ToLowerInvariant();
-                return Where(s => s.ApplicationName == applicationName
+                aspnet_Applications appInfo = Where(s => s.ApplicationName == applicationName
                     || s.LoweredApplicationName == loweredApplicationName).SingleOrDefault();
+                appInfo.ApplicationRepository = RepositoryHelper.Getaspnet_ApplicationsRepository();
+                return appInfo;
             }
             catch (Exception ex)
             {

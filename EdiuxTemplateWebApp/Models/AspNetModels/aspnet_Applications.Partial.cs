@@ -4,14 +4,17 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
+    using System.Runtime.Caching;
     using System.Threading.Tasks;
 
     [MetadataType(typeof(aspnet_ApplicationsMetaData))]
     public partial class aspnet_Applications
     {
+        public Iaspnet_ApplicationsRepository ApplicationRepository { get; set; }
+
         public static aspnet_Applications Create(string applicationName, string applicationDescription = "")
         {
-           
+
             return new aspnet_Applications()
             {
                 ApplicationId = Guid.NewGuid(),
@@ -46,6 +49,57 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             return aspnet_Roles.Where(
                 s => s.Name == roleName || s.Name == LoweredApplicationName)
                 .SingleOrDefault();
+        }
+
+        public void CreateUser(aspnet_Users user)
+        {
+            Iaspnet_UsersRepository userRepo = checkAndGetUserRepository();
+
+            user.ApplicationId = this.ApplicationId;
+
+            userRepo.Add(user);
+            userRepo.UnitOfWork.Commit();
+            user = userRepo.Reload(user);
+
+            aspnet_Users.Add(user);
+
+            MemoryCache.Default.Add("ApplicationInfo", this, DateTime.UtcNow.AddMinutes(38400));
+        }
+
+        private Iaspnet_UsersRepository checkAndGetUserRepository()
+        {
+            if (ApplicationRepository == null)
+                ApplicationRepository = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+            Iaspnet_UsersRepository userRepo = RepositoryHelper.Getaspnet_UsersRepository(ApplicationRepository.UnitOfWork);
+            return userRepo;
+        }
+
+        public aspnet_Users UpdateUser(aspnet_Users user)
+        {
+            
+            Iaspnet_UsersRepository userRepo = checkAndGetUserRepository();
+            aspnet_Users existedUser = FindUserById(user.Id);
+            existedUser = user;
+            userRepo.UnitOfWork.Context.Entry(existedUser).State = System.Data.Entity.EntityState.Modified;
+            userRepo.UnitOfWork.Commit();
+            existedUser = userRepo.Reload(existedUser);
+            return existedUser;
+        }
+
+        internal void CreateRole(aspnet_Roles role)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void DeleteRole(aspnet_Roles role)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal aspnet_Users FindUserByEmail(string email)
+        {
+            throw new NotImplementedException();
         }
     }
 

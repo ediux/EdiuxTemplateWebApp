@@ -32,9 +32,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 return aspnet_Membership.Email;
             }
             catch (Exception)
-            {                                
+            {
                 throw;
-            }            
+            }
         }
         public bool GetEmailConfirmed()
         {
@@ -51,7 +51,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             UserRepository.UnitOfWork.Context.Entry(aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
             UserRepository.UnitOfWork.Commit();
         }
-  
+
         public IList<string> GetRoles()
         {
             return aspnet_Roles.Select(w => w.Name).ToList() as IList<string>;
@@ -60,6 +60,66 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public bool IsInRole(string roleName)
         {
             return aspnet_Roles.Any(r => r.Name == roleName || r.LoweredRoleName == roleName);
+        }
+
+        public void Update()
+        {
+            UserRepository.UnitOfWork.Context.Entry(this).State = System.Data.Entity.EntityState.Modified;
+            UserRepository.UnitOfWork.Commit();
+
+            aspnet_Users existedUser = UserRepository.Get(Id);
+
+            ApplicationId = existedUser.ApplicationId;
+            this.aspnet_Applications = existedUser.aspnet_Applications;
+            this.aspnet_Membership = existedUser.aspnet_Membership;
+            this.aspnet_PersonalizationPerUser = existedUser.aspnet_PersonalizationPerUser;
+            this.aspnet_Profile = existedUser.aspnet_Profile;
+            this.aspnet_Roles = existedUser.aspnet_Roles;
+            this.aspnet_UserLogin = existedUser.aspnet_UserLogin;
+            this.IsAnonymous = existedUser.IsAnonymous;
+            this.LastActivityDate = existedUser.LastActivityDate;
+            this.LoweredUserName = existedUser.LoweredUserName;
+            this.MobileAlias = existedUser.MobileAlias;
+            this.UserName = existedUser.UserName;
+
+        }
+
+        public void AddToRole(string roleName)
+        {
+            if (UserRepository == null)
+                UserRepository = RepositoryHelper.Getaspnet_UsersRepository();
+
+            aspnet_Roles role = aspnet_Applications.FindRoleByName(roleName);
+            aspnet_Roles.Add(role);
+            Update();
+
+            Iaspnet_RolesRepository roleRepo = RepositoryHelper.Getaspnet_RolesRepository(UserRepository.UnitOfWork);
+            
+        }
+
+        public object RemoveFromRole(string roleName)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Task SetEmailConfirmed(bool confirmed)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal DateTimeOffset GetLockoutEndDate()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void SetLockoutEndDate(DateTimeOffset lockoutEnd)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal int IncrementAccessFailedCount()
+        {
+            throw new NotImplementedException();
         }
     }
 

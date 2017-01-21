@@ -32,9 +32,7 @@ namespace EdiuxTemplateWebApp
                 if (appRepo == null)
                     appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
-                string appName = getApplicationNameFromConfiguationFile();
-
-                MemoryCache.Default.Add("ApplicationInfo", appRepo.FindByName(appName), DateTime.UtcNow.AddMinutes(38400));
+              
 
             }
             catch (Exception ex)

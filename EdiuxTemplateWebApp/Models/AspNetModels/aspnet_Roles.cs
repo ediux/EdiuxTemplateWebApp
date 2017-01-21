@@ -11,7 +11,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.Threading.Tasks;
+
     public partial class aspnet_Roles
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
@@ -29,5 +30,10 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public virtual aspnet_Applications aspnet_Applications { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<aspnet_Users> aspnet_Users { get; set; }
+
+        internal Task Update()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

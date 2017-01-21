@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using EdiuxTemplateWebApp.Models;
 using System.Data.Entity.Validation;
 using System.Web.Routing;
-using System.Reflection;
 using EdiuxTemplateWebApp.Models.AspNetModels;
 using System.Runtime.Caching;
 
@@ -128,10 +123,5 @@ namespace EdiuxTemplateWebApp.Filters
                 Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
             }
         }
-    }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class ApiComponentRegistrationAttribut : FilterAttribute, System.Web.Http.Filters.IFilter
-    {
     }
 }

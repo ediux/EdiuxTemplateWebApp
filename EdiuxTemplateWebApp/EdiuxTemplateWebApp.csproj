@@ -221,9 +221,9 @@
     </Compile>
     <Compile Include="Helpers\OpenCoreWebExtensions.cs" />
     <Compile Include="Helpers\SecurityHelper.cs" />
+    <Compile Include="Helpers\UserStoreExtension.cs" />
     <Compile Include="Interfaces\ICacheProvider.cs" />
     <Compile Include="Interfaces\IDataRepository.cs" />
-    <Compile Include="Interfaces\IUnitOfWork.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\ApplicationLevelModels\ApplicationDbModel.Context.cs">
       <DependentUpon>ApplicationDbModel.Context.tt</DependentUpon>
@@ -291,6 +291,9 @@
     </Compile>
     <Compile Include="Models\ApplicationLevelModels\partailClasses\IUnitOfWork.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ApplicationLevelModels\partailClasses\MenusRepository.cs">
+      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ApplicationLevelModels\partailClasses\MenusRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
@@ -458,6 +461,9 @@
     </Compile>
     <Compile Include="Models\AspNetModels\aspnet_VoidUsers.Partial.cs">
       <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\aspnet_VoidUsersRepository.cs">
+      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\aspnet_WebEvent_Events.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>

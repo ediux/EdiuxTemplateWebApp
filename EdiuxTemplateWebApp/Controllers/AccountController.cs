@@ -9,6 +9,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
+using System.Net;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
@@ -58,7 +60,7 @@ namespace EdiuxTemplateWebApp.Controllers
         public ActionResult Login(string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
-            bool isRequiredEmail = ((UserValidator<ApplicationUser, int>)UserManager.UserValidator).RequireUniqueEmail;
+            bool isRequiredEmail = ((UserValidator<aspnet_Users, Guid>)UserManager.UserValidator).RequireUniqueEmail;
             return View(new LoginViewModel() { RequireUniqueEmail = isRequiredEmail });
         }
 
@@ -159,9 +161,24 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Register(RegisterViewModel model)
         {
+            aspnet_Applications appInfo = ViewBag.ApplicationInfo as aspnet_Applications;
+
+            if (appInfo == null)
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, EMail = model.Email };
+                var user = new aspnet_Users { ApplicationId = appInfo.ApplicationId, UserName = model.UserName };
+                user.aspnet_Applications = appInfo;
+                user.aspnet_Membership = new Models.AspNetModels.aspnet_Membership()
+                {
+                    ApplicationId = appInfo.ApplicationId,
+                    aspnet_Applications = appInfo,
+                    Email = model.Email,
+                    LoweredEmail = model.Email.ToLowerInvariant(),
+                    PasswordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                };
+
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -185,9 +202,9 @@ namespace EdiuxTemplateWebApp.Controllers
         //
         // GET: /Account/ConfirmEmail
         [AllowAnonymous]
-        public async Task<ActionResult> ConfirmEmail(int userId, string code)
+        public async Task<ActionResult> ConfirmEmail(Guid userId, string code)
         {
-            if (userId <= 0 || code == null)
+            if (userId == Guid.Empty || code == null)
             {
                 return View("Error");
             }
@@ -298,7 +315,7 @@ namespace EdiuxTemplateWebApp.Controllers
         public async Task<ActionResult> SendCode(string returnUrl, bool rememberMe)
         {
             var userId = await SignInManager.GetVerifiedUserIdAsync();
-            if (userId <= 0)
+            if (userId == Guid.Empty)
             {
                 return View("Error");
             }
@@ -377,7 +394,8 @@ namespace EdiuxTemplateWebApp.Controllers
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, EMail = model.Email };
+                var user = new aspnet_Users { UserName = info.DefaultUserName };
+                
                 var result = await UserManager.CreateAsync(user);
                 if (result.Succeeded)
                 {

@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -144,5 +147,49 @@ namespace EdiuxTemplateWebApp.Models
         [EmailAddress]
         [Display(Name = "電子郵件")]
         public string Email { get; set; }
+    }
+
+    public class ProfileModel : INotifyPropertyChanged
+    {
+        public ProfileModel()
+        {
+            PropertyChanged += ProfileModel_PropertyChanged;
+            userId = Guid.Empty;
+        }
+        private Guid userId;
+        public Guid UserId { get { return userId; } set { userId = value; RaiseChange(nameof(UserId)); } }
+
+        private void ProfileModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            Iaspnet_ProfileRepository profileRepo = RepositoryHelper.Getaspnet_ProfileRepository();
+
+            aspnet_Profile profile = profileRepo.Get(userId);
+
+            profile.PropertyValuesString = JsonConvert.SerializeObject(this);
+            profile.PropertyValuesBinary = System.Text.Encoding.Unicode.GetBytes(profile.PropertyValuesString);
+
+            profileRepo.UnitOfWork.Context.Entry(profile).State = System.Data.Entity.EntityState.Modified;
+            profileRepo.UnitOfWork.Commit();
+        }
+
+        private bool emailConfirmed;
+        public bool eMailConfirmed { get { return emailConfirmed; } set { emailConfirmed = value; RaiseChange(nameof(eMailConfirmed)); } }
+        private string phoneNumber = string.Empty;
+        public string PhoneNumber { get { return phoneNumber; } set { phoneNumber = value; RaiseChange(nameof(PhoneNumber)); } }
+
+        private bool phoneConfirmed;
+        public bool PhoneConfirmed { get { return phoneConfirmed; } set { phoneConfirmed = value; RaiseChange(nameof(PhoneConfirmed)); } }
+        private bool twoFactorEnabled;
+        public bool TwoFactorEnabled { get { return twoFactorEnabled; } set { twoFactorEnabled = value; RaiseChange(nameof(TwoFactorEnabled)); } }
+
+        private string securityStamp = string.Empty;
+        public string SecurityStamp { get { return securityStamp; } set { securityStamp = value; RaiseChange(nameof(SecurityStamp)); } }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void RaiseChange(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
     }
 }

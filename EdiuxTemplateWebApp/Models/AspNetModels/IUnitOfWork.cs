@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-	public partial interface IUnitOfWork 
+	public partial interface IUnitOfWork
 	{
 		DbContext Context { get; set; }
 

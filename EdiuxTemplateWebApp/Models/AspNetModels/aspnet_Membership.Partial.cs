@@ -8,7 +8,21 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     [MetadataType(typeof(aspnet_MembershipMetaData))]
     public partial class aspnet_Membership
     {
-        public Iaspnet_MembershipRepository MembershipRepository { get; set; }
+        private static Iaspnet_MembershipRepository membershipRepository;
+        public static Iaspnet_MembershipRepository MembershipRepository
+        {
+            get
+            {
+                if (membershipRepository == null)
+                    membershipRepository = RepositoryHelper.Getaspnet_MembershipRepository();
+
+                return membershipRepository;
+            }
+            set
+            {
+                membershipRepository = value;
+            }
+        }
 
         public string GetEmail()
         {

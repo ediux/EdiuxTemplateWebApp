@@ -20,21 +20,25 @@ namespace EdiuxTemplateWebApp.Models.ApplicationLevelModels
             this.ChildMenus = new HashSet<Menus>();
         }
     
-        public int Id { get; set; }
+        public int MenuId { get; set; }
         public string Name { get; set; }
+        public string DisplayName { get; set; }
+        public string Description { get; set; }
+        public short Order { get; set; }
+        public bool Void { get; set; }
+        public bool IsRightAligned { get; set; }
+        public bool IsNoActionPage { get; set; }
+        public bool AfterBreak { get; set; }
+        public Nullable<int> ParentMenuId { get; set; }
+        public Nullable<System.Guid> PathId { get; set; }
         public string IconCSS { get; set; }
         public bool IsExternalLinks { get; set; }
-        public string ExternalURL { get; set; }
-        public bool Void { get; set; }
-        public Nullable<int> ParentMenuId { get; set; }
-        public int CreateUserId { get; set; }
+        public System.Guid CreateUserId { get; set; }
         public System.DateTime CreateTime { get; set; }
-        public Nullable<int> LastUpdateUserId { get; set; }
+        public Nullable<System.Guid> LastUpdateUserId { get; set; }
         public Nullable<System.DateTime> LastUpdateTime { get; set; }
         public bool AllowAnonymous { get; set; }
-        public Nullable<int> System_ControllerActionsId { get; set; }
-        public int Order { get; set; }
-        public Nullable<int> ApplicationId { get; set; }
+        public Nullable<System.Guid> ApplicationId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Menus> ChildMenus { get; set; }

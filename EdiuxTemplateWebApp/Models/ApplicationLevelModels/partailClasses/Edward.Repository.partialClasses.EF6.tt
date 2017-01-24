@@ -105,7 +105,8 @@ namespace <#= ns #>
         }
 	}
 }<#fileManager.StartNewFile("EFUnitOfWork.partialClass.cs");
-#>using System.Data.Entity;
+#>using System;
+using System.Data.Entity;
 using System.Threading.Tasks;
 
 namespace <#= ns #>

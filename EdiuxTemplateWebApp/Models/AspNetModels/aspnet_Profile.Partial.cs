@@ -1,14 +1,16 @@
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(aspnet_ProfileMetaData))]
     public partial class aspnet_Profile
     {
+       
     }
-    
+
     public partial class aspnet_ProfileMetaData
     {
         [Required]
@@ -21,7 +23,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public byte[] PropertyValuesBinary { get; set; }
         [Required]
         public System.DateTime LastUpdatedDate { get; set; }
-    
+
         public virtual aspnet_Users aspnet_Users { get; set; }
     }
 }

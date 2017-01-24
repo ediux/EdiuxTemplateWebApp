@@ -11,9 +11,19 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     [MetadataType(typeof(aspnet_UsersMetaData))]
     public partial class aspnet_Users : IUser<Guid>
     {
-        public Iaspnet_UsersRepository UserRepository
+        private static Iaspnet_UsersRepository userRepository;
+        public static Iaspnet_UsersRepository UserRepository
         {
-            get; set;
+            get
+            {
+                if (userRepository == null)
+                    userRepository = RepositoryHelper.Getaspnet_UsersRepository();
+                return userRepository;
+            }
+            set
+            {
+                userRepository = value;
+            }
         }
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<aspnet_Users, System.Guid> manager)
@@ -65,9 +75,15 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public void Update()
         {
             UserRepository.UnitOfWork.Context.Entry(this).State = System.Data.Entity.EntityState.Modified;
+            UserRepository.UnitOfWork.Context.Entry(aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
+            UserRepository.UnitOfWork.Context.Entry(aspnet_PersonalizationPerUser).State = System.Data.Entity.EntityState.Modified;
+            UserRepository.UnitOfWork.Context.Entry(aspnet_Profile).State = System.Data.Entity.EntityState.Modified;
+            UserRepository.UnitOfWork.Context.Entry(aspnet_Roles).State = System.Data.Entity.EntityState.Modified;
+            UserRepository.UnitOfWork.Context.Entry(aspnet_UserLogin).State = System.Data.Entity.EntityState.Modified;
             UserRepository.UnitOfWork.Commit();
 
             aspnet_Users existedUser = UserRepository.Get(Id);
+                
 
             ApplicationId = existedUser.ApplicationId;
             this.aspnet_Applications = existedUser.aspnet_Applications;
@@ -89,37 +105,37 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             if (UserRepository == null)
                 UserRepository = RepositoryHelper.Getaspnet_UsersRepository();
 
-            aspnet_Roles role = aspnet_Applications.FindRoleByName(roleName);
+            aspnet_Roles role = aspnet_Applications.GetRoleByName(roleName);
             aspnet_Roles.Add(role);
+          
             Update();
-
-            Iaspnet_RolesRepository roleRepo = RepositoryHelper.Getaspnet_RolesRepository(UserRepository.UnitOfWork);
-            
         }
 
-        public object RemoveFromRole(string roleName)
+        public void RemoveFromRole(string roleName)
         {
-            throw new NotImplementedException();
+            string loweredRoleName = roleName.ToLowerInvariant();
+            aspnet_Roles foundRole = aspnet_Roles.SingleOrDefault(w => w.LoweredRoleName == loweredRoleName || w.Name == roleName);
+            aspnet_Roles.Remove(foundRole);
+            UserRepository.UnitOfWork.Context.Entry(aspnet_Roles).State = System.Data.Entity.EntityState.Modified;
+            Update();
         }
 
-        internal Task SetEmailConfirmed(bool confirmed)
+        public void AddLogin(UserLoginInfo login)
         {
-            throw new NotImplementedException();
+            aspnet_UserLogin.Add(new aspnet_UserLogin() { aspnet_Users = this, LoginProvider = login.LoginProvider, ProviderKey = login.ProviderKey, UserId = Id });
+            Update();
         }
 
-        internal DateTimeOffset GetLockoutEndDate()
+        public void RemoveLogin(UserLoginInfo login)
         {
-            throw new NotImplementedException();
+            aspnet_UserLogin dblogin = this.FindLogin(login);
+            aspnet_UserLogin.Remove(dblogin);
+            Update();
         }
 
-        internal void SetLockoutEndDate(DateTimeOffset lockoutEnd)
+        public IList<UserLoginInfo> GetLogins()
         {
-            throw new NotImplementedException();
-        }
-
-        internal int IncrementAccessFailedCount()
-        {
-            throw new NotImplementedException();
+            return aspnet_UserLogin.ToList().ConvertAll(s => new UserLoginInfo(s.LoginProvider, s.ProviderKey));
         }
     }
 

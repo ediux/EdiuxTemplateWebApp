@@ -5,9 +5,9 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="7f2a1955470841eeb316f88c224457fa" Name="Diagram1">
-        <EntityTypeShape EntityType="WbParkSystemModel.Menus" Width="2.875" PointX="10.875" PointY="10.75" IsExpanded="true" />
-        <AssociationConnector Association="WbParkSystemModel.FK_Menus_ParentMenus" ManuallyRouted="false" />
-        </Diagram>
+        <EntityTypeShape EntityType="WbParkSystemModel.Menus" Width="1.5" PointX="0.75" PointY="0.75" />
+        <AssociationConnector Association="WbParkSystemModel.FK_dbo_Menus_dbo_Menus_Parent_MenuId" />
+      </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

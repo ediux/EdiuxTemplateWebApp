@@ -17,5 +17,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         void RemoveLoginAsync(aspnet_Users user, UserLoginInfo login);
         Task<aspnet_Users> FindAsync(UserLoginInfo login);
         Task<IList<UserLoginInfo>> GetLoginsAsync(aspnet_Users user);
+        aspnet_Users Find(UserLoginInfo login);
     }
 }

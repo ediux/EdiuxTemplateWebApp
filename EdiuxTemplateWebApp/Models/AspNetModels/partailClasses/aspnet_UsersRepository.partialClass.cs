@@ -4,21 +4,183 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.Entity.Core.Objects;
 using System.Security.Claims;
+using System.Data.Entity;
+using System.Runtime.Caching;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class aspnet_UsersRepository : EFRepository<aspnet_Users>, Iaspnet_UsersRepository
     {
+        public IQueryable<aspnet_Users> All(aspnet_Applications application)
+        {
+            try
+            {
+                InternalDatabaseAlias.aspnet_Users.Where(w => w.ApplicationId == application.ApplicationId).Load();
+                InternalDatabaseAlias.aspnet_Membership.Where(w => w.ApplicationId == application.ApplicationId).Load();
+                InternalDatabaseAlias.aspnet_PersonalizationPerUser.Where(w => w.aspnet_Users.ApplicationId == application.ApplicationId).Load();
+                InternalDatabaseAlias.aspnet_Profile.Where(w => w.aspnet_Users.ApplicationId == application.ApplicationId).Load();
+                InternalDatabaseAlias.aspnet_Roles.Where(w => w.aspnet_Applications.ApplicationId == application.ApplicationId).Load();
+                InternalDatabaseAlias.aspnet_UserLogin.Where(w => w.aspnet_Users.ApplicationId == application.ApplicationId).Load();
+
+                return InternalDatabaseAlias.aspnet_Users.Where(w => w.ApplicationId == application.ApplicationId);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+
+        public override IQueryable<aspnet_Users> All()
+        {
+            try
+            {
+                InternalDatabaseAlias.aspnet_Membership.Load();
+                InternalDatabaseAlias.aspnet_PersonalizationPerUser.Load();
+                InternalDatabaseAlias.aspnet_Profile.Load();
+                InternalDatabaseAlias.aspnet_Roles.Load();
+                InternalDatabaseAlias.aspnet_UserLogin.Load();
+
+                return ObjectSet.AsQueryable();
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+
+        public override aspnet_Users Get(params object[] values)
+        {
+            try
+            {
+                return All().SingleOrDefault(s => values.Any(a => a.Equals(s.ApplicationId) || a.Equals(s.Id)));
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+
+        public override void Delete(aspnet_Users entity)
+        {
+            try
+            {
+                ObjectParameter numTablesDeletedFrom = new ObjectParameter("NumTablesDeletedFrom", typeof(Guid));
+                InternalDatabaseAlias.aspnet_Users_DeleteUser(entity.aspnet_Applications.ApplicationName, entity.UserName, 14, numTablesDeletedFrom);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public override aspnet_Users Add(aspnet_Users entity)
+        {
+
+            try
+            {
+                ObjectParameter userId = new ObjectParameter("UserId", typeof(Guid));
+                InternalDatabaseAlias.aspnet_Users_CreateUser(entity.ApplicationId, entity.UserName, false, DateTime.Now.Date, userId);
+                return Get(userId);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+        public aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "@abc.com")
+        {
+            try
+            {
+                aspnet_Users newUser = null;
+                ObjectParameter userId = new ObjectParameter("UserId", typeof(Guid));
+
+                string passwordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+                #region ©I¥s¹w¦sµ{§Ç
+                int ResultCode = InternalDatabaseAlias.aspnet_Membership_CreateUser(
+                    applicationObject.ApplicationName,
+                    userName,
+                    password,
+                    passwordSalt,
+                    "",
+                    "",
+                    "",
+                    true,
+                    DateTime.UtcNow,
+                    DateTime.Now.Date
+                    , 0, 1, userId);
+                #endregion
+
+                if (ResultCode != 0)
+                {
+                    throw new Exception("Error in SQL Server.");
+                }
+
+                newUser.Id = (Guid)userId.Value;
+                newUser = Reload(newUser);
+                applicationObject.aspnet_Users.Add(newUser);
+                updateCache(applicationObject);
+                return newUser;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+
+        public Task AddAsync(aspnet_Users user)
+        {
+            try
+            {
+                Add(user.UserName, user.aspnet_Membership.Password, user.aspnet_Applications, user.aspnet_Membership.Email);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                return Task.FromException(ex);
+            }
+        }
+
         public Task<string> GetEmailAsync(aspnet_Users user)
         {
-            return Task.FromResult(user.aspnet_Membership.GetEmail());
+            try
+            {
+                return Task.FromResult(user.aspnet_Membership.GetEmail());
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
         }
 
         public Task SetEmailAsync(aspnet_Users user, string email)
         {
-            user.aspnet_Membership.SetEmail(email);
-            return Task.CompletedTask;
+            try
+            {
+                user.aspnet_Membership.SetEmail(email);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
+
+
 
         public Task AddToRoleAsync(aspnet_Users user, string roleName)
         {
@@ -41,31 +203,26 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 return Task.FromException(ex);
             }
         }
-
-        public Task CreateAsync(aspnet_Users user)
+        private static void updateCache(aspnet_Applications applicationObject)
         {
             try
             {
-                ObjectParameter userId = new ObjectParameter("UserId", typeof(Guid));
-
-                InternalDatabaseAlias.aspnet_Users_CreateUser(user.ApplicationId,
-                    user.UserName, false, DateTime.UtcNow, userId);
-
-                return Task.CompletedTask;
+                MemoryCache.Default.Set("ApplicationInfo", applicationObject, DateTime.UtcNow.AddMinutes(38400));
             }
             catch (Exception ex)
             {
-                WriteErrorLog(ex);
-                return Task.FromException(ex);
+                throw ex;
             }
+
         }
+
+
 
         public Task DeleteAsync(aspnet_Users user)
         {
             try
             {
-                ObjectParameter numTablesDeletedFrom = new ObjectParameter("NumTablesDeletedFrom", typeof(Guid));
-                InternalDatabaseAlias.aspnet_Users_DeleteUser(user.aspnet_Applications.ApplicationName, user.UserName, 14, numTablesDeletedFrom);
+                Delete(user);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -74,7 +231,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 return Task.FromException(ex);
             }
         }
-        
+
         public Task<aspnet_Users> FindByIdAsync(Guid userId)
         {
             //Remove
@@ -323,34 +480,37 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
     public partial interface Iaspnet_UsersRepository : IRepositoryBase<aspnet_Users>
     {
+        aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "");
+
+        IQueryable<aspnet_Users> All(aspnet_Applications application);
         Task AddToRoleAsync(aspnet_Users user, string roleName);
-        Task CreateAsync(aspnet_Users user);
+        Task AddAsync(aspnet_Users user);
         Task DeleteAsync(aspnet_Users user);
-        Task<aspnet_Users> FindByIdAsync(Guid userId);
-        Task<aspnet_Users> FindByNameAsync(string userName);
-        Task UpdateAsync(aspnet_Users user);
-        Task<IList<string>> GetRolesAsync(aspnet_Users user);
-        Task<bool> IsInRoleAsync(aspnet_Users user, string roleName);
+        //Task<aspnet_Users> FindByIdAsync(Guid userId);
+        //Task<aspnet_Users> FindByNameAsync(string userName);
+        //Task UpdateAsync(aspnet_Users user);
+        //Task<IList<string>> GetRolesAsync(aspnet_Users user);
+        //Task<bool> IsInRoleAsync(aspnet_Users user, string roleName);
         Task RemoveFromRoleAsync(aspnet_Users user, string roleName);
-        Task<aspnet_Users> FindByEmailAsync(string email);
-        Task<DateTimeOffset> GetLockoutEndDateAsync(aspnet_Users user);
-        Task SetLockoutEndDateAsync(aspnet_Users user, DateTimeOffset lockoutEnd);
-        Task<int> IncrementAccessFailedCountAsync(aspnet_Users user);
-        Task ResetAccessFailedCountAsync(aspnet_Users user);
-        Task<int> GetAccessFailedCountAsync(aspnet_Users user);
-        Task<bool> GetLockoutEnabledAsync(aspnet_Users user);
-        Task SetPasswordHashAsync(aspnet_Users user, string passwordHash);
-        Task<string> GetPasswordHashAsync(aspnet_Users user);
-        Task SetPhoneNumberAsync(aspnet_Users user, string phoneNumber);
-        Task<string> GetPhoneNumberAsync(aspnet_Users user);
-        Task<bool> HasPasswordAsync(aspnet_Users user);
-        Task<bool> GetPhoneNumberConfirmedAsync(aspnet_Users user);
-        Task SetPhoneNumberConfirmedAsync(aspnet_Users user, bool confirmed);
-        Task SetSecurityStampAsync(aspnet_Users user, string stamp);
-        Task<string> GetSecurityStampAsync(aspnet_Users user);
-        Task SetTwoFactorEnabledAsync(aspnet_Users user, bool enabled);
-        Task<bool> GetTwoFactorEnabledAsync(aspnet_Users user);
-        Task<IList<Claim>> GetClaimsAsync(aspnet_Users user);
+        //Task<aspnet_Users> FindByEmailAsync(string email);
+        ////Task<DateTimeOffset> GetLockoutEndDateAsync(aspnet_Users user);
+        //Task SetLockoutEndDateAsync(aspnet_Users user, DateTimeOffset lockoutEnd);
+        //Task<int> IncrementAccessFailedCountAsync(aspnet_Users user);
+        //Task ResetAccessFailedCountAsync(aspnet_Users user);
+        //Task<int> GetAccessFailedCountAsync(aspnet_Users user);
+        //Task<bool> GetLockoutEnabledAsync(aspnet_Users user);
+        //Task SetPasswordHashAsync(aspnet_Users user, string passwordHash);
+        //Task<string> GetPasswordHashAsync(aspnet_Users user);
+        //Task SetPhoneNumberAsync(aspnet_Users user, string phoneNumber);
+        //Task<string> GetPhoneNumberAsync(aspnet_Users user);
+        //Task<bool> HasPasswordAsync(aspnet_Users user);
+        //Task<bool> GetPhoneNumberConfirmedAsync(aspnet_Users user);
+        //Task SetPhoneNumberConfirmedAsync(aspnet_Users user, bool confirmed);
+        //Task SetSecurityStampAsync(aspnet_Users user, string stamp);
+        //Task<string> GetSecurityStampAsync(aspnet_Users user);
+        //Task SetTwoFactorEnabledAsync(aspnet_Users user, bool enabled);
+        //Task<bool> GetTwoFactorEnabledAsync(aspnet_Users user);
+        //Task<IList<Claim>> GetClaimsAsync(aspnet_Users user);
         Task AddClaimAsync(aspnet_Users user, Claim claim);
         Task RemoveClaimAsync(aspnet_Users user, Claim claim);
     }

@@ -15,10 +15,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
     public  partial interface Iaspnet_MembershipRepository : IRepositoryBase<aspnet_Membership>
 	{
-        Task<aspnet_Membership> FindByEmailAsync(string email);
 
-        Task SetEmailAsync(aspnet_Membership user, string email);
-        Task SetEmailConfirmedAsync(aspnet_Users user, bool confirmed);
 
 
 

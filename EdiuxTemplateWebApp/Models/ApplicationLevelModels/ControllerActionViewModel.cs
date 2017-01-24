@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
-namespace EdiuxTemplateWebApp.Models
+namespace EdiuxTemplateWebApp.Models.ApplicationLevelModels
 {
     public class ControllerActionViewModel
     {

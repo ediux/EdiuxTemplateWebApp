@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,10 +8,10 @@ using System.Web;
 
 namespace EdiuxTemplateWebApp.Models
 {
-    public class UserProfileViewModel : ApplicationUser
+    public class UserProfileViewModel : ProfileModel
     {
 
-        private IApplicationRoleRepository roleRepo;
+        private Iaspnet_RolesRepository roleRepo;
 
         public UserProfileViewModel() : base()
         {
@@ -19,75 +20,19 @@ namespace EdiuxTemplateWebApp.Models
             companyName = "Riaxe";
             companyWebSiteURL = "http://www.riaxe.com/";
 
-            roleRepo = RepositoryHelper.GetApplicationRoleRepository();
+            roleRepo = RepositoryHelper.Getaspnet_RolesRepository();
         }
 
-        public void SetUnitOfWork(IUnitOfWork unitofwork)
+        public void SetUnitOfWork(AspNetModels.IUnitOfWork unitofwork)
         {
             roleRepo.UnitOfWork = unitofwork;
         }
-        public UserProfileViewModel(IUnitOfWork unitofwork) : base()
+        public UserProfileViewModel(AspNetModels.IUnitOfWork unitofwork) : base()
         {
-            roleRepo = RepositoryHelper.GetApplicationRoleRepository(unitofwork);
+            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(unitofwork);
         }
 
-        private int getRoleId()
-        {
-            if (ApplicationRole.Any())
-            {
-                return ApplicationRole.First().Id;
-            }
-
-            return 0;
-        }
-
-        private async Task setRoleId(int value)
-        {
-            int currentroleid = getRoleId();
-            if (currentroleid != value)
-            {
-                //先移除現在的
-                ApplicationRole.Clear();
-
-                //再加入新增的
-                ApplicationRole getRoleTask = await roleRepo.FindByIdAsync(currentroleid);
-                
-                ApplicationRole.Add(getRoleTask);
-            }
-        }
-
-        public override void CloneFrom(ApplicationUser source)
-        {
-            base.CloneFrom(source);
-
-            if (ApplicationUserClaim.Count > 0)
-            {
-                foreach (var item in ApplicationUserClaim)
-                {
-                    switch (item.ClaimType)
-                    {
-                        case "FirstName":
-                            FirstName = item.ClaimValue;
-                            break;
-                        case "MiddleName":
-                            MiddleName = item.ClaimValue;
-                            break;
-                        case "LastName":
-                            LastName = item.ClaimValue;
-                            break;
-                        case "Gender":
-                            bool isMale = false;
-                            if(bool.TryParse(item.ClaimValue,out isMale) == false)
-                            {
-                                Gender = false;
-                            }
-                            break;
-                    }
-
-                }
-            }
-        }
-        public int RoleId { get { return getRoleId(); } set { setRoleId(value); } }
+       
 
 
         public IndexViewModel UserAccountManage { get; set; }

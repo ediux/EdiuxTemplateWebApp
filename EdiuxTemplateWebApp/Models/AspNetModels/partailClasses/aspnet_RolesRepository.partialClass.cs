@@ -7,16 +7,85 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class aspnet_RolesRepository : EFRepository<aspnet_Roles>, Iaspnet_RolesRepository
     {
+        public aspnet_Roles Add(aspnet_Applications application, string Name, string Desctiption = "")
+        {
+            try
+            {
+                int resultCode = InternalDatabaseAlias.aspnet_Roles_CreateRole(application.ApplicationName, Name);
+                if (resultCode != 0)
+                {
+                    throw new Exception("Has an error in database.");
+                }
+                return FindByName(application.ApplicationId, Name);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+
+        }
+     
+        public override void Delete(aspnet_Roles entity)
+        {
+            try
+            {
+                int returnCode = InternalDatabaseAlias.aspnet_Roles_DeleteRole(entity.aspnet_Applications.ApplicationName, entity.Name, true);
+
+                if (returnCode != 0)
+                    throw new Exception("Has an error in database.");
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        }
+
+        public IQueryable<aspnet_Roles> All(aspnet_Applications application)
+        {
+            try
+            {
+                return Where(w => w.ApplicationId == application.ApplicationId);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
+        public aspnet_Roles FindById(Guid applicationId, Guid roleId)
+        {
+            try
+            {
+                return All().SingleOrDefault(s => s.ApplicationId == applicationId && s.Id == roleId);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+        public aspnet_Roles FindByName(Guid applicationId, string Name)
+        {
+            try
+            {
+                string loweredName = Name.ToLowerInvariant();
+                return All().SingleOrDefault(s => s.ApplicationId == applicationId && (s.Name == Name || s.LoweredRoleName == loweredName));
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
         public Task CreateAsync(aspnet_Roles role)
         {
             try
             {
-                int returnCode = InternalDatabaseAlias.aspnet_Roles_CreateRole(role.aspnet_Applications.ApplicationName, role.Name);
-
-                if (returnCode != 0)
-                    return Task.FromException(new Exception("Has an error in database."));
-                                
-                return Task.CompletedTask;
+                return Task.FromResult(Add(role.aspnet_Applications, role.Name, role.Description));
             }
             catch (Exception ex)
             {
@@ -29,11 +98,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                int returnCode = InternalDatabaseAlias.aspnet_Roles_DeleteRole(role.aspnet_Applications.ApplicationName,role.Name,true);
-
-                if (returnCode != 0)
-                    return Task.FromException(new Exception("Has an error in database."));
-
+                Delete(role);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -62,7 +127,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                aspnet_Roles foundRole = Where(w=>w.Name==roleName || w.LoweredRoleName == roleName).SingleOrDefault();
+                aspnet_Roles foundRole = Where(w => w.Name == roleName || w.LoweredRoleName == roleName).SingleOrDefault();
 
                 return Task.FromResult(foundRole);
             }
@@ -75,15 +140,27 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public Task UpdateAsync(aspnet_Roles role)
         {
-            throw new NotImplementedException();
+            try
+            {
+                UnitOfWork.Context.Entry(role).State = System.Data.Entity.EntityState.Modified;
+                return UnitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
         }
     }
 
     public partial interface Iaspnet_RolesRepository : IRepositoryBase<aspnet_Roles>
     {
+        aspnet_Roles Add(aspnet_Applications application, string Name, string Desctiption = "");
         Task CreateAsync(aspnet_Roles role);
         Task UpdateAsync(aspnet_Roles role);
         Task DeleteAsync(aspnet_Roles role);
+        aspnet_Roles FindById(Guid applicationId, Guid roleId);
+        aspnet_Roles FindByName(Guid applicationId, string Name);
         Task<aspnet_Roles> FindByIdAsync(Guid roleId);
         Task<aspnet_Roles> FindByNameAsync(string roleName);
     }

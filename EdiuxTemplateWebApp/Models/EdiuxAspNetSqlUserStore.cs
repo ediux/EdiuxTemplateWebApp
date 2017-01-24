@@ -24,13 +24,7 @@ namespace EdiuxTemplateWebApp.Models
         //private Iaspnet_RolesRepository roleRepo;
         //private Iaspnet_UserLoginRepository userloginRepo;
         private aspnet_Applications applicationInfo;
-        #endregion
 
-        public AspNetModels.IUnitOfWork UnitOfWork
-        {
-            get { return applicationInfo.ApplicationRepository.UnitOfWork; }
-        }
-        #region 建構式
         public EdiuxAspNetSqlUserStore(AspNetModels.IUnitOfWork dbUnitOfWork)
         {
 
@@ -50,8 +44,7 @@ namespace EdiuxTemplateWebApp.Models
             string appName = Startup.getApplicationNameFromConfiguationFile();
             Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
             applicationInfo = appRepo.FindByName(appName);
-            applicationInfo.ApplicationRepository = appRepo;
-
+            aspnet_Applications.ApplicationRepository = appRepo;
             MemoryCache.Default.Set("ApplicationInfo", applicationInfo, DateTime.UtcNow.AddMinutes(38400));
         }
         #endregion
@@ -81,13 +74,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                if (user == null)
-                    throw new ArgumentNullException(nameof(user));
-
-                aspnet_Applications appInfo = getApplicationInformation();
-
-                appInfo.CreateUser(user);
-
+                applicationInfo.AddUser(user.UserName, user.aspnet_Membership.Password);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -107,8 +94,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Applications appInfo = getApplicationInformation();
-                return user.UserRepository.DeleteAsync(user);
+                applicationInfo.DeleteUser(user);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -121,8 +108,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Applications appInfo = getApplicationInformation();
-                return Task.FromResult(appInfo.FindUserById(userId));
+                return Task.FromResult(applicationInfo.FindUserById(userId));
             }
             catch (Exception ex)
             {
@@ -135,8 +121,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Applications appInfo = getApplicationInformation();
-                return Task.FromResult(appInfo.FindUserByName(userName));
+                return Task.FromResult(applicationInfo.FindUserByName(userName));
             }
             catch (Exception ex)
             {
@@ -144,8 +129,6 @@ namespace EdiuxTemplateWebApp.Models
                 throw;
             }
         }
-
-
 
         public Task UpdateAsync(aspnet_Users user)
         {
@@ -207,7 +190,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.RemoveFromRole(roleName));
+                user.RemoveFromRole(roleName);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -222,13 +206,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Applications appInfo = getApplicationInformation();
-                appInfo.CreateRole(role);
+                applicationInfo.AddRole(role.Name, role.Description);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 return Task.FromException(ex);
             }
         }
@@ -237,7 +220,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return role.Update();
+                role.Update();
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -250,8 +234,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Applications appInfo = getApplicationInformation();
-                appInfo.DeleteRole(role);
+
+                applicationInfo.aspnet_Roles.DeleteRole(role);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -265,8 +249,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Applications appInfo = getApplicationInformation();
-                return Task.FromResult(appInfo.FindRoleById(roleId));
+                return Task.FromResult(applicationInfo.GetRoleById(roleId));
             }
             catch (Exception ex)
             {
@@ -279,8 +262,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Applications appInfo = getApplicationInformation();
-                return Task.FromResult(appInfo.FindRoleByName(roleName));
+
+                return Task.FromResult(applicationInfo.GetRoleByName(roleName));
             }
             catch (Exception ex)
             {
@@ -295,13 +278,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.SetEmail(email);
-                return Task.CompletedTask;
+                user.aspnet_Membership.Email = email;
+                aspnet_Membership.MembershipRepository.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
+                return aspnet_Membership.MembershipRepository.UnitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw;
+                return Task.FromException(ex);
             }
         }
 
@@ -309,12 +293,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.GetEmail());
+                return Task.FromResult(user.aspnet_Membership.Email);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<string>(ex);
             }
         }
 
@@ -322,12 +306,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.GetEmailConfirmed());
+                return Task.FromResult(user.aspnet_Profile.GetProfile<ProfileModel>().eMailConfirmed);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<bool>(ex);
             }
         }
 
@@ -335,7 +319,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return user.SetEmailConfirmed(confirmed);
+                user.aspnet_Profile.GetProfile<ProfileModel>().eMailConfirmed = confirmed;
+
+                aspnet_Users.UserRepository.UnitOfWork.Context.Entry(user.aspnet_Profile).State = System.Data.Entity.EntityState.Modified;
+                return aspnet_Users.UserRepository.UnitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {
@@ -364,7 +351,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.GetLockoutEndDate());
+                return Task.FromResult(new DateTimeOffset(user.aspnet_Membership.LastLockoutDate));
             }
             catch (Exception ex)
             {
@@ -377,7 +364,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.SetLockoutEndDate(lockoutEnd);
+                user.aspnet_Membership.LastLockoutDate = new DateTime(lockoutEnd.Ticks);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -391,7 +378,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.IncrementAccessFailedCount());
+                user.aspnet_Membership.FailedPasswordAttemptCount += 1;
+                user.aspnet_Membership.FailedPasswordAttemptWindowStart = DateTime.UtcNow;
+
+                aspnet_Applications.ApplicationRepository.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
+                aspnet_Applications.ApplicationRepository.UnitOfWork.Commit();
+
+                return Task.FromResult(user.aspnet_Membership.FailedPasswordAttemptCount);
             }
             catch (Exception ex)
             {
@@ -401,70 +394,83 @@ namespace EdiuxTemplateWebApp.Models
 
         }
 
-        public async Task ResetAccessFailedCountAsync(aspnet_Users user)
+        public Task ResetAccessFailedCountAsync(aspnet_Users user)
         {
             try
             {
-                await userRepo.ResetAccessFailedCountAsync(user);
+                user.aspnet_Membership.FailedPasswordAttemptCount = 0;
+                user.aspnet_Membership.LastLockoutDate = DateTime.Now;
+                user.aspnet_Membership.IsLockedOut = false;
+
+                aspnet_Applications.ApplicationRepository.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
+                aspnet_Applications.ApplicationRepository.UnitOfWork.Commit();
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
-        public async Task<int> GetAccessFailedCountAsync(aspnet_Users user)
+        public Task<int> GetAccessFailedCountAsync(aspnet_Users user)
         {
             try
             {
-                return await userRepo.GetAccessFailedCountAsync(user);
+                return Task.FromResult(user.aspnet_Membership.FailedPasswordAttemptCount);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<int>(ex);
             }
         }
 
-        public async Task<bool> GetLockoutEnabledAsync(aspnet_Users user)
+        public Task<bool> GetLockoutEnabledAsync(aspnet_Users user)
         {
             try
             {
-                return await userRepo.GetLockoutEnabledAsync(user);
+                return Task.FromResult(user.aspnet_Membership.IsLockedOut);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<bool>(ex);
             }
         }
 
-        public async Task SetLockoutEnabledAsync(aspnet_Users user, bool enabled)
+        public Task SetLockoutEnabledAsync(aspnet_Users user, bool enabled)
         {
             try
             {
-                await userRepo.ResetAccessFailedCountAsync(user);
+                user.aspnet_Membership.IsLockedOut = enabled;
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
         #endregion
 
         #region User Login Store
-        public async Task AddLoginAsync(aspnet_Users user, UserLoginInfo login)
+        public Task AddLoginAsync(aspnet_Users user, UserLoginInfo login)
         {
             try
             {
-                await userloginRepo.AddLoginAsync(user, login);
+                
+                user.AddLogin(login);
+                //Iaspnet_UserLoginRepository userLoginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(applicationInfo.ApplicationRepository.UnitOfWork);
+                // userloginRepo.AddLoginAsync(user, login);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
@@ -472,39 +478,41 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                userloginRepo.RemoveLoginAsync(user, login);
+                user.RemoveLogin(login);
+                // userloginRepo.RemoveLoginAsync(user, login);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
-        public async Task<IList<UserLoginInfo>> GetLoginsAsync(aspnet_Users user)
+        public Task<IList<UserLoginInfo>> GetLoginsAsync(aspnet_Users user)
         {
             try
             {
-                return await userloginRepo.GetLoginsAsync(user);
+                return Task.FromResult(user.GetLogins());
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<IList<UserLoginInfo>>(ex);
             }
         }
 
-        public async Task<aspnet_Users> FindAsync(UserLoginInfo login)
+        public Task<aspnet_Users> FindAsync(UserLoginInfo login)
         {
             try
             {
-                return await userloginRepo.FindAsync(login);
+                aspnet_Users foundUser = applicationInfo.FindUserByLogin(login);
+                return Task.FromResult(foundUser);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<aspnet_Users>(ex);
             }
         }
         #endregion
@@ -514,13 +522,18 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user, passwordHash);
-                return setSetPasswordTask;
+
+                user.aspnet_Membership.Password = passwordHash;
+                user.aspnet_Membership.LastPasswordChangedDate = DateTime.UtcNow;
+
+                user.Update();
+                //Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user, passwordHash);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
@@ -528,13 +541,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task<string> getPasswordHashTask = userRepo.GetPasswordHashAsync(user);
-                return getPasswordHashTask;
+                string getPasswordHash = user.aspnet_Membership.Password;
+                return Task.FromResult(getPasswordHash);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<string>(ex);
             }
         }
 
@@ -542,13 +555,22 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task<bool> hasPasswordTask = userRepo.HasPasswordAsync(user);
-                return hasPasswordTask;
+                bool hasPasswordTask = false;
+
+                if (user.aspnet_Membership == null)
+                    return Task.FromResult(hasPasswordTask);
+
+                if(user.aspnet_Membership.Password.Length==0)
+                    return Task.FromResult(hasPasswordTask);
+
+                hasPasswordTask = true;
+
+                return Task.FromResult(hasPasswordTask);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<bool>(ex);
             }
         }
         #endregion
@@ -558,13 +580,20 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task setPhoneNumberTask = userRepo.SetPhoneNumberAsync(user, phoneNumber);
-                return setPhoneNumberTask;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException(new Exception("Profile is not existed."));
+
+                profile.PhoneNumber = phoneNumber;
+
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
@@ -572,13 +601,17 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task<string> getPhoneNumberTask = userRepo.GetPhoneNumberAsync(user);
-                return getPhoneNumberTask;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException<string>(new Exception("Profile is not existed."));
+
+                return Task.FromResult(profile.PhoneNumber);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<string>(ex);
             }
         }
 
@@ -586,13 +619,17 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task<bool> getPhoneNumberConfirmedTask = userRepo.GetPhoneNumberConfirmedAsync(user);
-                return getPhoneNumberConfirmedTask;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException<bool>(new Exception("Profile is not existed."));
+
+                return Task.FromResult(profile.PhoneConfirmed);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<bool>(ex);
             }
         }
 
@@ -600,13 +637,19 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task setPhoneNumberConfirmed = userRepo.SetPhoneNumberConfirmedAsync(user, confirmed);
-                return setPhoneNumberConfirmed;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException(new Exception("Profile is not existed."));
+
+                profile.PhoneConfirmed = confirmed;
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
         #endregion
@@ -616,13 +659,19 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task setSecurityStampTask = userRepo.SetSecurityStampAsync(user, stamp);
-                return setSecurityStampTask;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException(new Exception("Profile is not existed."));
+
+                profile.SecurityStamp = stamp;
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
@@ -630,13 +679,17 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task<string> getSecurityStampTask = userRepo.GetSecurityStampAsync(user);
-                return getSecurityStampTask;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException<string>(new Exception("Profile is not existed."));
+
+                return Task.FromResult(profile.SecurityStamp);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<string>(ex);
             }
         }
         #endregion
@@ -646,13 +699,19 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task setTwoFactorEnabledTask = userRepo.SetTwoFactorEnabledAsync(user, enabled);
-                return setTwoFactorEnabledTask;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException(new Exception("Profile is not existed."));
+
+                profile.TwoFactorEnabled = enabled;
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
@@ -660,13 +719,18 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task<bool> getTwoFactorEnabledTask = userRepo.GetTwoFactorEnabledAsync(user);
-                return getTwoFactorEnabledTask;
+                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+
+                if (profile == null)
+                    return Task.FromException<bool>(new Exception("Profile is not existed."));
+
+                
+                return Task.FromResult(profile.TwoFactorEnabled);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<bool>(ex);
             }
         }
         #endregion
@@ -676,27 +740,25 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task<IList<Claim>> getClaimsTask = userRepo.GetClaimsAsync(user);
-                return getClaimsTask;
+                return Task.FromResult(new List<Claim>() as IList<Claim>);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException<IList<Claim>>(ex);
             }
         }
 
         public Task AddClaimAsync(aspnet_Users user, Claim claim)
         {
             try
-            {
-                Task addClaimTask = userRepo.AddClaimAsync(user, claim);
-                return addClaimTask;
+            {             
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
 
@@ -704,13 +766,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                Task removeClaimTask = userRepo.RemoveClaimAsync(user, claim);
-                return removeClaimTask;
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                return Task.FromException(ex);
             }
         }
         #endregion

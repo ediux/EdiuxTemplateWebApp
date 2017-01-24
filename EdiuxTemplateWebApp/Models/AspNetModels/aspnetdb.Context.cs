@@ -20,6 +20,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public AspNetDbEntities2()
             : base("name=AspNetDbEntities2")
         {
+            Configuration.LazyLoadingEnabled = false;
         }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

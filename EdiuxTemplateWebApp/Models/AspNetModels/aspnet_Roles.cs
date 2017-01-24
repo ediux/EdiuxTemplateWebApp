@@ -31,9 +31,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<aspnet_Users> aspnet_Users { get; set; }
 
-        internal Task Update()
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

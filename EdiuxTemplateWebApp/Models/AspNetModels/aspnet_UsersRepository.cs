@@ -14,8 +14,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     {
         public void AddToRole(string applicationName, string userName, string roleName)
         {
-
             InternalDatabaseAlias.aspnet_UsersInRoles_AddUsersToRoles(applicationName, userName, roleName, DateTime.UtcNow);
+        }
+
+        public List<string> FindUsersInRole(string applicationName, string UserNameToMatch, string roleName)
+        {
+            return InternalDatabaseAlias.aspnet_UsersInRoles_FindUsersInRole(applicationName, UserNameToMatch, roleName).ToList();
         }
 
         public bool IsInRole(string applicationName, string userName, string roleName)
@@ -49,5 +53,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     {
         void AddToRole(string applicationName, string userName, string roleName);
         bool IsInRole(string applicationName, string userName, string roleName);
+        List<string> FindUsersInRole(string applicationName, string UserNameToMatch, string roleName);
     }
 }

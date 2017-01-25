@@ -6,17 +6,17 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
-using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
     public class SystemApplicationsController : BaseController
     {
-        private ISystem_ApplicationsRepository appRepo;
+        private Iaspnet_ApplicationsRepository appRepo;
 
         public SystemApplicationsController()
         {
-            appRepo = RepositoryHelper.GetSystem_ApplicationsRepository();
+            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
         }
 
         // GET: SystemApplications
@@ -32,7 +32,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Applications system_Applications = appRepo.Get(id);
+            aspnet_Applications system_Applications = appRepo.Get(id);
             if (system_Applications == null)
             {
                 return HttpNotFound();
@@ -51,7 +51,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // 詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkId=317598。
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Name")] System_Applications system_Applications)
+        public ActionResult Create([Bind(Include = "Id,Name")] aspnet_Applications system_Applications)
         {
             if (ModelState.IsValid)
             {
@@ -70,7 +70,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Applications system_Applications = appRepo.Get(id);
+            aspnet_Applications system_Applications = appRepo.Get(id);
             if (system_Applications == null)
             {
                 return HttpNotFound();
@@ -83,7 +83,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // 詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkId=317598。
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,Name")] System_Applications system_Applications)
+        public ActionResult Edit([Bind(Include = "Id,Name")] aspnet_Applications system_Applications)
         {
             if (ModelState.IsValid)
             {
@@ -101,7 +101,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Applications system_Applications = appRepo.Get(id);
+            aspnet_Applications system_Applications = appRepo.Get(id);
             if (system_Applications == null)
             {
                 return HttpNotFound();
@@ -114,7 +114,7 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            System_Applications system_Applications = appRepo.Get(id);
+            aspnet_Applications system_Applications = appRepo.Get(id);
             appRepo.Delete(system_Applications);
             appRepo.UnitOfWork.Commit();
             return RedirectToAction("Index");

@@ -18,6 +18,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public aspnet_Paths()
         {
             this.aspnet_PersonalizationPerUser = new HashSet<aspnet_PersonalizationPerUser>();
+            this.Menus = new HashSet<Menus>();
         }
     
         public System.Guid ApplicationId { get; set; }
@@ -29,5 +30,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public virtual aspnet_PersonalizationAllUsers aspnet_PersonalizationAllUsers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<aspnet_PersonalizationPerUser> aspnet_PersonalizationPerUser { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Menus> Menus { get; set; }
     }
 }

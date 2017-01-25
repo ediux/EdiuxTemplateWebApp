@@ -1,34 +1,12 @@
-﻿@using EdiuxTemplateWebApp.Models
-@model List<Menus>
+﻿@model List<Menus>
 @{    
-    var appInfo = (System_Applications)ViewBag.ApplicationInfo;
-    var controllers = appInfo.System_Controllers;
+    var appInfo = (aspnet_Applications)ViewBag.ApplicationInfo;
 }
 <ul class="sub-menu">
     @foreach (Menus item in Model)
     {
-        var action = controllers.SelectMany(x => x.System_ControllerActions).SingleOrDefault(s => s.Id == item.System_ControllerActionsId);
+        <li><a href="@item.aspnet_Paths.Path"><i class="icon-angle-right"></i>@item.Name</a></li>
 
-        if (action == null)
-        {
-            continue;
-        }
-
-
-        if (item.IsExternalLinks)
-        {
-            <li><a href="@item.ExternalURL"><i class="icon-angle-right"></i>@item.Name</a></li>
-        }
-        else
-        {
-            if (action != null)
-            {
-                if (action.System_Controllers != null)
-                {
-                    <li><a href="@Url.Action(action.Name,action.System_Controllers.Name)"><i class="icon-angle-right"></i>@item.Name</a></li>
-                }
-            }            
-        }
         if (item.ChildMenus.Any(v => v.Void == false))
         {
             @Html.Partial("_SubMenuBarPartial", item.ChildMenus.ToList())

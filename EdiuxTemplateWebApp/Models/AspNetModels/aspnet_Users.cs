@@ -20,6 +20,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             this.aspnet_PersonalizationPerUser = new HashSet<aspnet_PersonalizationPerUser>();
             this.aspnet_Roles = new HashSet<aspnet_Roles>();
             this.aspnet_UserLogin = new HashSet<aspnet_UserLogin>();
+            this.aspnet_UserClaims = new HashSet<aspnet_UserClaims>();
         }
     
         public System.Guid ApplicationId { get; set; }
@@ -31,7 +32,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public System.DateTime LastActivityDate { get; set; }
     
         public virtual aspnet_Applications aspnet_Applications { get; set; }
-        public virtual aspnet_Membership aspnet_Membership { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<aspnet_PersonalizationPerUser> aspnet_PersonalizationPerUser { get; set; }
         public virtual aspnet_Profile aspnet_Profile { get; set; }
@@ -39,5 +39,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public virtual ICollection<aspnet_Roles> aspnet_Roles { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<aspnet_UserLogin> aspnet_UserLogin { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<aspnet_UserClaims> aspnet_UserClaims { get; set; }
+        public virtual aspnet_Membership aspnet_Membership { get; set; }
     }
 }

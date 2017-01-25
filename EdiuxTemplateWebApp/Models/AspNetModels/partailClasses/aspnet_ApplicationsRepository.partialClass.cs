@@ -4,22 +4,31 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.Entity.Core.Objects;
 using System.Data.Entity;
+using System.Linq.Expressions;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class aspnet_ApplicationsRepository : EFRepository<aspnet_Applications>, Iaspnet_ApplicationsRepository
     {
+        public override IQueryable<aspnet_Applications> Where(Expression<Func<aspnet_Applications, bool>> expression)
+        {
+            return All().Where(expression);
+        }
         public override IQueryable<aspnet_Applications> All()
         {
-            IQueryable<aspnet_Applications> loadAllQueryable = ObjectSet.AsQueryable();
+            UnitOfWork.Context.Configuration.LazyLoadingEnabled = false;
 
-            InternalDatabaseAlias.aspnet_Membership.Load();
-            InternalDatabaseAlias.aspnet_Paths.Load();
-            InternalDatabaseAlias.aspnet_Users.Load();
-            InternalDatabaseAlias.aspnet_Roles.Load();
-            InternalDatabaseAlias.aspnet_VoidUsers.Load();
 
-            return ObjectSet.AsQueryable();
+            IQueryable<aspnet_Applications> loadAllQueryable = InternalDatabaseAlias
+                .aspnet_Applications
+                .Include(p => p.aspnet_Membership)
+                .Include(p => p.aspnet_Paths)
+                .Include(p => p.aspnet_Roles)
+                .Include(p => p.aspnet_Users)
+                .Include(p => p.aspnet_VoidUsers)
+                .Include(p => p.Menus);
+
+            return loadAllQueryable;
 
         }
         public override aspnet_Applications Get(params object[] values)
@@ -47,7 +56,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             try
             {
                 aspnet_Applications appInfo = Get(applicationId);
-                aspnet_Applications.ApplicationRepository = RepositoryHelper.Getaspnet_ApplicationsRepository();
+             
                 return appInfo;
             }
             catch (Exception ex)
@@ -62,9 +71,10 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             try
             {
                 string loweredApplicationName = applicationName.ToLowerInvariant();
-                aspnet_Applications appInfo = Where(s => s.ApplicationName == applicationName
+                aspnet_Applications appInfo = All().Where(s => s.ApplicationName == applicationName
                     || s.LoweredApplicationName == loweredApplicationName).SingleOrDefault();
-                aspnet_Applications.ApplicationRepository = RepositoryHelper.Getaspnet_ApplicationsRepository();
+         
+
                 return appInfo;
             }
             catch (Exception ex)

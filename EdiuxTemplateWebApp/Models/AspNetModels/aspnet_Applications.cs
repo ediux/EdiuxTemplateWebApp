@@ -22,6 +22,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             this.aspnet_Roles = new HashSet<aspnet_Roles>();
             this.aspnet_Users = new HashSet<aspnet_Users>();
             this.aspnet_VoidUsers = new HashSet<aspnet_VoidUsers>();
+            this.Menus = new HashSet<Menus>();
         }
     
         public string ApplicationName { get; set; }
@@ -39,5 +40,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public virtual ICollection<aspnet_Users> aspnet_Users { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<aspnet_VoidUsers> aspnet_VoidUsers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Menus> Menus { get; set; }
     }
 }

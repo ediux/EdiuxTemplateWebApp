@@ -25,6 +25,7 @@
           <Property Name="PasswordSalt" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="MobilePIN" Type="nvarchar" MaxLength="16" />
           <Property Name="Email" Type="nvarchar" MaxLength="256" />
+          <Property Name="EmailConfirmed" Type="bit" Nullable="false" />
           <Property Name="LoweredEmail" Type="nvarchar" MaxLength="256" />
           <Property Name="PasswordQuestion" Type="nvarchar" MaxLength="256" />
           <Property Name="PasswordAnswer" Type="nvarchar" MaxLength="128" />
@@ -38,7 +39,15 @@
           <Property Name="FailedPasswordAttemptWindowStart" Type="datetime" Nullable="false" />
           <Property Name="FailedPasswordAnswerAttemptCount" Type="int" Nullable="false" />
           <Property Name="FailedPasswordAnswerAttemptWindowStart" Type="datetime" Nullable="false" />
+          <Property Name="PhoneNumber" Type="nvarchar" MaxLength="10" />
+          <Property Name="PhoneConfirmed" Type="bit" Nullable="false" />
           <Property Name="Comment" Type="ntext" />
+          <Property Name="AccessFailedCount" Type="int" Nullable="false" />
+          <Property Name="LastUpdateUserId" Type="uniqueidentifier" />
+          <Property Name="LastUpdateTime" Type="smalldatetime" />
+          <Property Name="LastActivityTime" Type="smalldatetime" />
+          <Property Name="LockoutEndDate" Type="smalldatetime" />
+          <Property Name="ResetPasswordToken" Type="nvarchar" MaxLength="512" />
         </EntityType>
         <EntityType Name="aspnet_Paths">
           <Key>
@@ -95,6 +104,15 @@
           <Property Name="Feature" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="CompatibleSchemaVersion" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="IsCurrentVersion" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="aspnet_UserClaims">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="UserId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="ClaimType" Type="nvarchar" MaxLength="256" />
+          <Property Name="ClaimValue" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="aspnet_UserLogin">
           <Key>
@@ -157,6 +175,38 @@
           <Property Name="ExceptionType" Type="nvarchar" MaxLength="256" />
           <Property Name="Details" Type="ntext" />
         </EntityType>
+        <EntityType Name="Menus">
+          <Key>
+            <PropertyRef Name="MenuId" />
+          </Key>
+          <Property Name="MenuId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="256" />
+          <Property Name="DisplayName" Type="nvarchar" MaxLength="512" />
+          <Property Name="Description" Type="nvarchar" MaxLength="2048" />
+          <Property Name="Order" Type="smallint" Nullable="false" />
+          <Property Name="Void" Type="bit" Nullable="false" />
+          <Property Name="IsRightAligned" Type="bit" Nullable="false" />
+          <Property Name="IsNoActionPage" Type="bit" Nullable="false" />
+          <Property Name="AfterBreak" Type="bit" Nullable="false" />
+          <Property Name="ParentMenuId" Type="int" />
+          <Property Name="PathId" Type="uniqueidentifier" />
+          <Property Name="IconCSS" Type="nvarchar" MaxLength="50" />
+          <Property Name="IsExternalLinks" Type="bit" Nullable="false" />
+          <Property Name="CreateUserId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CreateTime" Type="smalldatetime" Nullable="false" />
+          <Property Name="LastUpdateUserId" Type="uniqueidentifier" />
+          <Property Name="LastUpdateTime" Type="smalldatetime" />
+          <Property Name="AllowAnonymous" Type="bit" Nullable="false" />
+          <Property Name="ApplicationId" Type="uniqueidentifier" />
+        </EntityType>
+        <EntityType Name="MenusInRoles">
+          <Key>
+            <PropertyRef Name="MenuId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="MenuId" Type="int" Nullable="false" />
+          <Property Name="RoleId" Type="uniqueidentifier" Nullable="false" />
+        </EntityType>
         <Association Name="FK__aspnet_Me__Appli__4C6B5938">
           <End Role="aspnet_Applications" Type="Self.aspnet_Applications" Multiplicity="1" />
           <End Role="aspnet_Membership" Type="Self.aspnet_Membership" Multiplicity="*" />
@@ -166,18 +216,6 @@
             </Principal>
             <Dependent Role="aspnet_Membership">
               <PropertyRef Name="ApplicationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK__aspnet_Me__UserI__123EB7A3">
-          <End Role="aspnet_Users" Type="Self.aspnet_Users" Multiplicity="1" />
-          <End Role="aspnet_Membership" Type="Self.aspnet_Membership" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="aspnet_Users">
-              <PropertyRef Name="UserId" />
-            </Principal>
-            <Dependent Role="aspnet_Membership">
-              <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -301,6 +339,30 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_aspnet_Membership_aspnet_Users">
+          <End Role="aspnet_Users" Type="Self.aspnet_Users" Multiplicity="1" />
+          <End Role="aspnet_Membership" Type="Self.aspnet_Membership" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="aspnet_Membership">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_aspnet_UserClaims_aspnet_Users">
+          <End Role="aspnet_Users" Type="Self.aspnet_Users" Multiplicity="1" />
+          <End Role="aspnet_UserClaims" Type="Self.aspnet_UserClaims" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="aspnet_UserClaims">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_aspnet_UserLogin_ToApplicationUser">
           <End Role="aspnet_Users" Type="Self.aspnet_Users" Multiplicity="1" />
           <End Role="aspnet_UserLogin" Type="Self.aspnet_UserLogin" Multiplicity="*" />
@@ -310,6 +372,66 @@
             </Principal>
             <Dependent Role="aspnet_UserLogin">
               <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_dbo_Menus_dbo_Menus_Parent_MenuId">
+          <End Role="Menus" Type="Self.Menus" Multiplicity="0..1" />
+          <End Role="Menus1" Type="Self.Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menus">
+              <PropertyRef Name="MenuId" />
+            </Principal>
+            <Dependent Role="Menus1">
+              <PropertyRef Name="ParentMenuId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Menus_aspnet_Applications">
+          <End Role="aspnet_Applications" Type="Self.aspnet_Applications" Multiplicity="0..1" />
+          <End Role="Menus" Type="Self.Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Applications">
+              <PropertyRef Name="ApplicationId" />
+            </Principal>
+            <Dependent Role="Menus">
+              <PropertyRef Name="ApplicationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Menus_aspnet_Paths">
+          <End Role="aspnet_Paths" Type="Self.aspnet_Paths" Multiplicity="0..1" />
+          <End Role="Menus" Type="Self.Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Paths">
+              <PropertyRef Name="PathId" />
+            </Principal>
+            <Dependent Role="Menus">
+              <PropertyRef Name="PathId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MenusInRoles_aspnet_Roles">
+          <End Role="aspnet_Roles" Type="Self.aspnet_Roles" Multiplicity="1" />
+          <End Role="MenusInRoles" Type="Self.MenusInRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Roles">
+              <PropertyRef Name="RoleId" />
+            </Principal>
+            <Dependent Role="MenusInRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MenusInRoles_Menus">
+          <End Role="Menus" Type="Self.Menus" Multiplicity="1" />
+          <End Role="MenusInRoles" Type="Self.MenusInRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menus">
+              <PropertyRef Name="MenuId" />
+            </Principal>
+            <Dependent Role="MenusInRoles">
+              <PropertyRef Name="MenuId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -653,17 +775,16 @@
           <EntitySet Name="aspnet_Profile" EntityType="Self.aspnet_Profile" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="aspnet_Roles" EntityType="Self.aspnet_Roles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="aspnet_SchemaVersions" EntityType="Self.aspnet_SchemaVersions" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="aspnet_UserClaims" EntityType="Self.aspnet_UserClaims" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="aspnet_UserLogin" EntityType="Self.aspnet_UserLogin" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="aspnet_Users" EntityType="Self.aspnet_Users" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="aspnet_UsersInRoles" EntityType="Self.aspnet_UsersInRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="aspnet_VoidUsers" EntityType="Self.aspnet_VoidUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="aspnet_WebEvent_Events" EntityType="Self.aspnet_WebEvent_Events" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Menus" EntityType="Self.Menus" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MenusInRoles" EntityType="Self.MenusInRoles" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK__aspnet_Me__Appli__4C6B5938" Association="Self.FK__aspnet_Me__Appli__4C6B5938">
             <End Role="aspnet_Applications" EntitySet="aspnet_Applications" />
-            <End Role="aspnet_Membership" EntitySet="aspnet_Membership" />
-          </AssociationSet>
-          <AssociationSet Name="FK__aspnet_Me__UserI__123EB7A3" Association="Self.FK__aspnet_Me__UserI__123EB7A3">
-            <End Role="aspnet_Users" EntitySet="aspnet_Users" />
             <End Role="aspnet_Membership" EntitySet="aspnet_Membership" />
           </AssociationSet>
           <AssociationSet Name="FK__aspnet_Pa__Appli__4E53A1AA" Association="Self.FK__aspnet_Pa__Appli__4E53A1AA">
@@ -706,9 +827,37 @@
             <End Role="aspnet_Applications" EntitySet="aspnet_Applications" />
             <End Role="aspnet_VoidUsers" EntitySet="aspnet_VoidUsers" />
           </AssociationSet>
+          <AssociationSet Name="FK_aspnet_Membership_aspnet_Users" Association="Self.FK_aspnet_Membership_aspnet_Users">
+            <End Role="aspnet_Users" EntitySet="aspnet_Users" />
+            <End Role="aspnet_Membership" EntitySet="aspnet_Membership" />
+          </AssociationSet>
+          <AssociationSet Name="FK_aspnet_UserClaims_aspnet_Users" Association="Self.FK_aspnet_UserClaims_aspnet_Users">
+            <End Role="aspnet_Users" EntitySet="aspnet_Users" />
+            <End Role="aspnet_UserClaims" EntitySet="aspnet_UserClaims" />
+          </AssociationSet>
           <AssociationSet Name="FK_aspnet_UserLogin_ToApplicationUser" Association="Self.FK_aspnet_UserLogin_ToApplicationUser">
             <End Role="aspnet_Users" EntitySet="aspnet_Users" />
             <End Role="aspnet_UserLogin" EntitySet="aspnet_UserLogin" />
+          </AssociationSet>
+          <AssociationSet Name="FK_dbo_Menus_dbo_Menus_Parent_MenuId" Association="Self.FK_dbo_Menus_dbo_Menus_Parent_MenuId">
+            <End Role="Menus" EntitySet="Menus" />
+            <End Role="Menus1" EntitySet="Menus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Menus_aspnet_Applications" Association="Self.FK_Menus_aspnet_Applications">
+            <End Role="aspnet_Applications" EntitySet="aspnet_Applications" />
+            <End Role="Menus" EntitySet="Menus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Menus_aspnet_Paths" Association="Self.FK_Menus_aspnet_Paths">
+            <End Role="aspnet_Paths" EntitySet="aspnet_Paths" />
+            <End Role="Menus" EntitySet="Menus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MenusInRoles_aspnet_Roles" Association="Self.FK_MenusInRoles_aspnet_Roles">
+            <End Role="aspnet_Roles" EntitySet="aspnet_Roles" />
+            <End Role="MenusInRoles" EntitySet="MenusInRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MenusInRoles_Menus" Association="Self.FK_MenusInRoles_Menus">
+            <End Role="Menus" EntitySet="Menus" />
+            <End Role="MenusInRoles" EntitySet="MenusInRoles" />
           </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
@@ -728,6 +877,7 @@
           <NavigationProperty Name="aspnet_Roles" Relationship="Self.FK__aspnet_Ro__Appli__531856C7" FromRole="aspnet_Applications" ToRole="aspnet_Roles" />
           <NavigationProperty Name="aspnet_Users" Relationship="Self.FK__aspnet_Us__Appli__0F624AF8" FromRole="aspnet_Applications" ToRole="aspnet_Users" />
           <NavigationProperty Name="aspnet_VoidUsers" Relationship="ediuxplatform_dbModel.FK__aspnet_Vo__Appli__12FDD1B2" FromRole="aspnet_Applications" ToRole="aspnet_VoidUsers" />
+          <NavigationProperty Name="Menus" Relationship="ediuxplatform_dbModel.FK_Menus_aspnet_Applications" FromRole="aspnet_Applications" ToRole="Menus" />
         </EntityType>
         <EntityType Name="aspnet_Membership">
           <Key>
@@ -755,7 +905,15 @@
           <Property Name="FailedPasswordAnswerAttemptWindowStart" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="Comment" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="aspnet_Applications" Relationship="Self.FK__aspnet_Me__Appli__4C6B5938" FromRole="aspnet_Membership" ToRole="aspnet_Applications" />
-          <NavigationProperty Name="aspnet_Users" Relationship="Self.FK__aspnet_Me__UserI__123EB7A3" FromRole="aspnet_Membership" ToRole="aspnet_Users" />
+          <Property Name="EmailConfirmed" Type="Boolean" Nullable="false" />
+          <Property Name="PhoneNumber" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="PhoneConfirmed" Type="Boolean" Nullable="false" />
+          <Property Name="AccessFailedCount" Type="Int32" Nullable="false" />
+          <Property Name="LastUpdateUserId" Type="Guid" />
+          <Property Name="LastUpdateTime" Type="DateTime" Precision="0" />
+          <Property Name="LastActivityTime" Type="DateTime" Precision="0" />
+          <Property Name="LockoutEndDate" Type="DateTime" Precision="0" />
+          <Property Name="ResetPasswordToken" Type="String" MaxLength="512" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="aspnet_Paths">
           <Key>
@@ -768,6 +926,7 @@
           <NavigationProperty Name="aspnet_Applications" Relationship="Self.FK__aspnet_Pa__Appli__4E53A1AA" FromRole="aspnet_Paths" ToRole="aspnet_Applications" />
           <NavigationProperty Name="aspnet_PersonalizationAllUsers" Relationship="Self.FK__aspnet_Pe__PathI__4F47C5E3" FromRole="aspnet_Paths" ToRole="aspnet_PersonalizationAllUsers" />
           <NavigationProperty Name="aspnet_PersonalizationPerUser" Relationship="Self.FK__aspnet_Pe__PathI__503BEA1C" FromRole="aspnet_Paths" ToRole="aspnet_PersonalizationPerUser" />
+          <NavigationProperty Name="Menus" Relationship="ediuxplatform_dbModel.FK_Menus_aspnet_Paths" FromRole="aspnet_Paths" ToRole="Menus" />
         </EntityType>
         <EntityType Name="aspnet_PersonalizationAllUsers">
           <Key>
@@ -812,6 +971,7 @@
           <Property Name="Description" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="aspnet_Applications" Relationship="Self.FK__aspnet_Ro__Appli__531856C7" FromRole="aspnet_Roles" ToRole="aspnet_Applications" />
           <NavigationProperty Name="aspnet_Users" Relationship="Self.aspnet_UsersInRoles" FromRole="aspnet_Roles" ToRole="aspnet_Users" />
+          <NavigationProperty Name="Menus" Relationship="ediuxplatform_dbModel.MenusInRoles" FromRole="aspnet_Roles" ToRole="Menus" />
         </EntityType>
         <EntityType Name="aspnet_SchemaVersions">
           <Key>
@@ -834,11 +994,12 @@
           <Property Name="IsAnonymous" Type="Boolean" Nullable="false" />
           <Property Name="LastActivityDate" Type="DateTime" Nullable="false" Precision="3" />
           <NavigationProperty Name="aspnet_Applications" Relationship="Self.FK__aspnet_Us__Appli__0F624AF8" FromRole="aspnet_Users" ToRole="aspnet_Applications" />
-          <NavigationProperty Name="aspnet_Membership" Relationship="Self.FK__aspnet_Me__UserI__123EB7A3" FromRole="aspnet_Users" ToRole="aspnet_Membership" />
           <NavigationProperty Name="aspnet_PersonalizationPerUser" Relationship="Self.FK__aspnet_Pe__UserI__51300E55" FromRole="aspnet_Users" ToRole="aspnet_PersonalizationPerUser" />
           <NavigationProperty Name="aspnet_Profile" Relationship="Self.FK__aspnet_Pr__UserI__5224328E" FromRole="aspnet_Users" ToRole="aspnet_Profile" />
           <NavigationProperty Name="aspnet_Roles" Relationship="Self.aspnet_UsersInRoles" FromRole="aspnet_Users" ToRole="aspnet_Roles" />
           <NavigationProperty Name="aspnet_UserLogin" Relationship="ediuxplatform_dbModel.FK_aspnet_UserLogin_ToApplicationUser" FromRole="aspnet_Users" ToRole="aspnet_UserLogin" />
+          <NavigationProperty Name="aspnet_UserClaims" Relationship="ediuxplatform_dbModel.FK_aspnet_UserClaims_aspnet_Users" FromRole="aspnet_Users" ToRole="aspnet_UserClaims" />
+          <NavigationProperty Name="aspnet_Membership" Relationship="ediuxplatform_dbModel.FK_aspnet_Membership_aspnet_Users" FromRole="aspnet_Users" ToRole="aspnet_Membership" />
         </EntityType>
         <EntityType Name="aspnet_WebEvent_Events">
           <Key>
@@ -905,18 +1066,6 @@
             </Principal>
             <Dependent Role="aspnet_Users">
               <PropertyRef Name="ApplicationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK__aspnet_Me__UserI__123EB7A3">
-          <End Role="aspnet_Users" Type="Self.aspnet_Users" Multiplicity="1" />
-          <End Role="aspnet_Membership" Type="Self.aspnet_Membership" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="aspnet_Users">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="aspnet_Membership">
-              <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -998,10 +1147,6 @@
           <AssociationSet Name="FK__aspnet_Us__Appli__0F624AF8" Association="Self.FK__aspnet_Us__Appli__0F624AF8">
             <End Role="aspnet_Applications" EntitySet="aspnet_Applications" />
             <End Role="aspnet_Users" EntitySet="aspnet_Users" />
-          </AssociationSet>
-          <AssociationSet Name="FK__aspnet_Me__UserI__123EB7A3" Association="Self.FK__aspnet_Me__UserI__123EB7A3">
-            <End Role="aspnet_Users" EntitySet="aspnet_Users" />
-            <End Role="aspnet_Membership" EntitySet="aspnet_Membership" />
           </AssociationSet>
           <AssociationSet Name="FK__aspnet_Pe__PathI__4F47C5E3" Association="Self.FK__aspnet_Pe__PathI__4F47C5E3">
             <End Role="aspnet_Paths" EntitySet="aspnet_Paths" />
@@ -1364,6 +1509,32 @@
             <End Role="aspnet_Users" EntitySet="aspnet_Users" />
             <End Role="aspnet_UserLogin" EntitySet="aspnet_UserLogin" />
           </AssociationSet>
+          <EntitySet Name="aspnet_UserClaims" EntityType="ediuxplatform_dbModel.aspnet_UserClaims" />
+          <EntitySet Name="Menus" EntityType="ediuxplatform_dbModel.Menus" />
+          <AssociationSet Name="FK_Menus_aspnet_Applications" Association="ediuxplatform_dbModel.FK_Menus_aspnet_Applications">
+            <End Role="aspnet_Applications" EntitySet="aspnet_Applications" />
+            <End Role="Menus" EntitySet="Menus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Menus_aspnet_Paths" Association="ediuxplatform_dbModel.FK_Menus_aspnet_Paths">
+            <End Role="aspnet_Paths" EntitySet="aspnet_Paths" />
+            <End Role="Menus" EntitySet="Menus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_dbo_Menus_dbo_Menus_Parent_MenuId" Association="ediuxplatform_dbModel.FK_dbo_Menus_dbo_Menus_Parent_MenuId">
+            <End Role="Menus" EntitySet="Menus" />
+            <End Role="Menus1" EntitySet="Menus" />
+          </AssociationSet>
+          <AssociationSet Name="MenusInRoles" Association="ediuxplatform_dbModel.MenusInRoles">
+            <End Role="aspnet_Roles" EntitySet="aspnet_Roles" />
+            <End Role="Menus" EntitySet="Menus" />
+          </AssociationSet>
+          <AssociationSet Name="FK_aspnet_UserClaims_aspnet_Users" Association="ediuxplatform_dbModel.FK_aspnet_UserClaims_aspnet_Users">
+            <End Role="aspnet_Users" EntitySet="aspnet_Users" />
+            <End Role="aspnet_UserClaims" EntitySet="aspnet_UserClaims" />
+          </AssociationSet>
+          <AssociationSet Name="FK_aspnet_Membership_aspnet_Users" Association="ediuxplatform_dbModel.FK_aspnet_Membership_aspnet_Users">
+            <End Role="aspnet_Users" EntitySet="aspnet_Users" />
+            <End Role="aspnet_Membership" EntitySet="aspnet_Membership" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="aspnet_Membership_GetPassword_Result">
           <Property Type="String" Name="Column1" Nullable="true" MaxLength="128" />
@@ -1461,6 +1632,109 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="aspnet_UserClaims">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="UserId" Type="Guid" Nullable="false" />
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="ClaimType" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="ClaimValue" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="aspnet_Users" Relationship="ediuxplatform_dbModel.FK_aspnet_UserClaims_aspnet_Users" FromRole="aspnet_UserClaims" ToRole="aspnet_Users" />
+        </EntityType>
+        <EntityType Name="Menus">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="DisplayName" Type="String" MaxLength="512" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="2048" FixedLength="false" Unicode="true" />
+          <Property Name="Order" Type="Int16" Nullable="false" />
+          <Property Name="Void" Type="Boolean" Nullable="false" />
+          <Property Name="IsRightAligned" Type="Boolean" Nullable="false" />
+          <Property Name="IsNoActionPage" Type="Boolean" Nullable="false" />
+          <Property Name="AfterBreak" Type="Boolean" Nullable="false" />
+          <Property Name="ParentMenuId" Type="Int32" />
+          <Property Name="PathId" Type="Guid" />
+          <Property Name="IconCSS" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="IsExternalLinks" Type="Boolean" Nullable="false" />
+          <Property Name="CreateUserId" Type="Guid" Nullable="false" />
+          <Property Name="CreateTime" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="LastUpdateUserId" Type="Guid" />
+          <Property Name="LastUpdateTime" Type="DateTime" Precision="0" />
+          <Property Name="AllowAnonymous" Type="Boolean" Nullable="false" />
+          <Property Name="ApplicationId" Type="Guid" />
+          <NavigationProperty Name="aspnet_Applications" Relationship="ediuxplatform_dbModel.FK_Menus_aspnet_Applications" FromRole="Menus" ToRole="aspnet_Applications" />
+          <NavigationProperty Name="aspnet_Paths" Relationship="ediuxplatform_dbModel.FK_Menus_aspnet_Paths" FromRole="Menus" ToRole="aspnet_Paths" />
+          <NavigationProperty Name="ChildMenus" Relationship="ediuxplatform_dbModel.FK_dbo_Menus_dbo_Menus_Parent_MenuId" FromRole="Menus" ToRole="Menus1" />
+          <NavigationProperty Name="ParentMenu" Relationship="ediuxplatform_dbModel.FK_dbo_Menus_dbo_Menus_Parent_MenuId" FromRole="Menus1" ToRole="Menus" />
+          <NavigationProperty Name="aspnet_Roles" Relationship="ediuxplatform_dbModel.MenusInRoles" FromRole="Menus" ToRole="aspnet_Roles" />
+        </EntityType>
+        <Association Name="FK_Menus_aspnet_Applications">
+          <End Type="ediuxplatform_dbModel.aspnet_Applications" Role="aspnet_Applications" Multiplicity="0..1" />
+          <End Type="ediuxplatform_dbModel.Menus" Role="Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Applications">
+              <PropertyRef Name="ApplicationId" />
+            </Principal>
+            <Dependent Role="Menus">
+              <PropertyRef Name="ApplicationId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Menus_aspnet_Paths">
+          <End Type="ediuxplatform_dbModel.aspnet_Paths" Role="aspnet_Paths" Multiplicity="0..1" />
+          <End Type="ediuxplatform_dbModel.Menus" Role="Menus" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Paths">
+              <PropertyRef Name="PathId" />
+            </Principal>
+            <Dependent Role="Menus">
+              <PropertyRef Name="PathId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_dbo_Menus_dbo_Menus_Parent_MenuId">
+          <End Type="ediuxplatform_dbModel.Menus" Role="Menus" Multiplicity="0..1" />
+          <End Type="ediuxplatform_dbModel.Menus" Role="Menus1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Menus">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Menus1">
+              <PropertyRef Name="ParentMenuId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="MenusInRoles">
+          <End Type="ediuxplatform_dbModel.aspnet_Roles" Role="aspnet_Roles" Multiplicity="*" />
+          <End Type="ediuxplatform_dbModel.Menus" Role="Menus" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_aspnet_UserClaims_aspnet_Users">
+          <End Type="ediuxplatform_dbModel.aspnet_Users" Role="aspnet_Users" Multiplicity="1" />
+          <End Type="ediuxplatform_dbModel.aspnet_UserClaims" Role="aspnet_UserClaims" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="aspnet_UserClaims">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_aspnet_Membership_aspnet_Users">
+          <End Type="ediuxplatform_dbModel.aspnet_Users" Role="aspnet_Users" Multiplicity="1" />
+          <End Type="ediuxplatform_dbModel.aspnet_Membership" Role="aspnet_Membership" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="aspnet_Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="aspnet_Membership">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1480,6 +1754,15 @@
           <EntitySetMapping Name="aspnet_Membership">
             <EntityTypeMapping TypeName="ediuxplatform_dbModel.aspnet_Membership">
               <MappingFragment StoreEntitySet="aspnet_Membership">
+                <ScalarProperty Name="ResetPasswordToken" ColumnName="ResetPasswordToken" />
+                <ScalarProperty Name="LockoutEndDate" ColumnName="LockoutEndDate" />
+                <ScalarProperty Name="LastActivityTime" ColumnName="LastActivityTime" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="LastUpdateUserId" ColumnName="LastUpdateUserId" />
+                <ScalarProperty Name="AccessFailedCount" ColumnName="AccessFailedCount" />
+                <ScalarProperty Name="PhoneConfirmed" ColumnName="PhoneConfirmed" />
+                <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
+                <ScalarProperty Name="EmailConfirmed" ColumnName="EmailConfirmed" />
                 <ScalarProperty Name="ApplicationId" ColumnName="ApplicationId" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="Password" ColumnName="Password" />
@@ -1751,6 +2034,49 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="aspnet_UserClaims">
+            <EntityTypeMapping TypeName="ediuxplatform_dbModel.aspnet_UserClaims">
+              <MappingFragment StoreEntitySet="aspnet_UserClaims">
+                <ScalarProperty Name="ClaimValue" ColumnName="ClaimValue" />
+                <ScalarProperty Name="ClaimType" ColumnName="ClaimType" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Menus">
+            <EntityTypeMapping TypeName="ediuxplatform_dbModel.Menus">
+              <MappingFragment StoreEntitySet="Menus">
+                <ScalarProperty Name="ApplicationId" ColumnName="ApplicationId" />
+                <ScalarProperty Name="AllowAnonymous" ColumnName="AllowAnonymous" />
+                <ScalarProperty Name="LastUpdateTime" ColumnName="LastUpdateTime" />
+                <ScalarProperty Name="LastUpdateUserId" ColumnName="LastUpdateUserId" />
+                <ScalarProperty Name="CreateTime" ColumnName="CreateTime" />
+                <ScalarProperty Name="CreateUserId" ColumnName="CreateUserId" />
+                <ScalarProperty Name="IsExternalLinks" ColumnName="IsExternalLinks" />
+                <ScalarProperty Name="IconCSS" ColumnName="IconCSS" />
+                <ScalarProperty Name="PathId" ColumnName="PathId" />
+                <ScalarProperty Name="ParentMenuId" ColumnName="ParentMenuId" />
+                <ScalarProperty Name="AfterBreak" ColumnName="AfterBreak" />
+                <ScalarProperty Name="IsNoActionPage" ColumnName="IsNoActionPage" />
+                <ScalarProperty Name="IsRightAligned" ColumnName="IsRightAligned" />
+                <ScalarProperty Name="Void" ColumnName="Void" />
+                <ScalarProperty Name="Order" ColumnName="Order" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="MenuId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="MenusInRoles" TypeName="ediuxplatform_dbModel.MenusInRoles" StoreEntitySet="MenusInRoles">
+            <EndProperty Name="Menus">
+              <ScalarProperty Name="Id" ColumnName="MenuId" />
+            </EndProperty>
+            <EndProperty Name="aspnet_Roles">
+              <ScalarProperty Name="Id" ColumnName="RoleId" />
+            </EndProperty>
+          </AssociationSetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

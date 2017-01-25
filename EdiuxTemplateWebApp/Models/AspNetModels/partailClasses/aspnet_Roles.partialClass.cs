@@ -1,14 +1,31 @@
+﻿using Microsoft.AspNet.Identity;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Web;
+
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-    using Newtonsoft.Json;
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.ComponentModel.DataAnnotations;
-
-    [MetadataType(typeof(aspnet_ProfileMetaData))]
-    public partial class aspnet_Profile : ICloneable
+    public partial class aspnet_Roles : IRole<Guid>, ICloneable
     {
+        private static Iaspnet_RolesRepository roleRepository;
+
+        public static Iaspnet_RolesRepository RoleRepository
+        {
+            get
+            {
+                if (roleRepository == null)
+                    roleRepository = RepositoryHelper.Getaspnet_RolesRepository();
+
+                return roleRepository;
+            }
+            set
+            {
+                roleRepository = value;
+            }
+        }
+
         public object Clone()
         {
             Type sourceType = this.GetType();
@@ -38,21 +55,11 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             return copy;
         }
-    }
 
-    public partial class aspnet_ProfileMetaData
-    {
-        [Required]
-        public System.Guid UserId { get; set; }
-        [Required]
-        public string PropertyNames { get; set; }
-        [Required]
-        public string PropertyValuesString { get; set; }
-        [Required]
-        public byte[] PropertyValuesBinary { get; set; }
-        [Required]
-        public System.DateTime LastUpdatedDate { get; set; }
-
-        public virtual aspnet_Users aspnet_Users { get; set; }
+        internal void Update()
+        {
+            RoleRepository.UnitOfWork.Context.Entry(this).State = System.Data.Entity.EntityState.Modified;
+            RoleRepository.UnitOfWork.Commit();
+        }
     }
 }

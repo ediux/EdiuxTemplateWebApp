@@ -8,19 +8,20 @@ using System.Web;
 using System.Web.Mvc;
 using EdiuxTemplateWebApp.Models;
 using Microsoft.AspNet.Identity;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
     public class NotificationsController : BaseController
     {
-        private ISystem_NotificationsRepository db;
-        private IApplicationUserRepository userRepo;
+        private Iaspnet_WebEvent_EventsRepository db;
+        private Iaspnet_UsersRepository userRepo;
 
      
         public NotificationsController()
         {
-            db = RepositoryHelper.GetSystem_NotificationsRepository();
-            userRepo = RepositoryHelper.GetApplicationUserRepository(db.UnitOfWork);
+            db = RepositoryHelper.Getaspnet_WebEvent_EventsRepository();
+            userRepo = RepositoryHelper.Getaspnet_UsersRepository(db.UnitOfWork);
         }
         [AllowAnonymous]
         [ChildActionOnly]
@@ -28,19 +29,15 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             int currentUserId = User.Identity.GetUserId<int>();
             var system_Notifications = db.All()
-                .Where(w => w.Read == false
-                && w.TargetUserId == currentUserId)
-                .OrderByDescending(o=>o.CreateTime)
-                .Include(s => s.Sender)
-                .Include(s => s.Recipient);
+                .OrderByDescending(o => o.EventId);
+
             return PartialView(system_Notifications.ToList());
         }
         // GET: Notifications
         public ActionResult Index()
         {
-            var system_Notifications = db.All()
-                .Include(s => s.Sender)
-                .Include(s => s.Recipient);
+            var system_Notifications = db.All();
+              
             return View(system_Notifications.ToList());
         }
 
@@ -51,7 +48,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Notifications system_Notifications = db.Get(id);
+            aspnet_WebEvent_Events system_Notifications = db.Get(id);
             if (system_Notifications == null)
             {
                 return HttpNotFound();
@@ -72,7 +69,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // 詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkId=317598。
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,FromUserId,TargetUserId,Subject,Message,MessageLink,Read,RelayNotificationId,CreateTime,RelayTime")] System_Notifications system_Notifications)
+        public ActionResult Create([Bind(Include = "Id,FromUserId,TargetUserId,Subject,Message,MessageLink,Read,RelayNotificationId,CreateTime,RelayTime")] aspnet_WebEvent_Events system_Notifications)
         {
             if (ModelState.IsValid)
             {
@@ -81,8 +78,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.FromUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.FromUserId);
-            ViewBag.TargetUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.TargetUserId);
+          
             return View(system_Notifications);
         }
 
@@ -93,13 +89,12 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Notifications system_Notifications = db.Get(id);
+            aspnet_WebEvent_Events system_Notifications = db.Get(id);
             if (system_Notifications == null)
             {
                 return HttpNotFound();
             }
-            ViewBag.FromUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.FromUserId);
-            ViewBag.TargetUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.TargetUserId);
+         
             return View(system_Notifications);
         }
 
@@ -108,7 +103,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // 詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkId=317598。
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,FromUserId,TargetUserId,Subject,Message,MessageLink,Read,RelayNotificationId,CreateTime,RelayTime")] System_Notifications system_Notifications)
+        public ActionResult Edit([Bind(Include = "Id,FromUserId,TargetUserId,Subject,Message,MessageLink,Read,RelayNotificationId,CreateTime,RelayTime")] aspnet_WebEvent_Events system_Notifications)
         {
             if (ModelState.IsValid)
             {
@@ -116,8 +111,8 @@ namespace EdiuxTemplateWebApp.Controllers
                 db.UnitOfWork.Commit();
                 return RedirectToAction("Index");
             }
-            ViewBag.FromUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.FromUserId);
-            ViewBag.TargetUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.TargetUserId);
+            //ViewBag.FromUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.FromUserId);
+            //ViewBag.TargetUserId = new SelectList(userRepo.All(), "Id", "UserName", system_Notifications.TargetUserId);
             return View(system_Notifications);
         }
 
@@ -128,7 +123,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            System_Notifications system_Notifications = db.Get(id);
+            aspnet_WebEvent_Events system_Notifications = db.Get(id);
             if (system_Notifications == null)
             {
                 return HttpNotFound();
@@ -141,7 +136,7 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            System_Notifications system_Notifications = db.Get(id);
+            aspnet_WebEvent_Events system_Notifications = db.Get(id);
             db.Delete(system_Notifications);
             db.UnitOfWork.Commit();
             return RedirectToAction("Index");

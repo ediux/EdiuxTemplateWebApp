@@ -216,6 +216,8 @@
     <Compile Include="Filters\ComponentRegistrationAttribute.cs" />
     <Compile Include="Filters\DbAuthorizeAttribute.cs" />
     <Compile Include="Filters\ElmahErrorAttribute.cs" />
+    <Compile Include="Filters\MappingParentMenuIdAttribute.cs" />
+    <Compile Include="Filters\MappingPathIdAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -225,96 +227,6 @@
     <Compile Include="Interfaces\ICacheProvider.cs" />
     <Compile Include="Interfaces\IDataRepository.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
-    <Compile Include="Models\ApplicationLevelModels\ApplicationDbModel.Context.cs">
-      <DependentUpon>ApplicationDbModel.Context.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\ApplicationDbModel.cs">
-      <DependentUpon>ApplicationDbModel.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\ApplicationDbModel.Designer.cs">
-      <DependentUpon>ApplicationDbModel.edmx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\ApplicationRole.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\ApplicationUser.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\ApplicationUserClaim.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\ApplicationUserLogin.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\ControllerActionViewModel.cs" />
-    <Compile Include="Models\ApplicationLevelModels\Edward.IRepository.EF6.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\EFGeneratePartialClass.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\EFRepository.cs">
-      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\EFUnitOfWork.cs">
-      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\IUnitOfWork.cs">
-      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\Menus.cs">
-      <DependentUpon>ApplicationDbModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\Menus.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\partailClasses\Edward.Repository.partialClasses.EF6.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\partailClasses\EFRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\partailClasses\EFUnitOfWork.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\partailClasses\IUnitOfWork.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\partailClasses\MenusRepository.cs">
-      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\partailClasses\MenusRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\RegisterForAdminsViewModel.cs" />
-    <Compile Include="Models\ApplicationLevelModels\RepositoryHelper.cs">
-      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\System_Applications.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\System_ControllerActions.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\System_Controllers.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\System_Notifications.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ApplicationLevelModels\UserProfileViewModel.cs" />
     <Compile Include="Models\AspNetModels\aspnetdb.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -432,6 +344,15 @@
     <Compile Include="Models\AspNetModels\aspnet_SchemaVersionsRepository.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\aspnet_UserClaims.cs">
+      <DependentUpon>aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\aspnet_UserClaims.Partial.cs">
+      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\aspnet_UserClaimsRepository.cs">
+      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\AspNetModels\aspnet_UserLogin.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
@@ -493,9 +414,20 @@
     <Compile Include="Models\AspNetModels\IUnitOfWork.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\Menus.cs">
+      <DependentUpon>aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\Menus.Partial.cs">
+      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\MenusRepository.cs">
+      <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Applications.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_ApplicationsRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Membership.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_MembershipRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
@@ -511,15 +443,20 @@
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_ProfileRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Roles.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_RolesRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_SchemaVersionsRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_UserClaimsRepository.partialClass.cs">
+      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_UserLoginRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Users.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_UsersRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
@@ -543,13 +480,17 @@
     <Compile Include="Models\AspNetModels\partailClasses\IUnitOfWork.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\MenusRepository.partialClass.cs">
+      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\AspNetModels\RepositoryHelper.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\EdiuxAspNetSqlUserStore.cs" />
-    <Compile Include="Models\EFUnitOfWork.partial.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
+    <Compile Include="Models\RegisterForAdminsViewModel.cs" />
+    <Compile Include="Models\UserProfileViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -584,28 +525,6 @@
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>aspnetdb.Designer.cs</LastGenOutput>
     </EntityDeploy>
-    <Content Include="Models\ApplicationLevelModels\ApplicationDbModel.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>ApplicationDbModel.edmx</DependentUpon>
-      <LastGenOutput>ApplicationDbModel.Context.cs</LastGenOutput>
-    </Content>
-    <Content Include="Models\ApplicationLevelModels\ApplicationDbModel.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>ApplicationDbModel.edmx</DependentUpon>
-      <LastGenOutput>ApplicationDbModel.cs</LastGenOutput>
-    </Content>
-    <Content Include="Models\ApplicationLevelModels\Edward.IRepository.EF6.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Edward.IRepository.EF6.cs</LastGenOutput>
-    </Content>
-    <Content Include="Models\ApplicationLevelModels\EFGeneratePartialClass.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EFGeneratePartialClass.cs</LastGenOutput>
-    </Content>
-    <Content Include="Models\ApplicationLevelModels\partailClasses\Edward.Repository.partialClasses.EF6.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Edward.Repository.partialClasses.EF6.cs</LastGenOutput>
-    </Content>
     <Content Include="Models\AspNetModels\aspnetdb.edmx.diagram">
       <DependentUpon>aspnetdb.edmx</DependentUpon>
     </Content>
@@ -616,13 +535,6 @@
     <Content Include="Models\AspNetModels\partailClasses\Edward.Repository.partialClasses.EF6.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Edward.Repository.partialClasses.EF6.cs</LastGenOutput>
-    </Content>
-    <EntityDeploy Include="Models\ApplicationLevelModels\ApplicationDbModel.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>ApplicationDbModel.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <Content Include="Models\ApplicationLevelModels\ApplicationDbModel.edmx.diagram">
-      <DependentUpon>ApplicationDbModel.edmx</DependentUpon>
     </Content>
     <None Include="Properties\PublishProfiles\ediuxcity - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\ediuxcity - Web Deploy.pubxml" />

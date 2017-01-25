@@ -10,6 +10,7 @@ namespace EdiuxTemplateWebApp
 {
     partial class Startup
     {
+        public const string ApplicationInfoKey = "ApplicationInfo";
         public void ConfigureDataStore(IAppBuilder app)
         {
             //檢查Application是否已經註冊?
@@ -23,6 +24,167 @@ namespace EdiuxTemplateWebApp
                 addToMemoryCache();
             }
 
+            if (checkCurrentAppHasRoles() == false)
+            {
+                createDefaultRoles();
+            }
+
+            if (checkCurrentAppHasRootUser() == false)
+            {
+                createRootUser();
+            }
+            if (checkRootUserHasAdminsRole() == false)
+            {
+                addRootUserToAdminsRole();
+            }
+
+        }
+
+        private bool checkRootUserHasAdminsRole(Iaspnet_ApplicationsRepository appRepo = null)
+        {
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            string appName = getApplicationNameFromConfiguationFile();
+            aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
+            aspnet_Users rootUser = appInfo.FindUserByName("root");
+            if (rootUser != null)
+            {
+                return rootUser.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase));
+            }
+            throw new NullReferenceException(string.Format("The object of '{0}' is not found.", nameof(rootUser)));
+        }
+
+        private void addRootUserToAdminsRole(Iaspnet_ApplicationsRepository appRepo = null)
+        {
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            string appName = getApplicationNameFromConfiguationFile();
+            aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
+
+            if (appInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
+                throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
+
+            aspnet_Users rootUser = appInfo.FindUserByName("root");
+
+            if (rootUser != null)
+            {
+                if (rootUser.IsInRole("Admins") == false)
+                    rootUser.AddToRole("Admins");
+
+                return;
+            }
+            throw new NullReferenceException(string.Format("The username , '{0}', is not found.", "root"));
+        }
+
+        private bool checkCurrentAppHasRootUser(Iaspnet_ApplicationsRepository appRepo = null)
+        {
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            string appName = getApplicationNameFromConfiguationFile();
+            aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
+
+            if (appInfo != null)
+            {
+                return appInfo.aspnet_Users.Any(s => s.UserName.Equals("root", StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            return false;
+        }
+
+        private void createRootUser(Iaspnet_ApplicationsRepository appRepo = null)
+        {
+            if (appRepo == null)
+            {
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+            }
+
+            string appName = getApplicationNameFromConfiguationFile();
+            aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
+
+            aspnet_Users rootUser = appInfo.AddUser("root", "!QAZ2wsx");
+            rootUser.AddToRole("Admins");
+
+        }
+        private bool checkCurrentAppHasRoles(Iaspnet_ApplicationsRepository appRepo = null)
+        {
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            string appName = getApplicationNameFromConfiguationFile();
+            aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
+
+            if (appInfo != null)
+            {
+                if (appInfo.aspnet_Roles.Count == 0)
+                {
+                    return false;
+                }
+
+                return appInfo.aspnet_Roles.Any(s =>
+                s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase) ||
+                s.Name.Equals("CoAdmins", StringComparison.InvariantCultureIgnoreCase) ||
+                s.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            return false;
+        }
+
+        private void createDefaultRoles()
+        {
+            Iaspnet_ApplicationsRepository appRepo = null;
+            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+            string appName = getApplicationNameFromConfiguationFile();
+            aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
+
+            if (appInfo.GetRoleByName("Admins") == null)
+            {
+                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
+                {
+                    ApplicationId = appInfo.ApplicationId,
+                    Description = "系統管理員",
+                    LoweredRoleName = "admins",
+                    Name = "Admins",
+                    Id = Guid.NewGuid()
+                });
+                setToMemoryCache(appRepo);
+            }
+            if (appInfo.GetRoleByName("CoAdmins") == null)
+            {
+                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
+                {
+                    ApplicationId = appInfo.ApplicationId,
+                    Description = "次要管理員",
+                    LoweredRoleName = "coadmins",
+                    Name = "CoAdmins",
+                    Id = Guid.NewGuid()
+                });
+                setToMemoryCache(appRepo);
+            }
+            if (appInfo.GetRoleByName("Users") == null)
+            {
+                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
+                {
+                    ApplicationId = appInfo.ApplicationId,
+                    Description = "使用者",
+                    LoweredRoleName = "users",
+                    Name = "Users",
+                    Id = Guid.NewGuid()
+                });
+                setToMemoryCache(appRepo);
+            }
+        }
+
+        private static aspnet_Applications getApplicationInformationFromCache(string appName, Iaspnet_ApplicationsRepository appRepo = null)
+        {
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+            return MemoryCache.Default.AddOrGetExisting(
+                ApplicationInfoKey,
+                appRepo.FindByName(appName),
+                new DateTimeOffset(DateTime.Now.AddMinutes(38400))
+                ) as aspnet_Applications;
         }
 
         private void addToMemoryCache(Iaspnet_ApplicationsRepository appRepo = null)
@@ -31,9 +193,28 @@ namespace EdiuxTemplateWebApp
             {
                 if (appRepo == null)
                     appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+                string appName = getApplicationNameFromConfiguationFile();
+                aspnet_Applications app = appRepo.FindByName(appName).Clone() as aspnet_Applications;
+                MemoryCache.Default.Add(ApplicationInfoKey, app, new DateTimeOffset(DateTime.Now.AddMinutes(38400)));
+            }
+            catch (Exception ex)
+            {
 
-              
+                throw ex;
+            }
+        }
 
+        private void setToMemoryCache(Iaspnet_ApplicationsRepository appRepo = null)
+        {
+            try
+            {
+                if (appRepo == null)
+                    appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+                string appName = getApplicationNameFromConfiguationFile();
+                aspnet_Applications app = appRepo.FindByName(appName).Clone() as aspnet_Applications;
+
+                MemoryCache.Default.Set(ApplicationInfoKey, app, new DateTimeOffset(DateTime.Now.AddMinutes(38400)));
             }
             catch (Exception ex)
             {

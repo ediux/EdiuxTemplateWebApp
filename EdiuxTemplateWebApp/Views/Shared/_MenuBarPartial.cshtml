@@ -1,94 +1,35 @@
-﻿@using EdiuxTemplateWebApp.Models
-@model List<Menus>
+﻿@model List<Menus>
 @{
     Layout = "";
     string ctrlName = ViewContext.RouteData.Values["controller"] as string;
     string actionName = ViewContext.RouteData.Values["action"] as string;
-    var appInfo = (System_Applications)ViewBag.ApplicationInfo;
-    var controllers = appInfo.System_Controllers;
+    var appInfo = (aspnet_Applications)ViewBag.ApplicationInfo;
 }
 
 <ul id="nav">
     @foreach (Menus menuitem in Model)
     {
-        var action = controllers.SelectMany(x=>x.System_ControllerActions).SingleOrDefault(s =>  s.Id == menuitem.System_ControllerActionsId);
-
-        if (action == null)
-        {
-            continue;
-        }
-
-        string menuvpath = Url.Action(action.Name, action.System_Controllers.Name);
-
-        bool isCurrentNode = menuvpath==Request.Path
-            || (menuitem.ExternalURL == Request.Path);
+        bool isCurrentNode = (menuitem.aspnet_Paths.Path == Request.Path);
 
         if (menuitem.ChildMenus.Any(v => v.Void == false) == false)
         {
-
-            if (menuitem.IsExternalLinks)
-            {
-
-                <li @(isCurrentNode ? Html.Raw(" class=\"current\"") : Html.Raw("") )>
-                    <a href="@menuitem.ExternalURL">
-                        @if (string.IsNullOrEmpty(menuitem.IconCSS) == false)
-                        {
-                            <i class="@menuitem.IconCSS"></i>
-                        }
-                        @menuitem.Name
-                    </a>
-                </li>
-            }
-            else
-            {
-                if (action != null)
-                {
-                    if (action.System_Controllers != null)
+            <li @(isCurrentNode ? Html.Raw(" class=\"current\"") : Html.Raw("") )>
+                <a href="@menuitem.aspnet_Paths.Path">
+                    @if (string.IsNullOrEmpty(menuitem.IconCSS) == false)
                     {
-                        <li @(isCurrentNode ? Html.Raw(" class=\"current\"") : Html.Raw("") )>
-                            <a href="@menuvpath">
-                                @if (string.IsNullOrEmpty(menuitem.IconCSS) == false)
-                                {
-                                    <i class="@menuitem.IconCSS"></i>
-                                }
-                                <span>@menuitem.Name</span>
-                            </a>
-                        </li>
+                        <i class="@menuitem.IconCSS"></i>
                     }
-                }
-            }
-
+                    @menuitem.Name
+                </a>
+            </li>
         }
         else
         {
-            if (menuitem.IsExternalLinks)
-            {
-                <li @(isCurrentNode ? Html.Raw(" class=\"current\"") : Html.Raw(""))>
-                    <a href="@menuitem.ExternalURL"> <i class="@menuitem.IconCSS"></i> @menuitem.Name  <i class="arrow icon-angle-left"></i></a>
+            <li @(isCurrentNode ? Html.Raw(" class=\"current\"") : Html.Raw(""))>
+                <a href="@menuitem.aspnet_Paths.Path"> <i class="@menuitem.IconCSS"></i> @menuitem.Name  <i class="arrow icon-angle-left"></i></a>
 
-                    @Html.Partial("_SubMenuBarPartial", menuitem.ChildMenus.ToList())
-                </li>
-            }
-            else
-            {
-                if (action != null)
-                {
-                    if (action.System_Controllers != null)
-                    {
-                        <li @(isCurrentNode ? Html.Raw(" class=\"current\"") : Html.Raw(""))>
-                            <a href="@menuvpath">
-
-                                <i class="@menuitem.IconCSS"></i>
-                                @menuitem.Name
-                                <i class="arrow icon-angle-left"></i>
-                            </a>
-                            @Html.Partial("_SubMenuBarPartial", menuitem.ChildMenus.ToList())
-                        </li>
-                    }
-                }
-
-            }
-
+                @Html.Partial("_SubMenuBarPartial", menuitem.ChildMenus.ToList())
+            </li>
         }
 
     }

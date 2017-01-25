@@ -28,6 +28,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             throw new UnintentionalCodeFirstException();
         }
     
+
         public virtual DbSet<aspnet_Applications> aspnet_Applications { get; set; }
         public virtual DbSet<aspnet_Membership> aspnet_Membership { get; set; }
         public virtual DbSet<aspnet_Paths> aspnet_Paths { get; set; }
@@ -40,6 +41,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public virtual DbSet<aspnet_WebEvent_Events> aspnet_WebEvent_Events { get; set; }
         public virtual DbSet<aspnet_VoidUsers> aspnet_VoidUsers { get; set; }
         public virtual DbSet<aspnet_UserLogin> aspnet_UserLogin { get; set; }
+        public virtual DbSet<aspnet_UserClaims> aspnet_UserClaims { get; set; }
+        public virtual DbSet<Menus> Menus { get; set; }
     
         public virtual ObjectResult<string> aspnet_AnyDataInTables(Nullable<int> tablesToCheck)
         {

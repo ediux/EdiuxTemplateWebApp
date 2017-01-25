@@ -30,10 +30,10 @@ namespace EdiuxTemplateWebApp.Helpers
         {
             Models.AspNetModels.Iaspnet_UsersRepository userRepo = Models.AspNetModels.RepositoryHelper.Getaspnet_UsersRepository();
 
-            Task<aspnet_Users> foundUser = userRepo.FindByNameAsync(identity.Name);
+            aspnet_Users foundUser = userRepo.All().SingleOrDefault(w => w.UserName == identity.Name);
 
-            if (foundUser.Result != null)
-                return foundUser.Result.Id;
+            if (foundUser != null)
+                return foundUser.Id;
 
             return Guid.Empty;
         }

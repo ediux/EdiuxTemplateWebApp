@@ -10,6 +10,7 @@ namespace EdiuxTemplateWebApp.Controllers
     {
         protected override void OnException(ExceptionContext filterContext)
         {
+#if !DEBUG
             Elmah.ErrorSignal.FromCurrentContext().Raise(filterContext.Exception);
 
             if(filterContext.Exception is System.Data.Entity.Validation.DbEntityValidationException)
@@ -20,12 +21,9 @@ namespace EdiuxTemplateWebApp.Controllers
    
                 return;
             }
-
-            //if(filterContext.HttpContext.Response.StatusCode == 404)
-            //{
-
-            //}
+#endif
             base.OnException(filterContext);
+           
         }
 
         protected override void HandleUnknownAction(string actionName)

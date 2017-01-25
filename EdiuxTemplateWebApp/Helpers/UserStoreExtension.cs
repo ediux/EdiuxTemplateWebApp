@@ -4,7 +4,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Caching;
 using System.Web;
+using System.Web.Mvc;
 
 namespace EdiuxTemplateWebApp
 {
@@ -14,24 +16,33 @@ namespace EdiuxTemplateWebApp
 
         public static aspnet_Users AddUser(this aspnet_Applications appObject, string UserName, string Password)
         {
-            aspnet_Users.UserRepository = RepositoryHelper.Getaspnet_UsersRepository(aspnet_Applications.ApplicationRepository.UnitOfWork);
-            aspnet_Users user = aspnet_Users.UserRepository.Add(UserName, Password, appObject);
+            Iaspnet_UsersRepository userRepo = RepositoryHelper.Getaspnet_UsersRepository();
+            aspnet_Users user = userRepo.Add(UserName, Password, appObject);
+            user.UserRepository = userRepo;
             return user;
         }
 
         public static aspnet_Users FindUserById(this aspnet_Applications appObject, Guid userId)
         {
-            return appObject.aspnet_Users.Where(s => s.Id == userId).SingleOrDefault();
+            aspnet_Users foundUser = appObject.aspnet_Users.Where(s => s.Id == userId).SingleOrDefault();
+            if (foundUser != null)
+                foundUser.UserRepository = RepositoryHelper.Getaspnet_UsersRepository();
+            return foundUser;
         }
 
         public static aspnet_Users FindUserByName(this aspnet_Applications appObject, string userName)
         {
-            return appObject.aspnet_Users.Where(s => s.UserName == userName).SingleOrDefault();
+            aspnet_Users foundUser = appObject.aspnet_Users.Where(s => s.UserName == userName).SingleOrDefault();
+
+            if (foundUser != null)
+                foundUser.UserRepository = RepositoryHelper.Getaspnet_UsersRepository();
+
+            return foundUser;
         }
 
         public static aspnet_Users FindUserByEmail(this aspnet_Applications appObject, string email)
         {
-            return appObject.aspnet_Membership.Single(s => s.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase)).aspnet_Users;
+            return appObject.aspnet_Users.Where(s => s.aspnet_Membership.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase)).SingleOrDefault();
         }
 
         public static aspnet_Users FindUserByLogin(this aspnet_Applications appObject, UserLoginInfo login)
@@ -39,7 +50,7 @@ namespace EdiuxTemplateWebApp
             return appObject.aspnet_Users.SingleOrDefault(s => s.aspnet_UserLogin.Any(k => k.LoginProvider == login.LoginProvider && k.ProviderKey == login.ProviderKey));
         }
 
-        public static aspnet_UserLogin FindLogin(this aspnet_Users userObject,UserLoginInfo login)
+        public static aspnet_UserLogin FindLogin(this aspnet_Users userObject, UserLoginInfo login)
         {
             return userObject.aspnet_UserLogin.SingleOrDefault(s => s.LoginProvider == login.LoginProvider && s.ProviderKey == login.ProviderKey);
         }
@@ -48,7 +59,8 @@ namespace EdiuxTemplateWebApp
         {
             try
             {
-                aspnet_Users.UserRepository.Delete(user);
+                Iaspnet_UsersRepository userRepo = RepositoryHelper.Getaspnet_UsersRepository();
+                userRepo.Delete(user);
                 appObject.aspnet_Users.Remove(user);
             }
             catch (Exception ex)
@@ -68,7 +80,7 @@ namespace EdiuxTemplateWebApp
 
         public static void AddRole(this ICollection<aspnet_Roles> objectSet, aspnet_Roles role)
         {
-           aspnet_Roles.RoleRepository.Add(role);
+            aspnet_Roles.RoleRepository.Add(role);
             aspnet_Roles.RoleRepository.UnitOfWork.Commit();
 
             objectSet.Add(role);
@@ -110,11 +122,32 @@ namespace EdiuxTemplateWebApp
         #region Profile
         public static T GetProfile<T>(this aspnet_Profile profileObject) where T : Models.ProfileModel
         {
-            T value= JsonConvert.DeserializeObject<T>(profileObject.PropertyValuesString);
+            T value = JsonConvert.DeserializeObject<T>(profileObject.PropertyValuesString);
             return value;
         }
 
 
         #endregion
+
+        public static aspnet_Applications getApplicationInfo(this Controller ctr)
+        {
+            if (ctr.ViewBag.ApplicationInfo == null)
+            {
+                aspnet_Applications appInfo = MemoryCache.Default.Get(Startup.ApplicationInfoKey) as aspnet_Applications;
+
+                if (appInfo == null)
+                {
+                    throw new Exception("Application information is not found.");
+                }
+              
+                return appInfo;
+            }
+
+            return ctr.ViewBag.ApplicationInfo as aspnet_Applications;
+        }
+        public static aspnet_Applications getApplicationInfo(this object obj)
+        {
+            return MemoryCache.Default.Get(Startup.ApplicationInfoKey) as aspnet_Applications;
+        }
     }
 }

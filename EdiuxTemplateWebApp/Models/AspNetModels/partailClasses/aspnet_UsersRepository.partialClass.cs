@@ -6,6 +6,7 @@ using System.Data.Entity.Core.Objects;
 using System.Security.Claims;
 using System.Data.Entity;
 using System.Runtime.Caching;
+using Microsoft.AspNet.Identity;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
@@ -22,7 +23,15 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 InternalDatabaseAlias.aspnet_Roles.Where(w => w.aspnet_Applications.ApplicationId == application.ApplicationId).Load();
                 InternalDatabaseAlias.aspnet_UserLogin.Where(w => w.aspnet_Users.ApplicationId == application.ApplicationId).Load();
 
-                return InternalDatabaseAlias.aspnet_Users.Where(w => w.ApplicationId == application.ApplicationId);
+                return InternalDatabaseAlias.aspnet_Users
+                    .Where(w => w.ApplicationId == application.ApplicationId)
+                    .Include(p=>p.aspnet_Applications)
+                    .Include(p=>p.aspnet_Membership)
+                    .Include(p=>p.aspnet_PersonalizationPerUser)
+                    .Include(p=>p.aspnet_Profile)
+                    .Include(p=>p.aspnet_Roles)
+                    .Include(p=>p.aspnet_UserClaims)
+                    .Include(p=>p.aspnet_UserLogin);
             }
             catch (Exception ex)
             {
@@ -43,20 +52,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 InternalDatabaseAlias.aspnet_UserLogin.Load();
 
                 return ObjectSet.AsQueryable();
-            }
-            catch (Exception ex)
-            {
-                WriteErrorLog(ex);
-                throw ex;
-            }
-
-        }
-
-        public override aspnet_Users Get(params object[] values)
-        {
-            try
-            {
-                return All().SingleOrDefault(s => values.Any(a => a.Equals(s.ApplicationId) || a.Equals(s.Id)));
             }
             catch (Exception ex)
             {
@@ -103,20 +98,22 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 ObjectParameter userId = new ObjectParameter("UserId", typeof(Guid));
 
                 string passwordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-
+                PasswordHasher hasher = new PasswordHasher();
+                password = hasher.HashPassword(password + passwordSalt);
                 #region ©I¥s¹w¦sµ{§Ç
                 int ResultCode = InternalDatabaseAlias.aspnet_Membership_CreateUser(
                     applicationObject.ApplicationName,
                     userName,
                     password,
                     passwordSalt,
-                    "",
+                    eMail
+                    ,
                     "",
                     "",
                     true,
                     DateTime.UtcNow,
                     DateTime.Now.Date
-                    , 0, 1, userId);
+                    , 0, (int)System.Web.Security.MembershipPasswordFormat.Hashed, userId);
                 #endregion
 
                 if (ResultCode != 0)
@@ -194,8 +191,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
                 string appName = user.aspnet_Applications.ApplicationName;
                 string userName = user.UserName;
-
-                return Task.FromResult(InternalDatabaseAlias.aspnet_UsersInRoles_AddUsersToRoles(appName, userName, roleName, DateTime.UtcNow));
+                AddToRole(appName, userName, roleName);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {

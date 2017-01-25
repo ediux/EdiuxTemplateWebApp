@@ -127,6 +127,20 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			return repository;
 		}		
 
+		public static aspnet_UserClaimsRepository Getaspnet_UserClaimsRepository()
+		{
+			var repository = new aspnet_UserClaimsRepository();
+			repository.UnitOfWork = GetUnitOfWork();
+			return repository;
+		}
+
+		public static aspnet_UserClaimsRepository Getaspnet_UserClaimsRepository(IUnitOfWork unitOfWork)
+		{
+			var repository = new aspnet_UserClaimsRepository();
+			repository.UnitOfWork = unitOfWork;
+			return repository;
+		}		
+
 		public static aspnet_UserLoginRepository Getaspnet_UserLoginRepository()
 		{
 			var repository = new aspnet_UserLoginRepository();
@@ -179,6 +193,20 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		public static aspnet_WebEvent_EventsRepository Getaspnet_WebEvent_EventsRepository(IUnitOfWork unitOfWork)
 		{
 			var repository = new aspnet_WebEvent_EventsRepository();
+			repository.UnitOfWork = unitOfWork;
+			return repository;
+		}		
+
+		public static MenusRepository GetMenusRepository()
+		{
+			var repository = new MenusRepository();
+			repository.UnitOfWork = GetUnitOfWork();
+			return repository;
+		}
+
+		public static MenusRepository GetMenusRepository(IUnitOfWork unitOfWork)
+		{
+			var repository = new MenusRepository();
 			repository.UnitOfWork = unitOfWork;
 			return repository;
 		}		

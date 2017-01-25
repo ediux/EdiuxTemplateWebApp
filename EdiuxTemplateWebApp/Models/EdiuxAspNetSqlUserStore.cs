@@ -28,24 +28,15 @@ namespace EdiuxTemplateWebApp.Models
         public EdiuxAspNetSqlUserStore(AspNetModels.IUnitOfWork dbUnitOfWork)
         {
 
-            applicationInfo = getApplicationInformation();
+            applicationInfo = this.getApplicationInfo();
 
             if (applicationInfo == null)
             {
-                setApplicationInfo();
+                applicationInfo = aspnet_Applications.Create(Startup.getApplicationNameFromConfiguationFile());
             }
             //userRepo = RepositoryHelper.Getaspnet_UsersRepository(dbUnitOfWork);
             //roleRepo = RepositoryHelper.Getaspnet_RolesRepository(dbUnitOfWork);
             //userloginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(dbUnitOfWork);
-        }
-
-        private void setApplicationInfo()
-        {
-            string appName = Startup.getApplicationNameFromConfiguationFile();
-            Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
-            applicationInfo = appRepo.FindByName(appName);
-            aspnet_Applications.ApplicationRepository = appRepo;
-            MemoryCache.Default.Set("ApplicationInfo", applicationInfo, DateTime.UtcNow.AddMinutes(38400));
         }
         #endregion
 
@@ -84,11 +75,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        private aspnet_Applications getApplicationInformation()
-        {
-            aspnet_Applications fromCache = MemoryCache.Default.Get("ApplicatinInfo") as aspnet_Applications;
-            return fromCache;
-        }
+
 
         public Task DeleteAsync(aspnet_Users user)
         {
@@ -320,9 +307,8 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 user.aspnet_Profile.GetProfile<ProfileModel>().eMailConfirmed = confirmed;
-
-                aspnet_Users.UserRepository.UnitOfWork.Context.Entry(user.aspnet_Profile).State = System.Data.Entity.EntityState.Modified;
-                return aspnet_Users.UserRepository.UnitOfWork.CommitAsync();
+                user.Update();
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -381,8 +367,7 @@ namespace EdiuxTemplateWebApp.Models
                 user.aspnet_Membership.FailedPasswordAttemptCount += 1;
                 user.aspnet_Membership.FailedPasswordAttemptWindowStart = DateTime.UtcNow;
 
-                aspnet_Applications.ApplicationRepository.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
-                aspnet_Applications.ApplicationRepository.UnitOfWork.Commit();
+                user.Update();
 
                 return Task.FromResult(user.aspnet_Membership.FailedPasswordAttemptCount);
             }
@@ -402,8 +387,7 @@ namespace EdiuxTemplateWebApp.Models
                 user.aspnet_Membership.LastLockoutDate = DateTime.Now;
                 user.aspnet_Membership.IsLockedOut = false;
 
-                aspnet_Applications.ApplicationRepository.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
-                aspnet_Applications.ApplicationRepository.UnitOfWork.Commit();
+                user.Update();
 
                 return Task.CompletedTask;
             }
@@ -461,7 +445,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                
+
                 user.AddLogin(login);
                 //Iaspnet_UserLoginRepository userLoginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(applicationInfo.ApplicationRepository.UnitOfWork);
                 // userloginRepo.AddLoginAsync(user, login);
@@ -560,7 +544,7 @@ namespace EdiuxTemplateWebApp.Models
                 if (user.aspnet_Membership == null)
                     return Task.FromResult(hasPasswordTask);
 
-                if(user.aspnet_Membership.Password.Length==0)
+                if (user.aspnet_Membership.Password.Length == 0)
                     return Task.FromResult(hasPasswordTask);
 
                 hasPasswordTask = true;
@@ -724,7 +708,7 @@ namespace EdiuxTemplateWebApp.Models
                 if (profile == null)
                     return Task.FromException<bool>(new Exception("Profile is not existed."));
 
-                
+
                 return Task.FromResult(profile.TwoFactorEnabled);
             }
             catch (Exception ex)
@@ -752,7 +736,7 @@ namespace EdiuxTemplateWebApp.Models
         public Task AddClaimAsync(aspnet_Users user, Claim claim)
         {
             try
-            {             
+            {
                 return Task.CompletedTask;
             }
             catch (Exception ex)

@@ -61,9 +61,9 @@
         </EntityContainer>
         <EntityType Name="Menus">
           <Key>
-            <PropertyRef Name="MenuId" />
+            <PropertyRef Name="Id" />
           </Key>
-          <Property Name="MenuId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
           <Property Name="DisplayName" Type="String" MaxLength="512" FixedLength="false" Unicode="true" />
           <Property Name="Description" Type="String" MaxLength="2048" FixedLength="false" Unicode="true" />
@@ -90,7 +90,7 @@
           <End Type="WbParkSystemModel.Menus" Role="Menus1" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Menus">
-              <PropertyRef Name="MenuId" />
+              <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="Menus1">
               <PropertyRef Name="ParentMenuId" />
@@ -124,7 +124,7 @@
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="MenuId" ColumnName="MenuId" />
+                <ScalarProperty Name="Id" ColumnName="MenuId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

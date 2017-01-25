@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EdiuxTemplateWebApp.Models.ApplicationLevelModels
+namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     using System;
     using System.Collections.Generic;
@@ -18,6 +18,7 @@ namespace EdiuxTemplateWebApp.Models.ApplicationLevelModels
         public Menus()
         {
             this.ChildMenus = new HashSet<Menus>();
+            this.aspnet_Roles = new HashSet<aspnet_Roles>();
         }
     
         public int Id { get; set; }
@@ -40,8 +41,12 @@ namespace EdiuxTemplateWebApp.Models.ApplicationLevelModels
         public bool AllowAnonymous { get; set; }
         public Nullable<System.Guid> ApplicationId { get; set; }
     
+        public virtual aspnet_Applications aspnet_Applications { get; set; }
+        public virtual aspnet_Paths aspnet_Paths { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Menus> ChildMenus { get; set; }
         public virtual Menus ParentMenu { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<aspnet_Roles> aspnet_Roles { get; set; }
     }
 }

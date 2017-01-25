@@ -35,28 +35,16 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public int FailedPasswordAnswerAttemptCount { get; set; }
         public System.DateTime FailedPasswordAnswerAttemptWindowStart { get; set; }
         public string Comment { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public string PhoneNumber { get; set; }
+        public bool PhoneConfirmed { get; set; }
+        public int AccessFailedCount { get; set; }
+        public Nullable<System.Guid> LastUpdateUserId { get; set; }
+        public Nullable<System.DateTime> LastUpdateTime { get; set; }
+        public Nullable<System.DateTime> LastActivityTime { get; set; }
+        public Nullable<System.DateTime> LockoutEndDate { get; set; }
+        public string ResetPasswordToken { get; set; }
     
         public virtual aspnet_Applications aspnet_Applications { get; set; }
-        public virtual aspnet_Users aspnet_Users { get; set; }
-
-        internal void setLockoutEndDate(DateTimeOffset lockoutEnd)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal int incrementAccessFailedCount()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal void resetAccessFailedCount()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal DateTimeOffset getLockoutEndDate()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

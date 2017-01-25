@@ -1,13 +1,12 @@
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
 
-    [MetadataType(typeof(aspnet_ProfileMetaData))]
-    public partial class aspnet_Profile : ICloneable
+    [MetadataType(typeof(aspnet_UserClaimsMetaData))]
+    public partial class aspnet_UserClaims : ICloneable
     {
         public object Clone()
         {
@@ -40,19 +39,15 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         }
     }
 
-    public partial class aspnet_ProfileMetaData
+    public partial class aspnet_UserClaimsMetaData
     {
         [Required]
         public System.Guid UserId { get; set; }
         [Required]
-        public string PropertyNames { get; set; }
-        [Required]
-        public string PropertyValuesString { get; set; }
-        [Required]
-        public byte[] PropertyValuesBinary { get; set; }
-        [Required]
-        public System.DateTime LastUpdatedDate { get; set; }
-
-        public virtual aspnet_Users aspnet_Users { get; set; }
+        public int Id { get; set; }
+        
+        [StringLength(256, ErrorMessage="欄位長度不得大於 256 個字元")]
+        public string ClaimType { get; set; }
+        public string ClaimValue { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace EdiuxTemplateWebApp.Filters
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            aspnet_Applications fromCache = MemoryCache.Default.Get("ApplicatinInfo") as aspnet_Applications;
+            aspnet_Applications fromCache = MemoryCache.Default.Get(Startup.ApplicationInfoKey) as aspnet_Applications;
 
             if (fromCache == null)
             {

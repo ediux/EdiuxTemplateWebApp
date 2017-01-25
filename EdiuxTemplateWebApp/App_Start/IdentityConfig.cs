@@ -45,10 +45,11 @@ namespace EdiuxTemplateWebApp
 
         }
 
-        public Models.AspNetModels.IUnitOfWork UnitOfWork
-        {
-            get { return ((Models.EdiuxAspNetSqlUserStore)Store).UnitOfWork; }
-        }
+
+        //public Models.AspNetModels.IUnitOfWork UnitOfWork
+        //{
+        //    get { return ((Models.EdiuxAspNetSqlUserStore)Store).UnitOfWork; }
+        //}
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {
             var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<Models.AspNetModels.IUnitOfWork>()));
@@ -150,7 +151,34 @@ namespace EdiuxTemplateWebApp
 
         public override Task<SignInStatus> PasswordSignInAsync(string userName, string password, bool isPersistent, bool shouldLockout)
         {
-            return base.PasswordSignInAsync(userName, password, isPersistent, shouldLockout);
+            aspnet_Users foundUser = UserManager.FindByName(userName);
+            
+            if (foundUser == null)
+                return Task.FromResult(SignInStatus.Failure);
+
+      
+
+            if (foundUser.aspnet_Membership == null)
+                return Task.FromResult(SignInStatus.Failure);
+
+            if (foundUser.aspnet_Membership.IsLockedOut)
+                return Task.FromResult(SignInStatus.LockedOut);
+
+            //check password is clear mode.
+            if (foundUser.aspnet_Membership.PasswordFormat == 0)
+            {
+                if (string.IsNullOrEmpty(foundUser.aspnet_Membership.PasswordSalt) != true)
+                {
+                    foundUser.aspnet_Membership.Password = UserManager.PasswordHasher.HashPassword(foundUser.aspnet_Membership.Password + foundUser.aspnet_Membership.PasswordSalt);
+                    foundUser.aspnet_Membership.PasswordFormat = (int)System.Web.Security.MembershipPasswordFormat.Hashed;
+                    foundUser.Update();                  
+                }
+            }
+
+            if (UserManager.PasswordHasher.VerifyHashedPassword(foundUser.aspnet_Membership.Password, password + foundUser.aspnet_Membership.PasswordSalt) == PasswordVerificationResult.Failed)
+                return Task.FromResult(SignInStatus.Failure);
+
+            return Task.FromResult(SignInStatus.Success);
         }
     }
 }

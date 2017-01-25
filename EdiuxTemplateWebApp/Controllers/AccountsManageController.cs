@@ -6,22 +6,23 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
-using EdiuxTemplateWebApp.Models;
 using PagedList;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.AspNet.Identity;
 using System.Threading.Tasks;
+using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
     public class AccountsManageController : Controller
     {
-        private IApplicationUserRepository db;
-        private IApplicationRoleRepository roleRepo;
+        private Iaspnet_ApplicationsRepository db;
+        // private IApplicationRoleRepository roleRepo;
 
         private ApplicationUserManager _userManager;
         private ApplicationRoleManager _roleManager;
-
+        private aspnet_Applications appInfo;
         public ApplicationUserManager UserManager
         {
             get
@@ -38,7 +39,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             get
             {
-                return _roleManager ?? new ApplicationRoleManager(new EdiuxAspNetSqlUserStore(HttpContext.GetOwinContext().Get<IUnitOfWork>()));
+                return _roleManager ?? new ApplicationRoleManager(new Models.EdiuxAspNetSqlUserStore(HttpContext.GetOwinContext().Get<Models.AspNetModels.IUnitOfWork>()));
             }
             private set
             {
@@ -48,39 +49,50 @@ namespace EdiuxTemplateWebApp.Controllers
 
         public AccountsManageController()
         {
-            db = RepositoryHelper.GetApplicationUserRepository();
-            roleRepo = RepositoryHelper.GetApplicationRoleRepository(db.UnitOfWork);
+            db = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            appInfo = this.getApplicationInfo();
+            //roleRepo = RepositoryHelper.GetApplicationRoleRepository(db.UnitOfWork);
         }
 
         // GET: AccountsManage
         public ActionResult Index(int? pageid, int? pageSize)
         {
+            if (ViewBag.ApplicationInfo == null)
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+
+            aspnet_Applications appInfo = ViewBag.ApplicationInfo as aspnet_Applications;
+
             int iSize = pageSize ?? 5;
             if (iSize == -1)
             {
-                var result = db.Where(w => w.Void == false).OrderBy(o => o.Id);
+
+                var result = UserManager.Users.ToList();
                 return View(result.ToPagedList(1, result.Count()));
             }
-            return View(db.Where(w => w.Void == false).OrderBy(o => o.Id).ToPagedList(pageid ?? 1, pageSize ?? 5));
+            return View(UserManager.Users.OrderBy(o => o.Id).ToPagedList(pageid ?? 1, pageSize ?? 5));
         }
 
         // GET: AccountsManage/Details/5
-        public async Task<ActionResult> Details(int? id)
+        public async Task<ActionResult> Details(Guid? id)
         {
-            var user = await UserManager.FindByIdAsync(id ?? 0);
+            var user = await UserManager.FindByIdAsync(id ?? Guid.Empty);
 
             if (user == null)
                 return HttpNotFound();
 
-
-            ViewBag.RoleName = (user.ApplicationRole != null) ? string.Join(";", user.ApplicationRole.Select(s => s.Name).ToArray()) : "訪客";
+            ViewBag.RoleName = (user.aspnet_Roles != null) ? string.Join(";", user.aspnet_Roles.Select(s => s.Name).ToArray()) : "訪客";
             return View(user);
         }
 
         // GET: AccountsManage/Create
         public ActionResult Create()
         {
-            ViewBag.RoleId = new SelectList(roleRepo.Where(w => w.Void == false), "Id", "Name");
+            if (ViewBag.ApplicationInfo == null)
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+
+            aspnet_Applications appInfo = ViewBag.ApplicationInfo as aspnet_Applications;
+
+            ViewBag.RoleId = new SelectList(appInfo.aspnet_Roles, "Id", "Name");
             return View(new RegisterForAdminsViewModel());
         }
 
@@ -93,13 +105,25 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApplicationUser user = ApplicationUser.Create();
-                user.UserName = registerViewModel.UserName;
-                user.DisplayName = registerViewModel.DisplayName;
-                user.EMail = registerViewModel.Email;
-                user.Password = registerViewModel.Password;
+                if (ViewBag.ApplicationInfo == null)
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
-                user.PasswordHash = UserManager.PasswordHasher.HashPassword(registerViewModel.Password);
+                aspnet_Applications appInfo = ViewBag.ApplicationInfo as aspnet_Applications;
+
+                aspnet_Users user = new aspnet_Users();
+
+
+                user.UserName = registerViewModel.UserName;
+                user.aspnet_Membership = new aspnet_Membership();
+                user.aspnet_Membership.Password = registerViewModel.Password;
+                user.aspnet_Membership.PasswordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                user.aspnet_Membership.Email = registerViewModel.Email;
+
+                //user.DisplayName = registerViewModel.DisplayName;
+                //user.EMail = registerViewModel.Email;
+                //user.Password = registerViewModel.Password;
+
+                //user.PasswordHash = UserManager.PasswordHasher.HashPassword(registerViewModel.Password);
 
                 IdentityResult result = UserManager.Create(user);
                 if (result.Succeeded)
@@ -117,12 +141,12 @@ namespace EdiuxTemplateWebApp.Controllers
                     }
                 }
             }
-            ViewBag.RoleId = new SelectList(RoleManager.Roles.Where(w => w.Void == false), "Id", "Name");
+            ViewBag.RoleId = new SelectList(RoleManager.Roles, "Id", "Name");
             return View(registerViewModel);
         }
 
         // GET: AccountsManage/Edit/5
-        public ActionResult Edit(int? id, string returnUrl)
+        public ActionResult Edit(Guid? id, string returnUrl)
         {
             return RedirectToAction("UserProfile", "Manage", new { id });
         }
@@ -132,7 +156,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // 詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkId=317598。
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,UserName,Password,PasswordHash,SecurityStamp,TwoFactorEnabled,Void,DisplayName,EMail,EMailConfirmed,PhoneNumber,PhoneConfirmed,CreateUserId,CreateTime,LastUpdateUserId,LastUpdateTime,LastActivityTime,LastUnlockedTime,LastLoginFailTime,AccessFailedCount,LockoutEnabled,LockoutEndDate,ResetPasswordToken")] ApplicationUser applicationUser)
+        public ActionResult Edit([Bind(Include = "Id,UserName,Password,PasswordHash,SecurityStamp,TwoFactorEnabled,Void,DisplayName,EMail,EMailConfirmed,PhoneNumber,PhoneConfirmed,CreateUserId,CreateTime,LastUpdateUserId,LastUpdateTime,LastActivityTime,LastUnlockedTime,LastLoginFailTime,AccessFailedCount,LockoutEnabled,LockoutEndDate,ResetPasswordToken")] aspnet_Users applicationUser)
         {
             if (ModelState.IsValid)
             {
@@ -144,13 +168,13 @@ namespace EdiuxTemplateWebApp.Controllers
         }
 
         // GET: AccountsManage/Delete/5
-        public ActionResult Delete(int? id)
+        public ActionResult Delete(Guid? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            ApplicationUser applicationUser = db.Get(id);
+            aspnet_Users applicationUser = this.getApplicationInfo().FindUserById(id ?? Guid.Empty);
             if (applicationUser == null)
             {
                 return HttpNotFound();
@@ -161,35 +185,34 @@ namespace EdiuxTemplateWebApp.Controllers
         // POST: AccountsManage/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public ActionResult DeleteConfirmed(Guid id)
         {
-            ApplicationUser applicationUser = db.Get(id);
-            db.Delete(applicationUser);
-            db.UnitOfWork.Commit();
+            aspnet_Users applicationUser = appInfo.FindUserById(id);
+            appInfo.DeleteUser(applicationUser); 
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddUserToRole(int id, int RoleId)
+        public ActionResult AddUserToRole(Guid id, Guid RoleId)
         {
-            ApplicationUser applicationUser = db.Get(id);
+            aspnet_Users applicationUser = appInfo.FindUserById(id);
             if (applicationUser != null)
             {
-                ApplicationRole role = roleRepo.Get(RoleId);
-                applicationUser.ApplicationRole.Add(role);
-                await db.UpdateAsync(applicationUser);
+                aspnet_Roles role = appInfo.GetRoleById(RoleId);
+                applicationUser.aspnet_Roles.Add(role);
+                applicationUser.Update();
             }
             return RedirectToAction("UserProfile", "Manage", new { id = id });
         }
 
-        public async Task<ActionResult> RemoveUserFromRole(int id, int roleId)
+        public ActionResult RemoveUserFromRole(Guid id, Guid roleId)
         {
-            ApplicationUser applicationUser = db.Get(id);
+            aspnet_Users applicationUser = appInfo.FindUserById(id);
             if (applicationUser != null)
             {
-                ApplicationRole role = roleRepo.Get(roleId);
-                applicationUser.ApplicationRole.Remove(role);
-                await db.UpdateAsync(applicationUser);
+                aspnet_Roles role = appInfo.aspnet_Roles.GetRoleById(roleId);
+                applicationUser.aspnet_Roles.Remove(role);
+                applicationUser.Update();
             }
             return RedirectToAction("UserProfile", "Manage", new { id = id });
         }

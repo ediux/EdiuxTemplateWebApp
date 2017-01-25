@@ -1,14 +1,44 @@
-namespace EdiuxTemplateWebApp.Models.ApplicationLevelModels
+namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(MenusMetaData))]
-    public partial class Menus
+    public partial class Menus : ICloneable
     {
+        public object Clone()
+        {
+            Type sourceType = this.GetType();
+
+            var copy = Activator.CreateInstance(sourceType);
+
+            Type tatgetType = copy.GetType();
+
+            var props_src = sourceType.GetProperties();
+
+            foreach (var srcProp in props_src)
+            {
+                if (srcProp.PropertyType.IsGenericType)
+                {
+                    if (srcProp.PropertyType.GetGenericTypeDefinition() == typeof(ICollection<>))
+                    {
+                        var targetProp = tatgetType.GetProperty(srcProp.Name);
+                        targetProp.SetValue(copy, Activator.CreateInstance(typeof(Collection<>).MakeGenericType(srcProp.PropertyType.GenericTypeArguments)));
+                    }
+                }
+                else
+                {
+                    var targetProp = tatgetType.GetProperty(srcProp.Name);
+                    targetProp.SetValue(copy, srcProp.GetValue(this));
+                }
+            }
+
+            return copy;
+        }
     }
-    
+
     public partial class MenusMetaData
     {
         [Required]
@@ -49,7 +79,10 @@ namespace EdiuxTemplateWebApp.Models.ApplicationLevelModels
         public bool AllowAnonymous { get; set; }
         public Nullable<System.Guid> ApplicationId { get; set; }
     
+        public virtual aspnet_Applications aspnet_Applications { get; set; }
+        public virtual aspnet_Paths aspnet_Paths { get; set; }
         public virtual ICollection<Menus> ChildMenus { get; set; }
         public virtual Menus ParentMenu { get; set; }
+        public virtual ICollection<aspnet_Roles> aspnet_Roles { get; set; }
     }
 }

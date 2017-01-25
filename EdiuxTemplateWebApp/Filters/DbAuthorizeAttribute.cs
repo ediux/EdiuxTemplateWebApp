@@ -1,4 +1,5 @@
 ﻿using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -13,19 +14,17 @@ namespace EdiuxTemplateWebApp.Filters
 {
     public class DbAuthorizeAttribute : AuthorizeAttribute
     {
-        private IApplicationRoleRepository roleRepo;
-        private IApplicationUserRepository userRepo;
-        private ISystem_ControllerActionsRepository actionRepo;
-        private ISystem_ControllersRepository ctrlRepo;
-        private ISystem_ApplicationsRepository appRepo;
+        private Iaspnet_RolesRepository roleRepo;
+        private Iaspnet_UsersRepository userRepo;
+     
+        private Iaspnet_ApplicationsRepository appRepo;
 
         public DbAuthorizeAttribute()
         {
-            appRepo = RepositoryHelper.GetSystem_ApplicationsRepository();
-            roleRepo = RepositoryHelper.GetApplicationRoleRepository(appRepo.UnitOfWork);
-            userRepo = RepositoryHelper.GetApplicationUserRepository(roleRepo.UnitOfWork);
-            actionRepo = RepositoryHelper.GetSystem_ControllerActionsRepository(userRepo.UnitOfWork);
-            ctrlRepo = RepositoryHelper.GetSystem_ControllersRepository(userRepo.UnitOfWork);
+            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
+            userRepo = RepositoryHelper.Getaspnet_UsersRepository(roleRepo.UnitOfWork);
+          
         }
 
         public override void OnAuthorization(AuthorizationContext filterContext)
@@ -45,15 +44,15 @@ namespace EdiuxTemplateWebApp.Filters
                     }
                 }
 
-                System_Applications appInfo = null;
+                aspnet_Applications appInfo = null;
 
                 if (filterContext.Controller.ViewBag.ApplicationInfo != null)
                 {
-                    appInfo = (System_Applications)filterContext.Controller.ViewBag.ApplicationInfo;
+                    appInfo = filterContext.Controller.ViewBag.ApplicationInfo as aspnet_Applications;
                 }
                 else
                 {
-                    appInfo = appRepo.getInfoByType(filterContext.ActionDescriptor.ControllerDescriptor.ControllerType);
+                    appInfo = appRepo.FindByName(Startup.getApplicationNameFromConfiguationFile());
 
                     if (appInfo == null)
                     {
@@ -77,43 +76,43 @@ namespace EdiuxTemplateWebApp.Filters
                     filterContext.Controller.ViewBag.ApplicationInfo = appInfo;
                 }
 
-                if (appInfo.isActionInApplication(filterContext.ActionDescriptor))
-                {
-                    System_ControllerActions actionInfo = appInfo.getMVCActionInfo(filterContext.ActionDescriptor);
+                //if (appInfo.isActionInApplication(filterContext.ActionDescriptor))
+                //{
+                //    System_ControllerActions actionInfo = appInfo.getMVCActionInfo(filterContext.ActionDescriptor);
 
-                    var users = appInfo.getUsers(filterContext.HttpContext.User.Identity.GetUserId<int>());
+                //    var users = appInfo.getUsers(filterContext.HttpContext.User.Identity.GetUserId<int>());
 
-                    if (users == null)
-                    {
-                        if(filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.Name=="root")
-                        {
-                            return;
-                        }
+                //    if (users == null)
+                //    {
+                //        if(filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.Name=="root")
+                //        {
+                //            return;
+                //        }
 
-                        filterContext.Result = new HttpUnauthorizedResult();
-                        return;
-                    }
+                //        filterContext.Result = new HttpUnauthorizedResult();
+                //        return;
+                //    }
 
-                    if (users.Length >= 1)
-                    {
-                        var loginedUser = users.OrderBy(o => o.Id).First();
+                //    if (users.Length >= 1)
+                //    {
+                //        var loginedUser = users.OrderBy(o => o.Id).First();
 
-                        if (filterContext.Controller.ViewBag.CurrentLoginedUser == null)
-                        {
-                            //加入取得目前登入使用者的資訊
-                            filterContext.Controller.ViewBag.CurrentLoginedUser = loginedUser;
-                        }
+                //        if (filterContext.Controller.ViewBag.CurrentLoginedUser == null)
+                //        {
+                //            //加入取得目前登入使用者的資訊
+                //            filterContext.Controller.ViewBag.CurrentLoginedUser = loginedUser;
+                //        }
 
-                        if (actionInfo.isUserAuthorizend(loginedUser) == false)
-                        {
-                            filterContext.Result = new HttpUnauthorizedResult();
-                            return;
-                        }
+                //        if (actionInfo.isUserAuthorizend(loginedUser) == false)
+                //        {
+                //            filterContext.Result = new HttpUnauthorizedResult();
+                //            return;
+                //        }
 
-                        //base.OnAuthorization(filterContext);
-                        return;
-                    }
-                }
+                //        //base.OnAuthorization(filterContext);
+                //        return;
+                //    }
+                //}
 
                 if(filterContext.ActionDescriptor.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
                 {

@@ -108,26 +108,6 @@ namespace <#= code.VsNamespaceSuggestion() #>
 		fileManager.StartNewFile(entity.Name + "Repository.cs");
 		this.Write(OutputFile(entity.Name + "Repository.cs"));
 	}
-
-	if(!DoesFileExist("partailClasses\\" + entity.Name + "Repository.cs" ))
-	{
-		fileManager.StartNewFile("partailClasses\\" + entity.Name + "Repository.cs");
-		#>
-
-namespace <#= code.VsNamespaceSuggestion() #>
-{
-	<#=Accessibility.ForType(entity)#> <#=code.SpaceAfter(code.AbstractOption(entity))#> partial class <#=code.Escape(entity)#>Repository
-	{
-
-	}
-}
-<#		
-    }
-	else
-	{
-		fileManager.StartNewFile("partailClasses\\" + entity.Name + "Repository.cs");
-		this.Write(OutputFile("partailClasses\\" + entity.Name + "Repository.cs"));
-    }
 }
 
 	

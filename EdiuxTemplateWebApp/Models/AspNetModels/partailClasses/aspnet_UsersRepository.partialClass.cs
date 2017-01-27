@@ -89,59 +89,71 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                ObjectParameter userId = new ObjectParameter("UserId", typeof(Guid));
-                InternalDatabaseAlias.aspnet_Users_CreateUser(entity.ApplicationId, entity.UserName, false, DateTime.Now.Date, userId);
-                return Get(userId);
+                var applicationIdParameter = entity != null ?
+                    new SqlParameter("@ApplicationId", entity.ApplicationId) :
+                    new SqlParameter("@ApplicationId", SqlDbType.UniqueIdentifier);
+
+                var userNameParameter = entity != null ?
+                    new SqlParameter("@UserName", entity.UserName) :
+                    new SqlParameter("@UserName", SqlDbType.NVarChar, 256);
+
+                var isUserAnonymousParameter = entity != null ?
+                    new SqlParameter("@IsUserAnonymous", entity.IsAnonymous) :
+                    new SqlParameter("@IsUserAnonymous", SqlDbType.Bit);
+
+
+                var lastActivityDateParameter = entity != null ?
+                   new SqlParameter("@LastActivityDate", entity.LastActivityDate) :
+                   new SqlParameter("@LastActivityDate", SqlDbType.DateTime);
+
+
+                var userIdParameter = new SqlParameter("@UserId", SqlDbType.UniqueIdentifier) { Direction = ParameterDirection.Output };
+
+                var returnCode = new SqlParameter("@return_value", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+
+                int code = 0;
+                var result = UnitOfWork.Context.Database.SqlQuery(typeof(int),
+                    "EXEC @return_value = [dbo].[aspnet_Users_CreateUser] @ApplicationId, @UserName, @IsUserAnonymous,@LastActivityDate,@UserId OUTPUT",
+                    applicationIdParameter, userNameParameter, isUserAnonymousParameter, lastActivityDateParameter, userIdParameter, returnCode);
+                // ((IObjectContextAdapter)UnitOfWork.Context).ObjectContext.ExecuteFunction("aspnet_Users_CreateUser",  applicationIdParameter, userNameParameter, RoleNameParameter,returnCode);
+                code = (int)returnCode.Value;
+                entity.Id = (Guid)userIdParameter.Value;
+                return Get(entity.Id);
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
                 throw ex;
             }
+ 
         }
-        public aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "@abc.com")
+        public aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "@abc.com", bool IsUserAnonymous = false)
         {
             try
             {
-                aspnet_Users newUser = null;
-                ObjectParameter userId = new ObjectParameter("UserId", typeof(Guid));
-
                 string passwordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
                 PasswordHasher hasher = new PasswordHasher();
                 password = hasher.HashPassword(password + passwordSalt);
-                #region ©I¥s¹w¦sµ{§Ç
-                int ResultCode = InternalDatabaseAlias.aspnet_Membership_CreateUser(
-                    applicationObject.ApplicationName,
-                    userName,
-                    password,
-                    passwordSalt,
-                    eMail
-                    ,
-                    "",
-                    "",
-                    true,
-                    DateTime.UtcNow,
-                    DateTime.Now.Date
-                    , 0, (int)System.Web.Security.MembershipPasswordFormat.Hashed, userId);
-                #endregion
+                Guid userId = Guid.Empty;
 
-                if (ResultCode != 0)
+                Iaspnet_MembershipRepository membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository(UnitOfWork);
+
+                var status = membershipRepo.CreateUser(applicationObject.ApplicationName, userName, password, passwordSalt,
+                       eMail, out userId, isApproved: true);
+
+                if (status == System.Web.Security.MembershipCreateStatus.Success)
                 {
-                    throw new Exception("Error in SQL Server.");
+                    return Get(userId);
                 }
 
-                newUser.Id = (Guid)userId.Value;
-                newUser = Reload(newUser);
-                applicationObject.aspnet_Users.Add(newUser);
-                updateCache(applicationObject);
-                return newUser;
+                return null;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
                 throw ex;
             }
-
         }
 
         public void AddToRole(string applicationName, string userName, string roleName)
@@ -177,8 +189,10 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 returnCode.Direction = ParameterDirection.Output;
 
                 int code = 0;
-                var result = UnitOfWork.Context.Database.SqlQuery(typeof(int), "EXEC @return_value = [dbo].[aspnet_UsersInRoles_IsUserInRole] @ApplicationName, @UserName, @RoleName", applicationNameParameter, userNameParameter, roleNameParameter, returnCode);
+                
+                var result = UnitOfWork.Context.Database.ExecuteSqlCommand("EXEC @return_value = [dbo].[aspnet_UsersInRoles_IsUserInRole] @ApplicationName, @UserName, @RoleName", applicationNameParameter, userNameParameter, roleNameParameter, returnCode);
                 // ((IObjectContextAdapter)UnitOfWork.Context).ObjectContext.ExecuteFunction("aspnet_UsersInRoles_IsUserInRole", applicationNameParameter, userNameParameter, roleNameParameter,returnCode);
+                
                 code = (int)returnCode.Value;
                 return (code == 1);
             }
@@ -217,20 +231,11 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
 
         }
-
-
-
-
-
-
-
-
-
     }
 
     public partial interface Iaspnet_UsersRepository : IRepositoryBase<aspnet_Users>
     {
-        aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "");
+        aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "", bool IsUserAnonymous = false);
         IQueryable<aspnet_Users> All(aspnet_Applications application);
         void AddToRole(string applicationName, string userName, string roleName);
         bool IsInRole(string applicationName, string userName, string roleName);

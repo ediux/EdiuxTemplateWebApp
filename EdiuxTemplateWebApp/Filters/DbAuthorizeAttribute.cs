@@ -16,7 +16,7 @@ namespace EdiuxTemplateWebApp.Filters
     {
         private Iaspnet_RolesRepository roleRepo;
         private Iaspnet_UsersRepository userRepo;
-     
+
         private Iaspnet_ApplicationsRepository appRepo;
 
         public DbAuthorizeAttribute()
@@ -24,7 +24,7 @@ namespace EdiuxTemplateWebApp.Filters
             appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
             roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
             userRepo = RepositoryHelper.Getaspnet_UsersRepository(roleRepo.UnitOfWork);
-          
+
         }
 
         public override void OnAuthorization(AuthorizationContext filterContext)
@@ -44,21 +44,15 @@ namespace EdiuxTemplateWebApp.Filters
                     }
                 }
 
-                aspnet_Applications appInfo = null;
+                aspnet_Applications appInfo = filterContext.Controller.getApplicationInfo();
 
-                if (filterContext.Controller.ViewBag.ApplicationInfo != null)
+                if (appInfo == null)
                 {
-                    appInfo = filterContext.Controller.ViewBag.ApplicationInfo as aspnet_Applications;
-                }
-                else
-                {
-                    appInfo = appRepo.FindByName(Startup.getApplicationNameFromConfiguationFile());
+                    Exception customerException = new Exception("Can't fetch application information from database.");
 
-                    if (appInfo == null)
-                    {
-                        Exception customerException = new Exception("Can't fetch application information from database.");
+                    filterContext.Controller.TempData.Add("Exception", customerException);
 
-                        filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
+                    filterContext.Result =  new RedirectToRouteResult(new RouteValueDictionary
                         {
                             { "controller", "Error" },
                             { "action", "Index" },
@@ -68,14 +62,14 @@ namespace EdiuxTemplateWebApp.Filters
                             { "ex", customerException }
                         });
 
-                        WriteErrorLog(customerException);
-
-                        return;
-                    }
-
-                    filterContext.Controller.ViewBag.ApplicationInfo = appInfo;
+                    WriteErrorLog(customerException);
+                    return;
                 }
 
+                if (appInfo.aspnet_Paths.Any(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path))
+                {
+
+                }
                 //if (appInfo.isActionInApplication(filterContext.ActionDescriptor))
                 //{
                 //    System_ControllerActions actionInfo = appInfo.getMVCActionInfo(filterContext.ActionDescriptor);
@@ -114,7 +108,9 @@ namespace EdiuxTemplateWebApp.Filters
                 //    }
                 //}
 
-                if(filterContext.ActionDescriptor.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
+
+
+                if (filterContext.ActionDescriptor.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
                 {
                     return;
                 }
@@ -132,7 +128,7 @@ namespace EdiuxTemplateWebApp.Filters
             {
                 WriteErrorLog(ex);
 
-                if(ex is DbEntityValidationException)
+                if (ex is DbEntityValidationException)
                 {
                     filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
                     {

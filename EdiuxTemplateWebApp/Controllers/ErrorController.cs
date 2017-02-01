@@ -18,6 +18,9 @@ namespace EdiuxTemplateWebApp.Controllers
             if (ex == null)
                 ex = Server.GetLastError();
 
+            if (ex == null)
+                ex = TempData["Exception"] as Exception;
+
             return View("Error", new HandleErrorInfo(ex, actionName, controllerName));
         }
 

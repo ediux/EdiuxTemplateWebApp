@@ -20,5 +20,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         /// </summary>
         /// <returns>非同步執行結果。</returns>
         Task CommitAsync();
+
+ 
 	}
 }

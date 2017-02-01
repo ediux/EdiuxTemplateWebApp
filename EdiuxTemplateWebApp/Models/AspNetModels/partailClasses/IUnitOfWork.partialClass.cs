@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
 	public partial interface IUnitOfWork : System.IDisposable
-	{		
-	}
+	{
+        T GetDbContext<T>() where T : DbContext;
+    }
 }

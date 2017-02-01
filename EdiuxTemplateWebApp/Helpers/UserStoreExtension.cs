@@ -65,6 +65,7 @@ namespace EdiuxTemplateWebApp
             }
             catch (Exception ex)
             {
+                Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
                 throw ex;
             }
         }
@@ -129,6 +130,7 @@ namespace EdiuxTemplateWebApp
 
         #endregion
 
+        #region Application Information
         public static aspnet_Applications getApplicationInfo(this Controller ctr)
         {
             if (ctr.ViewBag.ApplicationInfo == null)
@@ -139,7 +141,7 @@ namespace EdiuxTemplateWebApp
                 {
                     throw new Exception("Application information is not found.");
                 }
-              
+
                 return appInfo;
             }
 
@@ -149,5 +151,21 @@ namespace EdiuxTemplateWebApp
         {
             return MemoryCache.Default.Get(Startup.ApplicationInfoKey) as aspnet_Applications;
         }
+        public static aspnet_Applications addApplicationInfotoServer(this object obj)
+        {
+            try
+            {
+                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+                aspnet_Applications appInfo = appRepo.CreateApplication(Startup.ApplicationInfoKey);
+                return appInfo.Clone() as aspnet_Applications;
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
+                throw;
+            }
+
+        }
+        #endregion
     }
 }

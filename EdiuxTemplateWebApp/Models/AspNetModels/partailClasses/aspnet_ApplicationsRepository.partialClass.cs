@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Data.Entity.Core.Objects;
 using System.Data.Entity;
 using System.Linq.Expressions;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
@@ -18,15 +20,14 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             UnitOfWork.Context.Configuration.LazyLoadingEnabled = false;
 
-
-            IQueryable<aspnet_Applications> loadAllQueryable = InternalDatabaseAlias
-                .aspnet_Applications
-                .Include(p => p.aspnet_Membership)
-                .Include(p => p.aspnet_Paths)
-                .Include(p => p.aspnet_Roles)
-                .Include(p => p.aspnet_Users)
-                .Include(p => p.aspnet_VoidUsers)
-                .Include(p => p.Menus);
+            IQueryable<aspnet_Applications> loadAllQueryable = (from a in InternalDatabaseAlias.aspnet_Applications
+                                                                join m in InternalDatabaseAlias.aspnet_Membership on a.ApplicationId equals m.ApplicationId
+                                                                join u in InternalDatabaseAlias.aspnet_Users on a.ApplicationId equals u.ApplicationId
+                                                                join r in InternalDatabaseAlias.aspnet_Roles on a.ApplicationId equals r.ApplicationId
+                                                                join p in InternalDatabaseAlias.aspnet_Paths on a.ApplicationId equals p.ApplicationId
+                                                                join v in InternalDatabaseAlias.aspnet_VoidUsers on a.ApplicationId equals v.ApplicationId
+                                                                join menu in InternalDatabaseAlias.Menus on a.ApplicationId equals menu.ApplicationId
+                                                                select a).AsQueryable();
 
             return loadAllQueryable;
 
@@ -40,9 +41,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                ObjectParameter applicationId = new ObjectParameter("ApplicationId", typeof(Guid));
-                InternalDatabaseAlias.aspnet_Applications_CreateApplication(entity.ApplicationName, applicationId);
-                return Get(applicationId.Value);
+                return CreateApplication(entity.ApplicationName);
             }
             catch (Exception ex)
             {
@@ -56,7 +55,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             try
             {
                 aspnet_Applications appInfo = Get(applicationId);
-             
+
                 return appInfo;
             }
             catch (Exception ex)
@@ -73,7 +72,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 string loweredApplicationName = applicationName.ToLowerInvariant();
                 aspnet_Applications appInfo = All().Where(s => s.ApplicationName == applicationName
                     || s.LoweredApplicationName == loweredApplicationName).SingleOrDefault();
-         
+
 
                 return appInfo;
             }
@@ -109,6 +108,21 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
 
+        public aspnet_Applications CreateApplication(string applicationName)
+        {
+            try
+            {
+                ObjectParameter applicationId = new ObjectParameter("ApplicationId", typeof(Guid));
+                InternalDatabaseAlias.aspnet_Applications_CreateApplication(applicationName, applicationId);
+                return Get(applicationId.Value);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -117,6 +131,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
     public partial interface Iaspnet_ApplicationsRepository : IRepositoryBase<aspnet_Applications>
     {
+        aspnet_Applications CreateApplication(string applicationName);
         aspnet_Applications FindById(Guid applicationId);
         aspnet_Applications FindByName(string applicationName);
         Task<aspnet_Applications> FindByIdAsync(Guid applicationId);

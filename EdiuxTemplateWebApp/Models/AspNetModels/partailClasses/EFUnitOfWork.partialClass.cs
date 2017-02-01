@@ -20,7 +20,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
 
-		#region IDisposable Support
+        public T GetDbContext<T>() where T : DbContext
+        {
+            return ((T)Context);
+        }
+
+        #region IDisposable Support
         private bool disposedValue = false; // 偵測多餘的呼叫
 
         protected virtual void Dispose(bool disposing)
@@ -53,7 +58,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             // TODO: 如果上方的完成項已被覆寫，即取消下行的註解狀態。
             // GC.SuppressFinalize(this);
         }
+
+       
         #endregion
 
-	}
+    }
 }

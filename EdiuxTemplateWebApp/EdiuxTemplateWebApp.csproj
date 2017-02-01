@@ -223,6 +223,9 @@
     </Compile>
     <Compile Include="Helpers\OpenCoreWebExtensions.cs" />
     <Compile Include="Helpers\SecurityHelper.cs" />
+    <Compile Include="Helpers\SqlInputAttribute.cs" />
+    <Compile Include="Helpers\SqlOutputAttribute.cs" />
+    <Compile Include="Helpers\SqlReturnAttribute.cs" />
     <Compile Include="Helpers\UserStoreExtension.cs" />
     <Compile Include="Interfaces\ICacheProvider.cs" />
     <Compile Include="Interfaces\IDataRepository.cs" />

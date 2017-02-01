@@ -46,6 +46,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -60,9 +61,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="ApplicationRoleRepositoryTests.cs" />
-    <Compile Include="ApplicationUserLoginRepositoryTests.cs" />
-    <Compile Include="ApplicationUserRepositoryTests.cs" />
+    <Compile Include="aspnet_MembershipRepositoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

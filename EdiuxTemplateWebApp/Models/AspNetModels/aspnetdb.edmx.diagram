@@ -9,7 +9,7 @@
         <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_Membership" Width="2.25" PointX="5.25" PointY="9.5" IsExpanded="true" />
         <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_Paths" Width="2.875" PointX="3" PointY="6.75" IsExpanded="true" />
         <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_PersonalizationAllUsers" Width="2.625" PointX="6.875" PointY="7.125" IsExpanded="true" />
-        <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_PersonalizationPerUser" Width="1.5" PointX="5.25" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_PersonalizationPerUser" Width="2.375" PointX="5.25" PointY="3.75" IsExpanded="true" />
         <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_Profile" Width="1.5" PointX="11.625" PointY="12.375" IsExpanded="true" />
         <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_Roles" Width="1.5" PointX="3" PointY="16.375" IsExpanded="true" />
         <EntityTypeShape EntityType="ediuxplatform_dbModel.aspnet_SchemaVersions" Width="2.375" PointX="0.75" PointY="0.75" IsExpanded="true" />

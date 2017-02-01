@@ -71,51 +71,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public void Update()
         {
-            // aspnet_Users existedUser = this.MemberwiseClone() as aspnet_Users;
-
-            //existedUser.ApplicationId = ApplicationId;
-            //existedUser.aspnet_Applications = aspnet_Applications;
-            //existedUser.aspnet_Membership = aspnet_Membership;
-            //existedUser.aspnet_PersonalizationPerUser = aspnet_PersonalizationPerUser;
-            //existedUser.aspnet_Profile = aspnet_Profile;
-            //existedUser.aspnet_Roles = aspnet_Roles;
-            //existedUser.aspnet_UserLogin = aspnet_UserLogin;
-
-            //existedUser.IsAnonymous = IsAnonymous;
-            //existedUser.LastActivityDate = LastActivityDate;
-            //existedUser.LoweredUserName = LoweredUserName;
-            //existedUser.MobileAlias = MobileAlias;
-            //existedUser.UserName = UserName;
-
-            UserRepository.UnitOfWork.Context.Entry(this).State = System.Data.Entity.EntityState.Modified;
-
-            //UserRepository.UnitOfWork.Context.Entry(aspnet_PersonalizationPerUser).State = System.Data.Entity.EntityState.Modified;
-            //UserRepository.UnitOfWork.Context.Entry(aspnet_Profile).State = System.Data.Entity.EntityState.Modified;
-            //UserRepository.UnitOfWork.Context.Entry(aspnet_Roles).State = System.Data.Entity.EntityState.Modified;
-            //UserRepository.UnitOfWork.Context.Entry(aspnet_UserLogin).State = System.Data.Entity.EntityState.Modified;
-            UserRepository.UnitOfWork.Commit();
-
-            //existedUser = userRepository.Reload(existedUser);
-
-            //ApplicationId = existedUser.ApplicationId;
-            //this.aspnet_Applications = existedUser.aspnet_Applications;
-            //this.aspnet_Membership = existedUser.aspnet_Membership;
-            //this.aspnet_PersonalizationPerUser = existedUser.aspnet_PersonalizationPerUser;
-            //this.aspnet_Profile = existedUser.aspnet_Profile;
-            //this.aspnet_Roles = existedUser.aspnet_Roles;
-            //this.aspnet_UserLogin = existedUser.aspnet_UserLogin;
-            //this.IsAnonymous = existedUser.IsAnonymous;
-            //this.LastActivityDate = existedUser.LastActivityDate;
-            //this.LoweredUserName = existedUser.LoweredUserName;
-            //this.MobileAlias = existedUser.MobileAlias;
-            //this.UserName = existedUser.UserName;
-
+            UserRepository.UnitOfWork.Context.Entry(this).State = System.Data.Entity.EntityState.Modified;            
+            UserRepository.UnitOfWork.Commit();         
         }
 
         public void AddToRole(string roleName)
         {
-            if (UserRepository == null)
-                UserRepository = RepositoryHelper.Getaspnet_UsersRepository();
             UserRepository.AddToRole(aspnet_Applications.ApplicationName, UserName, roleName);
             aspnet_Roles = UserRepository.Get(Id).aspnet_Roles;
         }

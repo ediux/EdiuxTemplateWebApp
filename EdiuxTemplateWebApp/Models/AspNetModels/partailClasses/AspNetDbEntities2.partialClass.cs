@@ -48,6 +48,26 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             //}
         }
+
+        public virtual int aspnet_Membership_GetNumberOfUsersOnline(string applicationName,
+           int MinutesSinceLastInActive, DateTime CurrentTimeUtc)
+        {
+            try
+            {
+                int returnvalue;
+
+                returnvalue = ExecuteStoredProcedureOrSqlFunction("aspnet_Membership_GetNumberOfUsersOnline", "@ApplicationName, @MinutesSinceLastInActive, @CurrentTimeUtc",
+                       applicationName, MinutesSinceLastInActive, CurrentTimeUtc);
+
+                return returnvalue;
+            }
+            catch (Exception ex)
+            {
+                Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
+                throw ex;
+            }
+        }
+
         public virtual int ExecuteStoredProcedureOrSqlFunction(string spName, string paramterNames, params object[] values)
         {
             try

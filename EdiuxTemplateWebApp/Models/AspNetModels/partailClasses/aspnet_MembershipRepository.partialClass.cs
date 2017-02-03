@@ -220,33 +220,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                ICollection<object> returnvalue;
                 var db = UnitOfWork.GetDbContext<AspNetDbEntities2>();
-                var result = db.ExecuteStoredProcedureOrSqlFunction<object>("aspnet_Membership_GetNumberOfUsersOnline",
-                      out returnvalue, applicationName, MinutesSinceLastInActive, CurrentTimeUtc);
-
-                //return result;
-                //var applicationNameParameter = applicationName != null ?
-                //    new SqlParameter("@ApplicationName", applicationName) :
-                //    new SqlParameter("@ApplicationName", SqlDbType.NVarChar, 256);
-
-                //var PageIndexParameter =
-                //    new SqlParameter("@PageIndex", PageIndex);
-
-                //var PageSizeParameter = new SqlParameter("@PageSize", PageSize);
-
-                //var returnCode = new SqlParameter();
-                //returnCode.ParameterName = "@return_value";
-                //returnCode.SqlDbType = SqlDbType.Int;
-                //returnCode.Direction = ParameterDirection.Output;
-
-                //string sqlstatement_format = string.Format("EXEC @return_value= [dbo].[{0}] {1}", "aspnet_Membership_GetNumberOfUsersOnline", "@ApplicationName, @MinutesSinceLastInActive, @CurrentTimeUtc");
-
-                //var result = UnitOfWork.Context.Database.SqlQuery<aspnet_Membership>(
-                //    "EXEC @return_value = [dbo].[aspnet_Membership_GetAllUsers] @ApplicationName, @PageIndex, @PageSize", applicationNameParameter, PageIndexParameter, PageSizeParameter, returnCode);
-
-                //TotalRecords = (int)returnCode.Value;
-
+                var result = db.aspnet_Membership_GetNumberOfUsersOnline(applicationName, MinutesSinceLastInActive, CurrentTimeUtc);
                 return result;
             }
             catch (Exception ex)

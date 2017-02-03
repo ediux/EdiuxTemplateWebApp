@@ -28,90 +28,38 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                var applicationNameParameter = applicationName != null ?
-                new SqlParameter("@ApplicationName", applicationName) :
-                new SqlParameter("@ApplicationName", SqlDbType.NVarChar, 256);
+                return UnitOfWork.GetDbContext<AspNetDbEntities2>().aspnet_Membership_CreateUser(
+                          applicationName,
+                          userName,
+                          password,
+                          passwordSalt,
+                          eMail,
+                           passwordQuestion,
+                           passwordAnswer,
+                           isApproved,
+                            DateTime.UtcNow,
+                            DateTime.UtcNow.Date,
+                            uniqueEmail,
+                        (int)passwordFormat,
+                            out userId
+                          );
 
-                var userNameParameter = userName != null ?
-                    new SqlParameter("@UserName", userName) :
-                    new SqlParameter("@UserName", SqlDbType.NVarChar, 256);
 
-                var passwordParameter = password != null ?
-                    new SqlParameter("@Password", password) :
-                    new SqlParameter("@Password", SqlDbType.NVarChar, 128);
-
-                var passwordSaltParameter = passwordSalt != null ?
-                    new SqlParameter("@PasswordSalt", passwordSalt) :
-                    new SqlParameter("@PasswordSalt", SqlDbType.NVarChar, 128);
-
-
-                var eMailParameter = eMail != null ?
-                   new SqlParameter("@Email", eMail) :
-                   new SqlParameter("@Email", SqlDbType.NVarChar, 256);
-
-                var passwordQuestionParameter = passwordQuestion != null ?
-                    new SqlParameter("@PasswordQuestion", passwordQuestion) :
-                    new SqlParameter("@PasswordQuestion", SqlDbType.NVarChar, 256);
-
-                var passwordAnswerParameter = passwordAnswer != null ?
-                   new SqlParameter("@PasswordAnswer", passwordAnswer) :
-                   new SqlParameter("@PasswordAnswer", SqlDbType.NVarChar, 128);
-
-                var isApprovedParameter = isApproved ?
-                   new SqlParameter("@IsApproved", isApproved) :
-                   new SqlParameter("@IsApproved", SqlDbType.Bit);
-
-                var currentTimeUtcParameter =
-                    new SqlParameter("@CurrentTimeUtc", DateTime.UtcNow);
-
-                var createDateParameter =
-                    new SqlParameter("@CreateDate", DateTime.UtcNow.Date);
-
-                var uniqueEmailParameter =
-                    new SqlParameter("@UniqueEmail", uniqueEmail);
-
-                var passwordFormatParameter =
-                    new SqlParameter("@PasswordFormat", (int)passwordFormat);
-
-                var userIdParameter = new SqlParameter("@UserId", SqlDbType.UniqueIdentifier)
-                {
-                    Direction = ParameterDirection.Output
-                };
-
-                var returnCode = new SqlParameter();
-                returnCode.ParameterName = "@return_value";
-                returnCode.SqlDbType = SqlDbType.Int;
-                returnCode.Direction = ParameterDirection.Output;
-
-                int code = 0;
-                var result = UnitOfWork.Context.Database.ExecuteSqlCommand("EXEC @return_value = [dbo].[aspnet_Membership_CreateUser] @ApplicationName, @UserName, @Password, @PasswordSalt, @Email, @PasswordQuestion, @PasswordAnswer, @IsApproved, @CurrentTimeUtc, @CreateDate, @UniqueEmail, @PasswordFormat, @UserId OUT",
-                    applicationNameParameter, userNameParameter, passwordParameter, passwordSaltParameter,
-                    eMailParameter, passwordQuestionParameter, passwordAnswerParameter,
-                    isApprovedParameter, currentTimeUtcParameter,
-                    createDateParameter,
-                    uniqueEmailParameter,
-                    passwordFormatParameter,
-                    userIdParameter,
-                    returnCode);
-
-                userId = (Guid)userIdParameter.Value;
-                code = (int)returnCode.Value;
-
-                switch (code)
-                {
-                    case -1:
-                        return System.Web.Security.MembershipCreateStatus.ProviderError;
-                    case 0:
-                        return System.Web.Security.MembershipCreateStatus.Success;
-                    case 6:
-                        return System.Web.Security.MembershipCreateStatus.DuplicateProviderUserKey;
-                    case 7:
-                        return System.Web.Security.MembershipCreateStatus.DuplicateEmail;
-                    case 10:
-                        return System.Web.Security.MembershipCreateStatus.DuplicateUserName;
-                    default:
-                        return System.Web.Security.MembershipCreateStatus.UserRejected;
-                }
+                //switch (code)
+                //{
+                //    case -1:
+                //        return System.Web.Security.MembershipCreateStatus.ProviderError;
+                //    case 0:
+                //        return System.Web.Security.MembershipCreateStatus.Success;
+                //    case 6:
+                //        return System.Web.Security.MembershipCreateStatus.DuplicateProviderUserKey;
+                //    case 7:
+                //        return System.Web.Security.MembershipCreateStatus.DuplicateEmail;
+                //    case 10:
+                //        return System.Web.Security.MembershipCreateStatus.DuplicateUserName;
+                //    default:
+                //        return System.Web.Security.MembershipCreateStatus.UserRejected;
+                //}
             }
             catch (Exception ex)
             {
@@ -267,8 +215,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
 
-        public int GetNumberOfUsersOnline([SqlInput("ApplicationName")]string applicationName,
-            [SqlInput("MinutesSinceLastInActive")] int MinutesSinceLastInActive, [SqlInput("CurrentTimeUtc")]DateTime CurrentTimeUtc)
+        public int GetNumberOfUsersOnline(string applicationName,
+           int MinutesSinceLastInActive,DateTime CurrentTimeUtc)
         {
             try
             {

@@ -13,14 +13,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Data.Entity.Core.Objects;
-    using System.Linq;
-    using System.Data.SqlClient;
-    using System.Data;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Data.Common;
-    using System.Collections.ObjectModel;
-    using System.Reflection;
 
     public partial class AspNetDbEntities2 : DbContext
     {
@@ -49,126 +41,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public virtual DbSet<aspnet_UserClaims> aspnet_UserClaims { get; set; }
         public virtual DbSet<Menus> Menus { get; set; }
 
-        public virtual int ExecuteStoredProcedureOrSqlFunction(string spName, params object[] values)
-        {
-
-        }
-
-        public virtual int ExecuteStoredProcedureOrSqlFunction<ResultModel>(string spName, out ICollection<ResultModel> result, IDictionary<string, object> values = null)
-        {
-            try
-            {
-
-                DbCommand cmd = Database.Connection.CreateCommand();
-
-                cmd.Connection = Database.Connection as SqlConnection;
-                cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                cmd.CommandText = spName;
-                cmd.Transaction = Database.CurrentTransaction?.UnderlyingTransaction as SqlTransaction;
-
-                DbParameterCollection sqlParamters = cmd.Parameters;
-
-                bool isHasReturn = false;
-
-
-
-                if (values != null && values.Count > 0)
-                {
-                    string[] keyArray = values.Keys.ToArray();
-
-                    for (int i = 0; i < keyArray.Length; i++)
-                    {
-                        string keyName = keyArray[i];
-                        object paramterValue = values[keyName];
-
-                        if (paramterValue is SqlParameter)
-                        {
-
-                            cmd.Parameters.Add(paramterValue);
-                        }
-                        else
-                        {
-                            cmd.Parameters.Add(new SqlParameter(keyName, paramterValue) { Direction = ParameterDirection.Input });
-                        }
-                    }
-                }
-
-                if (isHasReturn == false)
-                {
-                    var returnValue = new SqlParameter();
-                    returnValue.ParameterName = "@return_value";
-                    returnValue.SqlDbType = SqlDbType.Int;
-                    returnValue.Direction = ParameterDirection.Output;
-
-                    sqlParamters.Add(returnValue);
-                }
-
-                if (Database.Connection.State == ConnectionState.Closed)
-                    Database.Connection.Open();
-
-                var reader = cmd.ExecuteReader();
-
-                result = Activator.CreateInstance(typeof(Collection<>).MakeGenericType(typeof(ResultModel))) as Collection<ResultModel>;
-
-                do
-                {
-                    ResultModel row = Activator.CreateInstance<ResultModel>();
-                    Type t = row.GetType();
-                    for (int i = 0; i < reader.FieldCount; i++)
-                    {
-                        PropertyInfo propinfo = t.GetProperty(reader.GetName(i));
-
-                        if (propinfo == null)
-                        {
-                            continue;
-                        }
-
-                        propinfo.SetValue(row, reader.GetValue(i));
-                        result.Add(row);
-                    }
-
-                } while (reader.Read());
-
-                reader.Close();
-
-                Database.Connection.Close();
-
-                int returnCode = -1;
-
-                ResultModel rowReturn = Activator.CreateInstance<ResultModel>();
-
-                for (int x = 0; x < cmd.Parameters.Count; x++)
-                {
-                    if (cmd.Parameters[x].Direction == ParameterDirection.Output)
-                    {
-
-                        Type t = rowReturn.GetType();
-                        PropertyInfo propinfo = t.GetProperty(cmd.Parameters[x].ParameterName.Trim('@'));
-
-                        if (propinfo == null)
-                        {
-                            continue;
-                        }
-                        propinfo.SetValue(rowReturn, cmd.Parameters[x].Value);
-
-                    }
-
-                    if (cmd.Parameters[x].Direction == ParameterDirection.ReturnValue)
-                    {
-                        returnCode = (int)cmd.Parameters[x].Value;
-                    }
-                }
-
-                result.Add(rowReturn);
-
-                return returnCode;
-            }
-            catch (Exception ex)
-            {
-                Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
-                throw ex;
-            }
-        }
+       
         public virtual ObjectResult<string> aspnet_AnyDataInTables(Nullable<int> tablesToCheck)
         {
             var tablesToCheckParameter = tablesToCheck.HasValue ?

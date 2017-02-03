@@ -426,6 +426,7 @@
     <Compile Include="Models\AspNetModels\MenusRepository.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\AspNetDbEntities2.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_Applications.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_ApplicationsRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>

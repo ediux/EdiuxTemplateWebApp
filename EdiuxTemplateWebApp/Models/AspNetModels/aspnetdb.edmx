@@ -466,6 +466,7 @@
           <Parameter Name="UniqueEmail" Type="int" Mode="In" />
           <Parameter Name="PasswordFormat" Type="int" Mode="In" />
           <Parameter Name="UserId" Type="uniqueidentifier" Mode="InOut" />
+          <Parameter Name="CreareSttatus" Type="int" Mode="InOut" />
         </Function>
         <Function Name="aspnet_Membership_FindUsersByEmail" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
@@ -483,11 +484,13 @@
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
           <Parameter Name="PageIndex" Type="int" Mode="In" />
           <Parameter Name="PageSize" Type="int" Mode="In" />
+          <Parameter Name="TotalRecords" Type="int" Mode="InOut" />
         </Function>
         <Function Name="aspnet_Membership_GetNumberOfUsersOnline" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
           <Parameter Name="MinutesSinceLastInActive" Type="int" Mode="In" />
           <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
+          <Parameter Name="NumOnline" Type="int" Mode="InOut" />
         </Function>
         <Function Name="aspnet_Membership_GetPassword" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
@@ -496,12 +499,14 @@
           <Parameter Name="PasswordAttemptWindow" Type="int" Mode="In" />
           <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
           <Parameter Name="PasswordAnswer" Type="nvarchar" Mode="In" />
+          <Parameter Name="ErrorCode" Type="int" Mode="InOut" />
         </Function>
         <Function Name="aspnet_Membership_GetPasswordWithFormat" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
           <Parameter Name="UserName" Type="nvarchar" Mode="In" />
           <Parameter Name="UpdateLastLoginActivityDate" Type="bit" Mode="In" />
           <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
+          <Parameter Name="ReturnCode" Type="int" Mode="InOut" />
         </Function>
         <Function Name="aspnet_Membership_GetUserByEmail" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
@@ -1199,6 +1204,7 @@
             <Parameter Name="UniqueEmail" Mode="In" Type="Int32" />
             <Parameter Name="PasswordFormat" Mode="In" Type="Int32" />
             <Parameter Name="UserId" Mode="InOut" Type="Guid" />
+            <Parameter Name="CreareSttatus" Mode="InOut" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="aspnet_Membership_FindUsersByEmail">
             <Parameter Name="ApplicationName" Mode="In" Type="String" />
@@ -1212,15 +1218,11 @@
             <Parameter Name="PageIndex" Mode="In" Type="Int32" />
             <Parameter Name="PageSize" Mode="In" Type="Int32" />
           </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_GetAllUsers">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="PageIndex" Mode="In" Type="Int32" />
-            <Parameter Name="PageSize" Mode="In" Type="Int32" />
-          </FunctionImport>
           <FunctionImport Name="aspnet_Membership_GetNumberOfUsersOnline">
             <Parameter Name="ApplicationName" Mode="In" Type="String" />
             <Parameter Name="MinutesSinceLastInActive" Mode="In" Type="Int32" />
             <Parameter Name="CurrentTimeUtc" Mode="In" Type="DateTime" />
+            <Parameter Name="NumOnline" Mode="InOut" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="aspnet_Membership_GetPassword" ReturnType="Collection(ediuxplatform_dbModel.aspnet_Membership_GetPassword_Result)">
             <Parameter Name="ApplicationName" Mode="In" Type="String" />
@@ -1229,12 +1231,7 @@
             <Parameter Name="PasswordAttemptWindow" Mode="In" Type="Int32" />
             <Parameter Name="CurrentTimeUtc" Mode="In" Type="DateTime" />
             <Parameter Name="PasswordAnswer" Mode="In" Type="String" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_GetPasswordWithFormat" ReturnType="Collection(ediuxplatform_dbModel.aspnet_Membership_GetPasswordWithFormat_Result)">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="UserName" Mode="In" Type="String" />
-            <Parameter Name="UpdateLastLoginActivityDate" Mode="In" Type="Boolean" />
-            <Parameter Name="CurrentTimeUtc" Mode="In" Type="DateTime" />
+            <Parameter Name="ErrorCode" Mode="InOut" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="aspnet_Membership_GetUserByEmail" ReturnType="Collection(String)">
             <Parameter Name="ApplicationName" Mode="In" Type="String" />
@@ -1535,20 +1532,23 @@
             <End Role="aspnet_Users" EntitySet="aspnet_Users" />
             <End Role="aspnet_Membership" EntitySet="aspnet_Membership" />
           </AssociationSet>
+          <FunctionImport Name="aspnet_Membership_GetPasswordWithFormat" ReturnType="Collection(ediuxplatform_dbModel.aspnet_Membership_GetPasswordWithFormat_Result)">
+            <Parameter Name="ApplicationName" Mode="In" Type="String" />
+            <Parameter Name="UserName" Mode="In" Type="String" />
+            <Parameter Name="UpdateLastLoginActivityDate" Mode="In" Type="Boolean" />
+            <Parameter Name="CurrentTimeUtc" Mode="In" Type="DateTime" />
+            <Parameter Name="ReturnCode" Mode="InOut" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="aspnet_Membership_GetAllUsers" EntitySet="aspnet_Membership" ReturnType="Collection(ediuxplatform_dbModel.aspnet_Membership)">
+            <Parameter Name="ApplicationName" Mode="In" Type="String" />
+            <Parameter Name="PageIndex" Mode="In" Type="Int32" />
+            <Parameter Name="PageSize" Mode="In" Type="Int32" />
+            <Parameter Name="TotalRecords" Mode="InOut" Type="Int32" />
+          </FunctionImport>
         </EntityContainer>
         <ComplexType Name="aspnet_Membership_GetPassword_Result">
           <Property Type="String" Name="Column1" Nullable="true" MaxLength="128" />
           <Property Type="Int32" Name="Column2" Nullable="true" />
-        </ComplexType>
-        <ComplexType Name="aspnet_Membership_GetPasswordWithFormat_Result">
-          <Property Type="String" Name="Column1" Nullable="true" MaxLength="128" />
-          <Property Type="Int32" Name="Column2" Nullable="true" />
-          <Property Type="String" Name="Column3" Nullable="true" MaxLength="128" />
-          <Property Type="Int32" Name="Column4" Nullable="true" />
-          <Property Type="Int32" Name="Column5" Nullable="true" />
-          <Property Type="Boolean" Name="Column6" Nullable="true" />
-          <Property Type="DateTime" Name="Column7" Nullable="true" Precision="23" />
-          <Property Type="DateTime" Name="Column8" Nullable="true" Precision="23" />
         </ComplexType>
         <ComplexType Name="aspnet_Membership_GetUserByName_Result">
           <Property Type="String" Name="Email" Nullable="true" MaxLength="256" />
@@ -1735,6 +1735,16 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <ComplexType Name="aspnet_Membership_GetPasswordWithFormat_Result">
+          <Property Type="String" Name="Password" Nullable="true" MaxLength="128" />
+          <Property Type="Int32" Name="PasswordFormat" Nullable="true" />
+          <Property Type="String" Name="PasswordSalt" Nullable="true" MaxLength="128" />
+          <Property Type="Int32" Name="FailedPasswordAttemptCount" Nullable="true" />
+          <Property Type="Int32" Name="FailedPasswordAnswerAttemptCount" Nullable="true" />
+          <Property Type="Boolean" Name="IsApproved" Nullable="true" />
+          <Property Type="DateTime" Name="LastLoginDate" Nullable="true" Precision="23" />
+          <Property Type="DateTime" Name="C_LastActivityDate" Nullable="true" Precision="23" />
+        </ComplexType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1897,27 +1907,12 @@
           <FunctionImportMapping FunctionImportName="aspnet_Membership_CreateUser" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_CreateUser" />
           <FunctionImportMapping FunctionImportName="aspnet_Membership_FindUsersByEmail" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_FindUsersByEmail" />
           <FunctionImportMapping FunctionImportName="aspnet_Membership_FindUsersByName" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_FindUsersByName" />
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetAllUsers" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetAllUsers" />
           <FunctionImportMapping FunctionImportName="aspnet_Membership_GetNumberOfUsersOnline" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetNumberOfUsersOnline" />
           <FunctionImportMapping FunctionImportName="aspnet_Membership_GetPassword" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetPassword">
             <ResultMapping>
               <ComplexTypeMapping TypeName="ediuxplatform_dbModel.aspnet_Membership_GetPassword_Result">
                 <ScalarProperty Name="Column1" ColumnName="Column1" />
                 <ScalarProperty Name="Column2" ColumnName="Column2" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetPasswordWithFormat" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetPasswordWithFormat">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="ediuxplatform_dbModel.aspnet_Membership_GetPasswordWithFormat_Result">
-                <ScalarProperty Name="Column1" ColumnName="Column1" />
-                <ScalarProperty Name="Column2" ColumnName="Column2" />
-                <ScalarProperty Name="Column3" ColumnName="Column3" />
-                <ScalarProperty Name="Column4" ColumnName="Column4" />
-                <ScalarProperty Name="Column5" ColumnName="Column5" />
-                <ScalarProperty Name="Column6" ColumnName="Column6" />
-                <ScalarProperty Name="Column7" ColumnName="Column7" />
-                <ScalarProperty Name="Column8" ColumnName="Column8" />
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
@@ -2077,6 +2072,21 @@
               <ScalarProperty Name="Id" ColumnName="RoleId" />
             </EndProperty>
           </AssociationSetMapping>
+          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetPasswordWithFormat" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetPasswordWithFormat">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="ediuxplatform_dbModel.aspnet_Membership_GetPasswordWithFormat_Result">
+                <ScalarProperty Name="Password" ColumnName="Password" />
+                <ScalarProperty Name="PasswordFormat" ColumnName="PasswordFormat" />
+                <ScalarProperty Name="PasswordSalt" ColumnName="PasswordSalt" />
+                <ScalarProperty Name="FailedPasswordAttemptCount" ColumnName="FailedPasswordAttemptCount" />
+                <ScalarProperty Name="FailedPasswordAnswerAttemptCount" ColumnName="FailedPasswordAnswerAttemptCount" />
+                <ScalarProperty Name="IsApproved" ColumnName="IsApproved" />
+                <ScalarProperty Name="LastLoginDate" ColumnName="LastLoginDate" />
+                <ScalarProperty Name="C_LastActivityDate" ColumnName="@LastActivityDate" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetAllUsers" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetAllUsers" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

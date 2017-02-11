@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Data;
 using EdiuxTemplateWebApp;
+using System.Data.Entity.Core.Objects;
+using System.Web.Security;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
@@ -15,10 +17,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             return Task.FromResult(Where(s => s.Email == email).SingleOrDefault());
         }
 
-        public override aspnet_Membership Add(aspnet_Membership entity)
-        {
-            return base.Add(entity);
-        }
+
 
         public System.Web.Security.MembershipCreateStatus CreateUser(string applicationName, string userName,
             string password, string passwordSalt, string eMail, out Guid userId, string passwordQuestion = "",
@@ -28,7 +27,10 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                return UnitOfWork.GetDbContext<AspNetDbEntities2>().aspnet_Membership_CreateUser(
+                ObjectParameter _userId = new ObjectParameter("UserId", typeof(Guid));
+                ObjectParameter _statusCode = new ObjectParameter("CreareSttatus", typeof(int));
+
+                UnitOfWork.GetDbContext<AspNetDbEntities2>().aspnet_Membership_CreateUser(
                           applicationName,
                           userName,
                           password,
@@ -41,25 +43,28 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                             DateTime.UtcNow.Date,
                             uniqueEmail,
                         (int)passwordFormat,
-                            out userId
+                             _userId,
+                            _statusCode
                           );
 
+                userId = (Guid)_userId.Value;
+                int code = (int)_statusCode.Value;
 
-                //switch (code)
-                //{
-                //    case -1:
-                //        return System.Web.Security.MembershipCreateStatus.ProviderError;
-                //    case 0:
-                //        return System.Web.Security.MembershipCreateStatus.Success;
-                //    case 6:
-                //        return System.Web.Security.MembershipCreateStatus.DuplicateProviderUserKey;
-                //    case 7:
-                //        return System.Web.Security.MembershipCreateStatus.DuplicateEmail;
-                //    case 10:
-                //        return System.Web.Security.MembershipCreateStatus.DuplicateUserName;
-                //    default:
-                //        return System.Web.Security.MembershipCreateStatus.UserRejected;
-                //}
+                switch (code)
+                {
+                    case -1:
+                        return System.Web.Security.MembershipCreateStatus.ProviderError;
+                    case 0:
+                        return System.Web.Security.MembershipCreateStatus.Success;
+                    case 6:
+                        return System.Web.Security.MembershipCreateStatus.DuplicateProviderUserKey;
+                    case 7:
+                        return System.Web.Security.MembershipCreateStatus.DuplicateEmail;
+                    case 10:
+                        return System.Web.Security.MembershipCreateStatus.DuplicateUserName;
+                    default:
+                        return System.Web.Security.MembershipCreateStatus.UserRejected;
+                }
             }
             catch (Exception ex)
             {
@@ -151,6 +156,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
+               
                 var applicationNameParameter = applicationName != null ?
                 new SqlParameter("@ApplicationName", applicationName) :
                 new SqlParameter("@ApplicationName", SqlDbType.NVarChar, 256);
@@ -187,24 +193,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                var applicationNameParameter = applicationName != null ?
-                    new SqlParameter("@ApplicationName", applicationName) :
-                    new SqlParameter("@ApplicationName", SqlDbType.NVarChar, 256);
-
-                var PageIndexParameter =
-                    new SqlParameter("@PageIndex", PageIndex);
-
-                var PageSizeParameter = new SqlParameter("@PageSize", PageSize);
-
-                var returnCode = new SqlParameter();
-                returnCode.ParameterName = "@return_value";
-                returnCode.SqlDbType = SqlDbType.Int;
-                returnCode.Direction = ParameterDirection.Output;
-
-                var result = UnitOfWork.Context.Database.SqlQuery<aspnet_Membership>(
-                    "EXEC @return_value = [dbo].[aspnet_Membership_GetAllUsers] @ApplicationName, @PageIndex, @PageSize", applicationNameParameter, PageIndexParameter, PageSizeParameter, returnCode);
-
-                TotalRecords = (int)returnCode.Value;
+                ObjectParameter TotalRecordsParameter = new ObjectParameter("TotalRecords", typeof(int));
+                var result = UnitOfWork.GetDbContext<AspNetDbEntities2>().aspnet_Membership_GetAllUsers2(applicationName, PageIndex, PageSize, TotalRecordsParameter);
+                TotalRecords = (int)TotalRecordsParameter.Value;
 
                 return result.AsEnumerable();
             }
@@ -216,13 +207,15 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         }
 
         public int GetNumberOfUsersOnline(string applicationName,
-           int MinutesSinceLastInActive,DateTime CurrentTimeUtc)
+           int MinutesSinceLastInActive, DateTime CurrentTimeUtc)
         {
             try
             {
+                ObjectParameter num = new ObjectParameter("NumOnline", typeof(int));
                 var db = UnitOfWork.GetDbContext<AspNetDbEntities2>();
-                var result = db.aspnet_Membership_GetNumberOfUsersOnline(applicationName, MinutesSinceLastInActive, CurrentTimeUtc);
-                return result;
+                var result = db.aspnet_Membership_GetNumberOfUsersOnline(applicationName, MinutesSinceLastInActive, CurrentTimeUtc, num);
+
+                return (int)num.Value;
             }
             catch (Exception ex)
             {
@@ -236,36 +229,14 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                ICollection<aspnet_Membership_GetPassword_Result> output = null;
+                ObjectParameter errorCode = new ObjectParameter("ErrorCode", typeof(int));
 
-                var result = ((AspNetDbEntities2)UnitOfWork.Context).ExecuteStoredProcedureOrSqlFunction("aspnet_Membership_GetPassword",
-              out output, applicationName, userName, maxInvalidPasswordAttempts, PasswordAttemptWindow, CurrentTimeUtc, PasswordAnswer);
-                //var result = InternalDatabaseAlias.aspnet_Membership_GetPassword(applicationName, userName, maxInvalidPasswordAttempts, PasswordAttemptWindow, CurrentTimeUtc, PasswordAnswer).SingleOrDefault();
+                var db = UnitOfWork.GetDbContext<AspNetDbEntities2>();
+                var result = db.aspnet_Membership_GetPassword(applicationName, userName, maxInvalidPasswordAttempts, PasswordAttemptWindow, CurrentTimeUtc, PasswordAnswer, errorCode);
+                aspnet_Membership_GetPassword_Result singleRow = result.SingleOrDefault();
 
-                //if (result == null)
-                //    throw new Exception("User not found.");
-
-                //int code = result.Column2 ?? (int)System.Web.Security.MembershipPasswordFormat.Clear;
-
-                //switch (code)
-                //{
-                //    case 0:
-                //        passwordFormat = System.Web.Security.MembershipPasswordFormat.Clear;
-                //        break;
-                //    default:
-                //    case 1:
-                //        passwordFormat = System.Web.Security.MembershipPasswordFormat.Hashed;
-                //        break;
-                //    case 2:
-                //        passwordFormat = System.Web.Security.MembershipPasswordFormat.Encrypted;
-                //        break;
-                //}
-
-                //return result.Column1;
-                if (output.Any())
+                if ((int)errorCode.Value == 0)
                 {
-                    aspnet_Membership_GetPassword_Result singleRow = output.SingleOrDefault();
-
                     int code = singleRow.Column2 ?? (int)System.Web.Security.MembershipPasswordFormat.Clear;
 
                     switch (code)
@@ -284,27 +255,47 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
                     return singleRow.Column1;
                 }
+
                 passwordFormat = System.Web.Security.MembershipPasswordFormat.Hashed;
-                return null;
+                return string.Empty;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
-                throw ex;
+                throw;
             }
 
         }
 
-        public string GetPasswordWithFormat(string applicationName, string userName, bool updateLastLoginActivityDate, DateTime CurrentTimeUtc)
+        public string GetPasswordWithFormat(string applicationName, string userName, bool updateLastLoginActivityDate, DateTime CurrentTimeUtc, out MembershipPasswordFormat passwordFormat)
         {
 
             try
             {
-                ICollection<aspnet_Membership_GetPasswordWithFormat_Result> result = null;
-                int rtn = UnitOfWork.GetDbContext<AspNetDbEntities2>().ExecuteStoredProcedureOrSqlFunction("aspnet_Membership_GetPasswordWithFormat", out result, applicationName, userName, updateLastLoginActivityDate, CurrentTimeUtc);
-                if (rtn != 0)
+                ObjectParameter errorCode = new ObjectParameter("ReturnCode", typeof(int));
+
+                ObjectResult<aspnet_Membership_GetPasswordWithFormat_Result> result = null;
+                result = UnitOfWork.GetDbContext<AspNetDbEntities2>().aspnet_Membership_GetPasswordWithFormat(applicationName, userName, updateLastLoginActivityDate, CurrentTimeUtc, errorCode);
+                if (errorCode == null)
                     throw new Exception("Error");
-                return result.SingleOrDefault()?.Column1;
+
+                aspnet_Membership_GetPasswordWithFormat_Result row = result.SingleOrDefault();
+                int code = (row == null) ? -1 : row.PasswordFormat.Value;
+
+                switch (code)
+                {
+                    case 0:
+                        passwordFormat = System.Web.Security.MembershipPasswordFormat.Clear;
+                        break;
+                    default:
+                    case 1:
+                        passwordFormat = System.Web.Security.MembershipPasswordFormat.Hashed;
+                        break;
+                    case 2:
+                        passwordFormat = System.Web.Security.MembershipPasswordFormat.Encrypted;
+                        break;
+                }
+                return result.SingleOrDefault()?.Password;
             }
             catch (Exception ex)
             {
@@ -332,6 +323,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         string GetPassword(string applicationName, string userName, int maxInvalidPasswordAttempts, int PasswordAttemptWindow, DateTime CurrentTimeUtc, out System.Web.Security.MembershipPasswordFormat passwordFormat, string PasswordAnswer = null);
 
-        string GetPasswordWithFormat(string applicationName, string userName, bool updateLastLoginActivityDate, DateTime CurrentTimeUtc);
+        string GetPasswordWithFormat(string applicationName, string userName, bool updateLastLoginActivityDate, DateTime CurrentTimeUtc, out MembershipPasswordFormat passwordFormat);
     }
 }

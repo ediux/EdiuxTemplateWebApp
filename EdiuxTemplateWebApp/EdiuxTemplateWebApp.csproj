@@ -266,14 +266,8 @@
     <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordWithFormat_Result.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordWithFormat_Result.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\aspnet_Membership_GetPassword_Result.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPassword_Result.Partial.cs">
-      <DependentUpon>EFGeneratePartialClass.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\aspnet_Membership_GetUserByName_Result.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>

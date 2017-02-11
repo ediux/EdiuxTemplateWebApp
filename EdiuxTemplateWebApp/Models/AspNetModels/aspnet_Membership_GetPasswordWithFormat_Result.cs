@@ -13,13 +13,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     
     public partial class aspnet_Membership_GetPasswordWithFormat_Result
     {
-        public string Column1 { get; set; }
-        public Nullable<int> Column2 { get; set; }
-        public string Column3 { get; set; }
-        public Nullable<int> Column4 { get; set; }
-        public Nullable<int> Column5 { get; set; }
-        public Nullable<bool> Column6 { get; set; }
-        public Nullable<System.DateTime> Column7 { get; set; }
-        public Nullable<System.DateTime> Column8 { get; set; }
+        public string Password { get; set; }
+        public Nullable<int> PasswordFormat { get; set; }
+        public string PasswordSalt { get; set; }
+        public Nullable<int> FailedPasswordAttemptCount { get; set; }
+        public Nullable<int> FailedPasswordAnswerAttemptCount { get; set; }
+        public Nullable<bool> IsApproved { get; set; }
+        public Nullable<System.DateTime> LastLoginDate { get; set; }
+        public Nullable<System.DateTime> C_LastActivityDate { get; set; }
     }
 }

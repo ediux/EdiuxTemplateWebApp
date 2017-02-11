@@ -33,7 +33,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels.Tests
             try
             {
                 membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository();
-                
+
                 int checkpoint = membershipRepo.GetNumberOfUsersOnline(getApplicationNameFromConfiguationFile(), 30, DateTime.UtcNow);
                 Assert.IsTrue(checkpoint >= 0);
             }
@@ -41,13 +41,41 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels.Tests
             {
                 Assert.Fail(ex.Message + ex.StackTrace);
             }
-           
+
         }
 
         [TestMethod()]
         public void GetPasswordTest()
         {
-            Assert.Fail();
+            try
+            {
+                membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository();
+                System.Web.Security.MembershipPasswordFormat PwdFormat;
+                string pwd = membershipRepo.GetPassword(getApplicationNameFromConfiguationFile(), "root", 30, 5, DateTime.UtcNow, out PwdFormat, "");
+                Assert.IsTrue(string.IsNullOrEmpty(pwd) != true);
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message + ex.StackTrace);
+            }
+        }
+
+        [TestMethod()]
+        public void CreateUserTest()
+        {
+            try
+            {
+                membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository();
+                Guid UserId = Guid.Empty;
+                System.Web.Security.MembershipCreateStatus createUserStatus;
+                createUserStatus = membershipRepo.CreateUser(getApplicationNameFromConfiguationFile(), "root" + Guid.NewGuid().ToString("N")
+                    , System.Web.Security.Membership.GeneratePassword(8, 1), Guid.NewGuid().ToString("N"), "local@localhost", out UserId);
+                Assert.IsTrue(createUserStatus == System.Web.Security.MembershipCreateStatus.Success && UserId != Guid.Empty);
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message + ex.StackTrace);
+            }
         }
     }
 }

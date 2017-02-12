@@ -126,7 +126,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 WriteErrorLog(ex);
                 throw ex;
             }
- 
+
         }
         public aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "@abc.com", bool IsUserAnonymous = false)
         {
@@ -189,10 +189,10 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 returnCode.Direction = ParameterDirection.Output;
 
                 int code = 0;
-                
+
                 var result = UnitOfWork.Context.Database.ExecuteSqlCommand("EXEC @return_value = [dbo].[aspnet_UsersInRoles_IsUserInRole] @ApplicationName, @UserName, @RoleName", applicationNameParameter, userNameParameter, roleNameParameter, returnCode);
                 // ((IObjectContextAdapter)UnitOfWork.Context).ObjectContext.ExecuteFunction("aspnet_UsersInRoles_IsUserInRole", applicationNameParameter, userNameParameter, roleNameParameter,returnCode);
-                
+
                 code = (int)returnCode.Value;
                 return (code == 1);
             }
@@ -231,6 +231,31 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
 
         }
+
+        public aspnet_Users FindByName(string applicationName, string userName)
+        {
+            try
+            {
+                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(UnitOfWork);
+                var app = appRepo.FindByName(applicationName);
+                var loweredUserName = userName.ToLowerInvariant();
+                if (app == null)
+                {
+                    return null;
+                }
+                var users = Where(s => s.ApplicationId == app.ApplicationId
+                && (s.UserName == userName || s.LoweredUserName == loweredUserName))
+                .OrderByDescending(o => o.LastActivityDate);
+
+                return users.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+        
+        }
     }
 
     public partial interface Iaspnet_UsersRepository : IRepositoryBase<aspnet_Users>
@@ -240,8 +265,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         void AddToRole(string applicationName, string userName, string roleName);
         bool IsInRole(string applicationName, string userName, string roleName);
         IList<string> FindUsersInRole(string applicationName, string UserNameToMatch, string roleName);
-
         IList<string> GetRolesForUser(string applicationName, string userName);
-
+        aspnet_Users FindByName(string applicationName, string userName);
     }
 }

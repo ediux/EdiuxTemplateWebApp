@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Linq.Expressions;
 using System.Data;
 using System.Data.SqlClient;
+using EdiuxTemplateWebApp.Helpers;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
@@ -112,9 +113,25 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                ObjectParameter applicationId = new ObjectParameter("ApplicationId", typeof(Guid));
-                InternalDatabaseAlias.aspnet_Applications_CreateApplication(applicationName, applicationId);
-                return Get(applicationId.Value);
+                var db = UnitOfWork.GetAspNetMembershipDbContext();
+
+                var existedApp = FindByName(applicationName);
+
+                if (existedApp == null)
+                {
+                    aspnet_Applications newApp = new aspnet_Applications();
+                    newApp.ApplicationId = Guid.NewGuid();
+                    newApp.ApplicationName = applicationName;
+                    newApp.LoweredApplicationName = applicationName.ToLowerInvariant();
+
+                    newApp = Add(newApp);
+                    UnitOfWork.Commit();
+                    newApp = Reload(newApp);
+
+                    return newApp;
+                }
+
+                return existedApp;
             }
             catch (Exception ex)
             {

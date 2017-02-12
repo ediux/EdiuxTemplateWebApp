@@ -435,63 +435,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Function Name="aspnet_AnyDataInTables" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="TablesToCheck" Type="int" Mode="In" />
-        </Function>
-        <Function Name="aspnet_Applications_CreateApplication" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="ApplicationId" Type="uniqueidentifier" Mode="InOut" />
-        </Function>
-        <Function Name="aspnet_CheckSchemaVersion" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="Feature" Type="nvarchar" Mode="In" />
-          <Parameter Name="CompatibleSchemaVersion" Type="nvarchar" Mode="In" />
-        </Function>
-        <Function Name="aspnet_Membership_ChangePasswordQuestionAndAnswer" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="UserName" Type="nvarchar" Mode="In" />
-          <Parameter Name="NewPasswordQuestion" Type="nvarchar" Mode="In" />
-          <Parameter Name="NewPasswordAnswer" Type="nvarchar" Mode="In" />
-        </Function>
-        <Function Name="aspnet_Membership_CreateUser" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="UserName" Type="nvarchar" Mode="In" />
-          <Parameter Name="Password" Type="nvarchar" Mode="In" />
-          <Parameter Name="PasswordSalt" Type="nvarchar" Mode="In" />
-          <Parameter Name="Email" Type="nvarchar" Mode="In" />
-          <Parameter Name="PasswordQuestion" Type="nvarchar" Mode="In" />
-          <Parameter Name="PasswordAnswer" Type="nvarchar" Mode="In" />
-          <Parameter Name="IsApproved" Type="bit" Mode="In" />
-          <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
-          <Parameter Name="CreateDate" Type="datetime" Mode="In" />
-          <Parameter Name="UniqueEmail" Type="int" Mode="In" />
-          <Parameter Name="PasswordFormat" Type="int" Mode="In" />
-          <Parameter Name="UserId" Type="uniqueidentifier" Mode="InOut" />
-          <Parameter Name="CreareSttatus" Type="int" Mode="InOut" />
-        </Function>
-        <Function Name="aspnet_Membership_FindUsersByEmail" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="EmailToMatch" Type="nvarchar" Mode="In" />
-          <Parameter Name="PageIndex" Type="int" Mode="In" />
-          <Parameter Name="PageSize" Type="int" Mode="In" />
-        </Function>
-        <Function Name="aspnet_Membership_FindUsersByName" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="UserNameToMatch" Type="nvarchar" Mode="In" />
-          <Parameter Name="PageIndex" Type="int" Mode="In" />
-          <Parameter Name="PageSize" Type="int" Mode="In" />
-        </Function>
-        <Function Name="aspnet_Membership_GetAllUsers" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="PageIndex" Type="int" Mode="In" />
-          <Parameter Name="PageSize" Type="int" Mode="In" />
-          <Parameter Name="TotalRecords" Type="int" Mode="InOut" />
-        </Function>
-        <Function Name="aspnet_Membership_GetNumberOfUsersOnline" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="MinutesSinceLastInActive" Type="int" Mode="In" />
-          <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
-          <Parameter Name="NumOnline" Type="int" Mode="InOut" />
-        </Function>
         <Function Name="aspnet_Membership_GetPassword" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
           <Parameter Name="UserName" Type="nvarchar" Mode="In" />
@@ -507,21 +450,6 @@
           <Parameter Name="UpdateLastLoginActivityDate" Type="bit" Mode="In" />
           <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
           <Parameter Name="ReturnCode" Type="int" Mode="InOut" />
-        </Function>
-        <Function Name="aspnet_Membership_GetUserByEmail" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="Email" Type="nvarchar" Mode="In" />
-        </Function>
-        <Function Name="aspnet_Membership_GetUserByName" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
-          <Parameter Name="UserName" Type="nvarchar" Mode="In" />
-          <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
-          <Parameter Name="UpdateLastActivity" Type="bit" Mode="In" />
-        </Function>
-        <Function Name="aspnet_Membership_GetUserByUserId" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
-          <Parameter Name="UserId" Type="uniqueidentifier" Mode="In" />
-          <Parameter Name="CurrentTimeUtc" Type="datetime" Mode="In" />
-          <Parameter Name="UpdateLastActivity" Type="bit" Mode="In" />
         </Function>
         <Function Name="aspnet_Membership_ResetPassword" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="ApplicationName" Type="nvarchar" Mode="In" />
@@ -1173,57 +1101,6 @@
             <End Role="aspnet_Roles" EntitySet="aspnet_Roles" />
             <End Role="aspnet_Users" EntitySet="aspnet_Users" />
           </AssociationSet>
-          <FunctionImport Name="aspnet_AnyDataInTables" ReturnType="Collection(String)">
-          <Parameter Name="TablesToCheck" Mode="In" Type="Int32" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Applications_CreateApplication">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="ApplicationId" Mode="InOut" Type="Guid" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_CheckSchemaVersion">
-            <Parameter Name="Feature" Mode="In" Type="String" />
-            <Parameter Name="CompatibleSchemaVersion" Mode="In" Type="String" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_ChangePasswordQuestionAndAnswer">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="UserName" Mode="In" Type="String" />
-            <Parameter Name="NewPasswordQuestion" Mode="In" Type="String" />
-            <Parameter Name="NewPasswordAnswer" Mode="In" Type="String" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_CreateUser">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="UserName" Mode="In" Type="String" />
-            <Parameter Name="Password" Mode="In" Type="String" />
-            <Parameter Name="PasswordSalt" Mode="In" Type="String" />
-            <Parameter Name="Email" Mode="In" Type="String" />
-            <Parameter Name="PasswordQuestion" Mode="In" Type="String" />
-            <Parameter Name="PasswordAnswer" Mode="In" Type="String" />
-            <Parameter Name="IsApproved" Mode="In" Type="Boolean" />
-            <Parameter Name="CurrentTimeUtc" Mode="In" Type="DateTime" />
-            <Parameter Name="CreateDate" Mode="In" Type="DateTime" />
-            <Parameter Name="UniqueEmail" Mode="In" Type="Int32" />
-            <Parameter Name="PasswordFormat" Mode="In" Type="Int32" />
-            <Parameter Name="UserId" Mode="InOut" Type="Guid" />
-            <Parameter Name="CreareSttatus" Mode="InOut" Type="Int32" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_FindUsersByEmail">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="EmailToMatch" Mode="In" Type="String" />
-            <Parameter Name="PageIndex" Mode="In" Type="Int32" />
-            <Parameter Name="PageSize" Mode="In" Type="Int32" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_FindUsersByName">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="UserNameToMatch" Mode="In" Type="String" />
-            <Parameter Name="PageIndex" Mode="In" Type="Int32" />
-            <Parameter Name="PageSize" Mode="In" Type="Int32" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_GetNumberOfUsersOnline">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="MinutesSinceLastInActive" Mode="In" Type="Int32" />
-            <Parameter Name="CurrentTimeUtc" Mode="In" Type="DateTime" />
-            <Parameter Name="NumOnline" Mode="InOut" Type="Int32" />
-          </FunctionImport>
           <FunctionImport Name="aspnet_Membership_GetPassword" ReturnType="Collection(ediuxplatform_dbModel.aspnet_Membership_GetPassword_Result)">
             <Parameter Name="ApplicationName" Mode="In" Type="String" />
             <Parameter Name="UserName" Mode="In" Type="String" />
@@ -1538,12 +1415,6 @@
             <Parameter Name="UpdateLastLoginActivityDate" Mode="In" Type="Boolean" />
             <Parameter Name="CurrentTimeUtc" Mode="In" Type="DateTime" />
             <Parameter Name="ReturnCode" Mode="InOut" Type="Int32" />
-          </FunctionImport>
-          <FunctionImport Name="aspnet_Membership_GetAllUsers" EntitySet="aspnet_Membership" ReturnType="Collection(ediuxplatform_dbModel.aspnet_Membership)">
-            <Parameter Name="ApplicationName" Mode="In" Type="String" />
-            <Parameter Name="PageIndex" Mode="In" Type="Int32" />
-            <Parameter Name="PageSize" Mode="In" Type="Int32" />
-            <Parameter Name="TotalRecords" Mode="InOut" Type="Int32" />
           </FunctionImport>
         </EntityContainer>
         <ComplexType Name="aspnet_Membership_GetPassword_Result">
@@ -1900,54 +1771,11 @@
               <ScalarProperty Name="Id" ColumnName="UserId" />
             </EndProperty>
           </AssociationSetMapping>
-          <FunctionImportMapping FunctionImportName="aspnet_AnyDataInTables" FunctionName="ediuxplatform_dbModel.Store.aspnet_AnyDataInTables" />
-          <FunctionImportMapping FunctionImportName="aspnet_Applications_CreateApplication" FunctionName="ediuxplatform_dbModel.Store.aspnet_Applications_CreateApplication" />
-          <FunctionImportMapping FunctionImportName="aspnet_CheckSchemaVersion" FunctionName="ediuxplatform_dbModel.Store.aspnet_CheckSchemaVersion" />
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_ChangePasswordQuestionAndAnswer" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_ChangePasswordQuestionAndAnswer" />
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_CreateUser" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_CreateUser" />
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_FindUsersByEmail" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_FindUsersByEmail" />
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_FindUsersByName" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_FindUsersByName" />
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetNumberOfUsersOnline" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetNumberOfUsersOnline" />
           <FunctionImportMapping FunctionImportName="aspnet_Membership_GetPassword" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetPassword">
             <ResultMapping>
               <ComplexTypeMapping TypeName="ediuxplatform_dbModel.aspnet_Membership_GetPassword_Result">
                 <ScalarProperty Name="Column1" ColumnName="Column1" />
                 <ScalarProperty Name="Column2" ColumnName="Column2" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetUserByEmail" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetUserByEmail" />
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetUserByName" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetUserByName">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="ediuxplatform_dbModel.aspnet_Membership_GetUserByName_Result">
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="PasswordQuestion" ColumnName="PasswordQuestion" />
-                <ScalarProperty Name="Comment" ColumnName="Comment" />
-                <ScalarProperty Name="IsApproved" ColumnName="IsApproved" />
-                <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
-                <ScalarProperty Name="LastLoginDate" ColumnName="LastLoginDate" />
-                <ScalarProperty Name="LastActivityDate" ColumnName="LastActivityDate" />
-                <ScalarProperty Name="LastPasswordChangedDate" ColumnName="LastPasswordChangedDate" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="IsLockedOut" ColumnName="IsLockedOut" />
-                <ScalarProperty Name="LastLockoutDate" ColumnName="LastLockoutDate" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetUserByUserId" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetUserByUserId">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="ediuxplatform_dbModel.aspnet_Membership_GetUserByUserId_Result">
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="PasswordQuestion" ColumnName="PasswordQuestion" />
-                <ScalarProperty Name="Comment" ColumnName="Comment" />
-                <ScalarProperty Name="IsApproved" ColumnName="IsApproved" />
-                <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
-                <ScalarProperty Name="LastLoginDate" ColumnName="LastLoginDate" />
-                <ScalarProperty Name="LastActivityDate" ColumnName="LastActivityDate" />
-                <ScalarProperty Name="LastPasswordChangedDate" ColumnName="LastPasswordChangedDate" />
-                <ScalarProperty Name="UserName" ColumnName="UserName" />
-                <ScalarProperty Name="IsLockedOut" ColumnName="IsLockedOut" />
-                <ScalarProperty Name="LastLockoutDate" ColumnName="LastLockoutDate" />
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
@@ -2086,7 +1914,6 @@
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="aspnet_Membership_GetAllUsers" FunctionName="ediuxplatform_dbModel.Store.aspnet_Membership_GetAllUsers" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

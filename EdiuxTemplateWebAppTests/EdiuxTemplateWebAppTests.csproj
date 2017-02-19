@@ -64,6 +64,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="aspnet_MembershipRepositoryTests.cs" />
+    <Compile Include="Models\AspNetModels\partailClasses\AspNetDbEntities2Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

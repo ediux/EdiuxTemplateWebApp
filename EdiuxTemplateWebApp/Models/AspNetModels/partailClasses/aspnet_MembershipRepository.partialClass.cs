@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Data;
 using EdiuxTemplateWebApp;
 using EdiuxTemplateWebApp.Helpers;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
@@ -184,7 +185,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public IEnumerable<aspnet_Membership> FindUsersByEmail(string applicationName, string emailToMatch, out int TotalRecords, int PageIndex = 1, int PageSize = 5)
         {
             try
-            {                
+            {
                 var result = from m in ObjectSet
                              from u in UnitOfWork.GetAspNetMembershipDbContext().aspnet_Users
                              where m.LoweredEmail.Equals(emailToMatch, StringComparison.InvariantCultureIgnoreCase)
@@ -281,57 +282,31 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                ICollection<aspnet_Membership_GetPassword_Result> output = null;
+                aspnet_Membership_GetPasswordResult result = UnitOfWork.GetAspNetMembershipDbContext().aspnet_Membership_GetPassword(
+                    applicationName, userName,
+                    maxInvalidPasswordAttempts,
+                    PasswordAttemptWindow,
+                    CurrentTimeUtc,
+                    PasswordAnswer);
 
-                var result = UnitOfWork.GetAspNetMembershipDbContext().aspnet_Membership_GetPassword(applicationName,
-                    userName, maxInvalidPasswordAttempts, PasswordAttemptWindow, CurrentTimeUtc, PasswordAnswer, null);
-              out output, applicationName, userName, maxInvalidPasswordAttempts, PasswordAttemptWindow, CurrentTimeUtc, PasswordAnswer);
-                //var result = InternalDatabaseAlias.aspnet_Membership_GetPassword(applicationName, userName, maxInvalidPasswordAttempts, PasswordAttemptWindow, CurrentTimeUtc, PasswordAnswer).SingleOrDefault();
+                int code = result.PasswordFormat;
 
-                //if (result == null)
-                //    throw new Exception("User not found.");
-
-                //int code = result.Column2 ?? (int)System.Web.Security.MembershipPasswordFormat.Clear;
-
-                //switch (code)
-                //{
-                //    case 0:
-                //        passwordFormat = System.Web.Security.MembershipPasswordFormat.Clear;
-                //        break;
-                //    default:
-                //    case 1:
-                //        passwordFormat = System.Web.Security.MembershipPasswordFormat.Hashed;
-                //        break;
-                //    case 2:
-                //        passwordFormat = System.Web.Security.MembershipPasswordFormat.Encrypted;
-                //        break;
-                //}
-
-                //return result.Column1;
-                if (output.Any())
+                switch (code)
                 {
-                    aspnet_Membership_GetPassword_Result singleRow = output.SingleOrDefault();
+                    default:
+                    case 0:
+                        passwordFormat = System.Web.Security.MembershipPasswordFormat.Clear;
+                        break;
 
-                    int code = singleRow.Column2 ?? (int)System.Web.Security.MembershipPasswordFormat.Clear;
-
-                    switch (code)
-                    {
-                        case 0:
-                            passwordFormat = System.Web.Security.MembershipPasswordFormat.Clear;
-                            break;
-                        default:
-                        case 1:
-                            passwordFormat = System.Web.Security.MembershipPasswordFormat.Hashed;
-                            break;
-                        case 2:
-                            passwordFormat = System.Web.Security.MembershipPasswordFormat.Encrypted;
-                            break;
-                    }
-
-                    return singleRow.Column1;
+                    case 1:
+                        passwordFormat = System.Web.Security.MembershipPasswordFormat.Hashed;
+                        break;
+                    case 2:
+                        passwordFormat = System.Web.Security.MembershipPasswordFormat.Encrypted;
+                        break;
                 }
-                passwordFormat = System.Web.Security.MembershipPasswordFormat.Hashed;
-                return null;
+
+                return result.Password;
             }
             catch (Exception ex)
             {
@@ -346,11 +321,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                ICollection<aspnet_Membership_GetPasswordWithFormat_Result> result = null;
-                int rtn = UnitOfWork.GetDbContext<AspNetDbEntities2>().ExecuteStoredProcedureOrSqlFunction("aspnet_Membership_GetPasswordWithFormat", out result, applicationName, userName, updateLastLoginActivityDate, CurrentTimeUtc);
-                if (rtn != 0)
-                    throw new Exception("Error");
-                return result.SingleOrDefault()?.Column1;
+                aspnet_Membership_GetPasswordWithFormatResult result = UnitOfWork.GetAspNetMembershipDbContext().aspnet_Membership_GetPasswordWithFormat(
+                      applicationName,
+                      userName,
+                      updateLastLoginActivityDate,
+                      CurrentTimeUtc);
+
+                return result.Password;
             }
             catch (Exception ex)
             {

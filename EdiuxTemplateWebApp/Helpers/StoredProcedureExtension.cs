@@ -8,6 +8,28 @@ using System.Reflection;
 
 namespace EdiuxTemplateWebApp
 {
+    [AttributeUsage(AttributeTargets.Property)]
+    public class OutputParameterAttribute : Attribute
+    {
+        public int Order { get; set; }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class InputParameterMappingAttribute : Attribute
+    {
+        private string _inputParameters = "";
+        public InputParameterMappingAttribute(string InputParamters)
+        {
+            _inputParameters = InputParamters;
+        }
+
+        public string InputParameters { get { return _inputParameters; } }
+
+        public string OutputParameters { get; set; }
+
+        private string _returnParameter = "";
+        public string ReturnParameter { get { return _returnParameter; } set { _returnParameter = value; } }
+    }
     public static class StoredProcedureExtension
     {
         /// <summary>
@@ -15,59 +37,31 @@ namespace EdiuxTemplateWebApp
         /// </summary>
         private const int CommandTimeout = 38400;
 
-        /// <summary>
-        /// 取得目前資料庫的參數格式。
-        /// </summary>
-        /// <param name="db"></param>
-        /// <returns></returns>
-        private static string GetParameterFormat(DbContext db)
-        {
-            DataTable tbl =
-                   db.Database.Connection.GetSchema(DbMetaDataCollectionNames.DataSourceInformation);
 
-            string m_parameterMarkerFormat =
-                        tbl.Rows[0][DbMetaDataColumnNames.ParameterMarkerFormat] as string;
-
-            if (String.IsNullOrEmpty(m_parameterMarkerFormat))
-                m_parameterMarkerFormat = "{0}";
-
-            return m_parameterMarkerFormat;
-        }
 
         public static T ExecuteFunction<T>(this DbContext db,
                                                        string FNName,
-                                                       string ParameterNames,
                                                        params object[] paramters)
         {
             try
-            {              
+            {
                 //Had to go this route since EF Code First doesn't support output parameters 
                 //returned from sprocs very well at this point
+
+                if (string.IsNullOrEmpty(FNName))
+                {
+                    throw new ArgumentNullException(nameof(FNName));
+                }
 
                 DbCommand cmd = db.Database.Connection.CreateCommand();
                 cmd.CommandTimeout = CommandTimeout;
                 cmd.CommandText = FNName;
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                if (string.IsNullOrEmpty(ParameterNames))
-                {
-                    throw new ArgumentNullException(nameof(ParameterNames));
-                }
+                string m_parameterMarkerFormat = string.Empty;
 
-                string[] sqlParameterNames = ParameterNames.Split(',');
-                string parameterFormat = GetParameterFormat(db);
+                ScanforParameters(db, paramters, cmd, out m_parameterMarkerFormat);
 
-                if (sqlParameterNames != null && sqlParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlParameterNames.Length; i++)
-                    {
-                        DbParameter parameterObject = cmd.CreateParameter();
-                        parameterObject.ParameterName = string.Format(parameterFormat, sqlParameterNames[i]);
-                        parameterObject.Direction = ParameterDirection.InputOutput;
-                        parameterObject.Value = paramters[i];
-                        cmd.Parameters.Add(parameterObject);
-                    }
-                }
 
                 if (db.Database.Connection.State == ConnectionState.Closed)
                 {
@@ -83,15 +77,15 @@ namespace EdiuxTemplateWebApp
             }
             finally
             {
-                db.Database.Connection.Close();
+                if (db.Database.Connection.State == ConnectionState.Open)
+                    db.Database.Connection.Close();
             }
 
         }
 
-        public static int ExecuteStoredProcedure(this DbContext db, string SPName,
-                                                  string ParameterNames,
-                                                  string OutputParamterName,
-                                                  params object[] paramters)
+        public static int ExecuteStoredProcedure(this DbContext db,
+                                                string SPName,
+                                                params object[] paramters)
         {
             try
             {
@@ -100,44 +94,11 @@ namespace EdiuxTemplateWebApp
                 cmd.CommandText = SPName;
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                string[] sqlParameterNames = ParameterNames.Split(',');
-                string parameterFormat = GetParameterFormat(db);
+                string m_parameterMarkerFormat = string.Empty;
 
-                if (sqlParameterNames != null && sqlParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlParameterNames.Length; i++)
-                    {
-                        DbParameter parameterObject = cmd.CreateParameter();
-                        parameterObject.ParameterName = string.Format(parameterFormat, sqlParameterNames[i]);
-                        parameterObject.Direction = ParameterDirection.InputOutput;
-                        parameterObject.Value = paramters[i];
-                        cmd.Parameters.Add(parameterObject);
-                    }
-                }
+                ScanforParameters(db, paramters, cmd, out m_parameterMarkerFormat);
 
-                string[] sqlOutputParameterNames = ParameterNames.Split(',');
-
-                if (sqlOutputParameterNames != null && sqlOutputParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlOutputParameterNames.Length; i++)
-                    {
-                        DbParameter parameterObject = cmd.CreateParameter();
-                        parameterObject.ParameterName = string.Format(parameterFormat, sqlOutputParameterNames[i]);
-                        parameterObject.Direction = ParameterDirection.Output;
-                        parameterObject.Value = paramters[i + sqlParameterNames.Length];
-                        cmd.Parameters.Add(parameterObject);
-                    }
-                }
-
-                DbParameter retunValueParameter = cmd.CreateParameter();
-
-                retunValueParameter.Direction = ParameterDirection.ReturnValue;
-
-                retunValueParameter.DbType = DbType.Int32;
-
-                retunValueParameter.ParameterName = string.Format(parameterFormat, "RETURN_VALUE");
-
-                cmd.Parameters.Add(retunValueParameter);
+                DbParameter retunValueParameter = MakeReturnValueParameter(cmd, m_parameterMarkerFormat);
 
                 if (db.Database.Connection.State == ConnectionState.Closed)
                 {
@@ -154,24 +115,15 @@ namespace EdiuxTemplateWebApp
             }
             finally
             {
-                db.Database.Connection.Close();
+                if (db.Database.Connection.State == ConnectionState.Open)
+                    db.Database.Connection.Close();
             }
         }
 
-        public static int ExecuteStoredProcedure(this DbContext db,
-                                                string SPName,
-                                                string ParameterNames,
-                                                params object[] paramters)
-        {
-            return ExecuteStoredProcedure(db, SPName, ParameterNames, "", paramters);
-        }
-
         public static int ExecuteStoredProcedure<T>(this DbContext db,
-                                                        string SPName,
-                                                        string ParameterNames,
-                                                        string OutputParamterName,
-                                                        out List<T> QueryResult,
-                                                        params object[] paramters)
+                                               string SPName,
+                                               out IEnumerable<T> QueryResult,
+                                               params object[] paramters)
         {
             try
             {
@@ -181,42 +133,11 @@ namespace EdiuxTemplateWebApp
                 cmd.CommandText = SPName;
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                string[] sqlParameterNames = ParameterNames.Split(',');
-                string m_parameterMarkerFormat = GetParameterFormat(db);
+                string m_parameterMarkerFormat = string.Empty;
 
-                if (sqlParameterNames != null && sqlParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlParameterNames.Length; i++)
-                    {
-                        DbParameter parameterObject = cmd.CreateParameter();
-                        parameterObject.ParameterName = string.Format(m_parameterMarkerFormat, sqlParameterNames[i]);
-                        parameterObject.Direction = ParameterDirection.InputOutput;
-                        parameterObject.Value = paramters[i];
-                        cmd.Parameters.Add(parameterObject);
-                    }
-                }
+                ScanforParameters(db, paramters, cmd, out m_parameterMarkerFormat);
 
-                string[] sqlOutputParameterNames = ParameterNames.Split(',');
-
-                if (sqlOutputParameterNames != null && sqlOutputParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlOutputParameterNames.Length; i++)
-                    {
-                        DbParameter parameterObject = cmd.CreateParameter();
-                        parameterObject.ParameterName = string.Format(m_parameterMarkerFormat, sqlOutputParameterNames[i]);
-                        parameterObject.Direction = ParameterDirection.Output;
-                        parameterObject.Value = paramters[i + sqlParameterNames.Length];
-                        cmd.Parameters.Add(parameterObject);
-                    }
-                }
-
-                DbParameter retunValueParameter = cmd.CreateParameter();
-
-                retunValueParameter.Direction = ParameterDirection.ReturnValue;
-                retunValueParameter.DbType = DbType.Int32;
-                retunValueParameter.ParameterName = string.Format(m_parameterMarkerFormat, "RETURN_VALUE");
-
-                cmd.Parameters.Add(retunValueParameter);
+                DbParameter retunValueParameter = MakeReturnValueParameter(cmd, m_parameterMarkerFormat);
 
                 if (db.Database.Connection.State == ConnectionState.Closed)
                 {
@@ -233,19 +154,10 @@ namespace EdiuxTemplateWebApp
                     }
                 }
 
-                if (sqlOutputParameterNames != null && sqlOutputParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlOutputParameterNames.Length; i++)
-                    {
-                        string key = string.Format(m_parameterMarkerFormat, sqlOutputParameterNames[i]);
-                        paramters[i + sqlParameterNames.Length] = cmd.Parameters[key].Value;
-                    }
-                }
-
-                QueryResult = tasks;
+                QueryResult = tasks.AsEnumerable();
 
                 if (QueryResult == null)
-                    QueryResult = new List<T>();
+                    QueryResult = new List<T>().AsEnumerable();
 
                 return (int)retunValueParameter.Value;
             }
@@ -255,26 +167,17 @@ namespace EdiuxTemplateWebApp
             }
             finally
             {
-                db.Database.Connection.Close();
+                if (db.Database.Connection.State == ConnectionState.Open)
+                    db.Database.Connection.Close();
             }
         }
 
-        public static int ExecuteStoredProcedure<T>(this DbContext db,
+        public static void ExecuteStoredProcedure<O>(this DbContext db,
                                                 string SPName,
-                                                string ParameterNames,
-                                                out List<T> QueryResult,
+                                                out O outputparameter,
+                                                out int ReturnValue,
                                                 params object[] paramters)
         {
-            return ExecuteStoredProcedure(db, SPName, ParameterNames, "", out QueryResult, paramters);
-        }
-
-        public static List<T> ExecuteStoredProcedure<T>(this DbContext db,
-                                                        string SPName,
-                                                        string ParameterNames,
-                                                        string OutputParamterName = "",
-                                                        params object[] paramters)
-        {
-
             try
             {
 
@@ -283,42 +186,108 @@ namespace EdiuxTemplateWebApp
                 cmd.CommandText = SPName;
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                string[] sqlParameterNames = ParameterNames.Split(',');
-                string m_parameterMarkerFormat = GetParameterFormat(db);
+                string m_parameterMarkerFormat = string.Empty;
 
-                if (sqlParameterNames != null && sqlParameterNames.Length > 0)
+                ScanforParameters(db, paramters, cmd, out m_parameterMarkerFormat);
+
+                Type outputCLRType;
+
+                ScanOutputParameters(out outputparameter, paramters, cmd, m_parameterMarkerFormat, out outputCLRType);
+
+                DbParameter retunValueParameter = MakeReturnValueParameter(cmd, m_parameterMarkerFormat);
+
+                if (db.Database.Connection.State == ConnectionState.Closed)
                 {
-                    for (int i = 0; i < sqlParameterNames.Length; i++)
+                    db.Database.Connection.Open();
+                }
+
+                DbDataReader reader = cmd.ExecuteReader();
+
+                outputparameter = makeOutputParameters(outputparameter, paramters, cmd, m_parameterMarkerFormat, outputCLRType);
+
+                ReturnValue = (int)retunValueParameter.Value;
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (db.Database.Connection.State == ConnectionState.Open)
+                    db.Database.Connection.Close();
+            }
+        }
+
+        public static IEnumerable<T> ExecuteStoredProcedure<T>(this DbContext db,
+                                                    string SPName,
+                                                    out int ReturnValue,
+                                                    params object[] paramters)
+        {
+            try
+            {
+
+                DbCommand cmd = db.Database.Connection.CreateCommand();
+                cmd.CommandTimeout = CommandTimeout;
+                cmd.CommandText = SPName;
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                string m_parameterMarkerFormat = string.Empty;
+
+                ScanforParameters(db, paramters, cmd, out m_parameterMarkerFormat);
+
+                DbParameter retunValueParameter = MakeReturnValueParameter(cmd, m_parameterMarkerFormat);
+
+                checkDbConnectionOpen(db);
+
+                List<T> tasks = null;
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.HasRows)
                     {
-                        DbParameter parameterObject = cmd.CreateParameter();
-                        parameterObject.ParameterName = string.Format(m_parameterMarkerFormat, sqlParameterNames[i]);
-                        parameterObject.Direction = ParameterDirection.InputOutput;
-                        parameterObject.Value = paramters[i];
-                        cmd.Parameters.Add(parameterObject);
+                        tasks = reader.MapToList<T>();
                     }
                 }
 
-                string[] sqlOutputParameterNames = ParameterNames.Split(',');
+                ReturnValue = (int)retunValueParameter.Value;
 
-                if (sqlOutputParameterNames != null && sqlOutputParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlOutputParameterNames.Length; i++)
-                    {
-                        DbParameter parameterObject = cmd.CreateParameter();
-                        parameterObject.ParameterName = string.Format(m_parameterMarkerFormat, sqlOutputParameterNames[i]);
-                        parameterObject.Direction = ParameterDirection.Output;
-                        parameterObject.Value = paramters[i + sqlParameterNames.Length];
-                        cmd.Parameters.Add(parameterObject);
-                    }
-                }
+                return tasks.AsEnumerable();
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                closeDbConnection(db);
+            }
+        }
 
-                DbParameter retunValueParameter = cmd.CreateParameter();
 
-                retunValueParameter.Direction = ParameterDirection.ReturnValue;
-                retunValueParameter.DbType = DbType.Int32;
-                retunValueParameter.ParameterName = string.Format(m_parameterMarkerFormat, "RETURN_VALUE");
 
-                cmd.Parameters.Add(retunValueParameter);
+        public static IEnumerable<T> ExecuteStoredProcedure<T, O>(this DbContext db,
+                                                        string SPName,
+                                                        out O outputparameter,
+                                                        out int ReturnValue,
+                                                        params object[] paramters)
+        {
+            try
+            {
+
+                DbCommand cmd = db.Database.Connection.CreateCommand();
+                cmd.CommandTimeout = CommandTimeout;
+                cmd.CommandText = SPName;
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                string m_parameterMarkerFormat = string.Empty;
+
+                ScanforParameters(db, paramters, cmd, out m_parameterMarkerFormat);
+
+                Type outputCLRType;
+
+                ScanOutputParameters(out outputparameter, paramters, cmd, m_parameterMarkerFormat, out outputCLRType);
+
+                DbParameter retunValueParameter = MakeReturnValueParameter(cmd, m_parameterMarkerFormat);
 
                 if (db.Database.Connection.State == ConnectionState.Closed)
                 {
@@ -335,19 +304,14 @@ namespace EdiuxTemplateWebApp
                     }
                 }
 
-                if (sqlOutputParameterNames != null && sqlOutputParameterNames.Length > 0)
-                {
-                    for (int i = 0; i < sqlOutputParameterNames.Length; i++)
-                    {
-                        string key = string.Format(m_parameterMarkerFormat, sqlOutputParameterNames[i]);
-                        paramters[i + sqlParameterNames.Length] = cmd.Parameters[key].Value;
-                    }
-                }
+                outputparameter = makeOutputParameters(outputparameter, paramters, cmd, m_parameterMarkerFormat, outputCLRType);
+
+                ReturnValue = (int)retunValueParameter.Value;
 
                 if (tasks == null)
                     tasks = new List<T>();
 
-                return tasks;
+                return tasks.AsEnumerable();
             }
             catch
             {
@@ -355,23 +319,248 @@ namespace EdiuxTemplateWebApp
             }
             finally
             {
-                db.Database.Connection.Close();
+                if (db.Database.Connection.State == ConnectionState.Open)
+                    db.Database.Connection.Close();
             }
-
         }
 
-        public static List<T> ExecuteStoredProcedure<T>(this DbContext db,
-                                                      string SPName,
-                                                      string ParameterNames,
-                                                      params object[] paramters)
+
+
+
+
+        #region Helper functions
+        private static void closeDbConnection(DbContext db)
+        {
+            if (db.Database.Connection.State == ConnectionState.Open)
+                db.Database.Connection.Close();
+        }
+
+        private static void checkDbConnectionOpen(DbContext db)
+        {
+            if (db.Database.Connection.State == ConnectionState.Closed)
+            {
+                db.Database.Connection.Open();
+            }
+        }
+
+        private static Dictionary<int, string> GetParamterForSP(DbContext db, string SPName, out Dictionary<int, ParameterDirection> parameterDirections, string sys_SPName = "sp_procedure_params_rowset")
         {
 
-            return ExecuteStoredProcedure<T>(db, SPName, ParameterNames, "", paramters);
+            try
+            {
+                int i = 0;
+                Dictionary<int, string> names = new Dictionary<int, string>();
+                parameterDirections = new Dictionary<int, ParameterDirection>();
 
+                DbCommand cmd = db.Database.Connection.CreateCommand();
+                cmd.CommandTimeout = CommandTimeout;
+                cmd.CommandText = sys_SPName;
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                DbParameter p1 = cmd.CreateParameter();
+                p1.ParameterName = "procedure_name";
+                p1.Direction = ParameterDirection.Input;
+                p1.Value = SPName;
+
+                cmd.Parameters.Add(p1);
+
+                checkDbConnectionOpen(db);
+
+                DbDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    Type FT = reader.GetFieldType(reader.GetOrdinal("ORDINAL_POSITION"));
+                    int ordinal = (int)Convert.ChangeType(reader.GetValue(reader.GetOrdinal("ORDINAL_POSITION")), typeof(int));
+                    if (i != ordinal)
+                        ordinal = i;
+
+                    int DirCode = (int)Convert.ChangeType(reader.GetValue(reader.GetOrdinal("PARAMETER_TYPE")), typeof(int));
+                    switch (DirCode)
+                    {
+                        case 1:
+                            parameterDirections.Add(ordinal, ParameterDirection.Input);
+                            break;
+
+                        case 3:
+                            parameterDirections.Add(ordinal, ParameterDirection.InputOutput);
+                            break;
+
+                        case 2:
+                        case 4:
+                            continue;
+                    }
+
+                    string name = reader.GetString(reader.GetOrdinal("PARAMETER_NAME")).Substring(1);
+                    names.Add(ordinal, name);
+
+                    i++;
+                }
+
+                reader.Close();
+
+                return names;
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                closeDbConnection(db);
+            }
+        }
+        /// <summary>
+        /// 取得目前資料庫的參數格式。
+        /// </summary>
+        /// <param name="db"></param>
+        /// <returns></returns>
+        private static string GetParameterFormat(DbContext db)
+        {
+            if (db.Database.Connection.State == ConnectionState.Closed)
+                db.Database.Connection.Open();
+
+            DataTable tbl =
+                   db.Database.Connection.GetSchema(DbMetaDataCollectionNames.DataSourceInformation);
+
+            string m_parameterMarkerFormat =
+                        tbl.Rows[0][DbMetaDataColumnNames.ParameterMarkerFormat] as string;
+
+            if (String.IsNullOrEmpty(m_parameterMarkerFormat))
+                m_parameterMarkerFormat = "{0}";
+
+            return m_parameterMarkerFormat;
+        }
+
+        private static void ScanforParameters(DbContext db, object[] paramters, DbCommand cmd, out string parameterFormat)
+        {
+            parameterFormat = GetParameterFormat(db);
+
+            if (paramters.Length > 0)
+            {
+                for (int i = 0; i < paramters.Length; i++)
+                {
+                    Type type = paramters[i].GetType();
+
+                    if (type.IsClass)
+                    {
+                        Dictionary<string, PropertyInfo> props = paramters[i].GetProperties();
+
+                        foreach (string k in props.Keys)
+                        {
+                            DbParameter parameterObject = cmd.CreateParameter();
+
+                            parameterObject.ParameterName = string.Format(parameterFormat, props[k].Name);
+                            parameterObject.Direction = ParameterDirection.Input;
+                            parameterObject.Value = props[k].GetValue(paramters[i], null);
+
+                            cmd.Parameters.Add(parameterObject);
+                        }
+
+                    }
+                    else
+                    {
+                        DbParameter parameterObject = cmd.CreateParameter();
+
+                        parameterObject.ParameterName = string.Format(parameterFormat, paramters[i]);
+                        parameterObject.Direction = ParameterDirection.Input;
+                        parameterObject.Value = paramters[i];
+                        cmd.Parameters.Add(parameterObject);
+                    }
+
+                }
+            }
+        }
+
+        private static DbParameter MakeReturnValueParameter(DbCommand cmd, string parameterFormat)
+        {
+            DbParameter retunValueParameter = cmd.CreateParameter();
+
+            retunValueParameter.Direction = ParameterDirection.ReturnValue;
+
+            retunValueParameter.DbType = DbType.Int32;
+
+            retunValueParameter.ParameterName = string.Format(parameterFormat, "RETURN_VALUE");
+
+            cmd.Parameters.Add(retunValueParameter);
+            return retunValueParameter;
+        }
+
+        private static O makeOutputParameters<O>(O outputparameter, object[] paramters, DbCommand cmd, string m_parameterMarkerFormat, Type outputCLRType)
+        {
+            if (outputCLRType.IsValueType)
+            {
+                outputparameter = (O)cmd.Parameters[paramters.Length].Value;
+            }
+            else
+            {
+                if (outputCLRType.IsClass)
+                {
+                    outputparameter = Activator.CreateInstance<O>();
+                    var sqlOutputParameterNames = outputparameter.GetProperties();
+                    foreach (var k in sqlOutputParameterNames.Keys)
+                    {
+                        string parameterName = string.Format(m_parameterMarkerFormat, k);
+                        PropertyInfo parameterProperty = outputCLRType.GetProperty(k);
+                        if (parameterProperty != null)
+                        {
+                            parameterProperty.SetValue(outputparameter, cmd.Parameters[parameterName].Value);
+                        }
+                    }
+                }
+            }
+
+            return outputparameter;
+        }
+
+        private static void ScanOutputParameters<O>(out O outputparameter, object[] paramters, DbCommand cmd, string m_parameterMarkerFormat, out Type outputCLRType)
+        {
+            outputparameter = Activator.CreateInstance<O>();
+            outputCLRType = typeof(O);
+            if (outputCLRType.IsValueType)
+            {
+                DbParameter parameterObject = cmd.CreateParameter();
+                parameterObject.ParameterName = string.Format(m_parameterMarkerFormat, string.Format("p{0}", paramters.Length));
+                parameterObject.Direction = ParameterDirection.Output;
+                parameterObject.Value = default(O);
+                cmd.Parameters.Add(parameterObject);
+            }
+            else
+            {
+                if (outputCLRType.IsClass)
+                {
+                    var sqlOutputParameterNames = outputparameter.GetProperties();
+
+                    foreach (var k in sqlOutputParameterNames.Keys)
+                    {
+                        DbParameter parameterObject = cmd.CreateParameter();
+
+                        parameterObject.ParameterName = string.Format(m_parameterMarkerFormat, k);
+                        parameterObject.Direction = ParameterDirection.Output;
+                        parameterObject.Value = default(O);
+                        object outprarm = sqlOutputParameterNames[k].GetValue(outputparameter, null);
+                        if (outprarm is Guid)
+                        {
+                            parameterObject.DbType = DbType.Guid;
+                        }
+
+                        OutputParameterAttribute outputParamAttr = sqlOutputParameterNames[k].GetCustomAttribute<OutputParameterAttribute>();
+
+                        if (outputParamAttr != null)
+                        {
+                            cmd.Parameters.Insert(outputParamAttr.Order, parameterObject);
+                        }
+                        else
+                        {
+                            cmd.Parameters.Add(parameterObject);
+                        }
+                    }
+                }
+            }
         }
 
         public static Dictionary<string, PropertyInfo> GetProperties<TEntity>(this object obj)
-            where TEntity : class
+                  where TEntity : class
         {
             var entity = typeof(TEntity);
             var propDict = new Dictionary<string, PropertyInfo>();
@@ -527,5 +716,7 @@ namespace EdiuxTemplateWebApp
 
             return;
         }
+        #endregion
+
     }
 }

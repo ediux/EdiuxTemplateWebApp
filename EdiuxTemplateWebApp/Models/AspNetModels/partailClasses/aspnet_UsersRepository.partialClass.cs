@@ -74,8 +74,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                ObjectParameter numTablesDeletedFrom = new ObjectParameter("NumTablesDeletedFrom", typeof(Guid));
-                InternalDatabaseAlias.aspnet_Users_DeleteUser(entity.aspnet_Applications.ApplicationName, entity.UserName, 14, numTablesDeletedFrom);
+                int numTablesDeletedFrom;
+                InternalDatabaseAlias.aspnet_Users_DeleteUser(entity.aspnet_Applications.ApplicationName, entity.UserName, TablesToCheck.aspnet_Membership| TablesToCheck.aspnet_Profile|TablesToCheck.aspnet_Roles, out numTablesDeletedFrom);
             }
             catch (Exception ex)
             {
@@ -163,7 +163,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public IList<string> FindUsersInRole(string applicationName, string UserNameToMatch, string roleName)
         {
-            return InternalDatabaseAlias.aspnet_UsersInRoles_FindUsersInRole(applicationName, UserNameToMatch, roleName).ToList();
+            return InternalDatabaseAlias.aspnet_UsersInRoles_FindUsersInRole(applicationName, UserNameToMatch, roleName)
+                .Select(s=>s.UserName).ToList();
         }
 
         public bool IsInRole(string applicationName, string userName, string roleName)
@@ -209,7 +210,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                return InternalDatabaseAlias.aspnet_UsersInRoles_GetRolesForUser(applicationName, userName).ToList();
+                return InternalDatabaseAlias.aspnet_UsersInRoles_GetRolesForUser(applicationName, userName)
+                    .Select(s=>s.RoleName).ToList();
             }
             catch (Exception ex)
             {

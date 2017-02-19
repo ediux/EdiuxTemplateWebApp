@@ -11,11 +11,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                int resultCode = InternalDatabaseAlias.aspnet_Roles_CreateRole(application.ApplicationName, Name);
-                if (resultCode != 0)
-                {
-                    throw new Exception("Has an error in database.");
-                }
+                InternalDatabaseAlias.aspnet_Roles_CreateRole(application.ApplicationName, Name);
                 return FindByName(application.ApplicationId, Name);
             }
             catch (Exception ex)
@@ -25,7 +21,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
 
         }
-     
+
         public override void Delete(aspnet_Roles entity)
         {
             try

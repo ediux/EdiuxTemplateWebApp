@@ -9,5 +9,9 @@ namespace EdiuxTemplateWebApp.Models
         {
             TotalItemCount = TotalCount;
         }
+        public MyPagedList(IEnumerable<T> source, int PageNumber, int PageSize, int TotalCount) : base(source, PageNumber, PageSize)
+        {
+            TotalItemCount = TotalCount;
+        }
     }
 }

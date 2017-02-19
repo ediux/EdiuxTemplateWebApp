@@ -30,7 +30,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;CS6;TEST;</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;CS6;TEST;STOREPRODUCE;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -266,10 +266,9 @@
     <Compile Include="Models\AspNetModels\aspnet_Membership_FindUsersByEmailResult.cs" />
     <Compile Include="Models\AspNetModels\aspnet_Membership_FindUsersByNameResult.cs" />
     <Compile Include="Models\AspNetModels\aspnet_Membership_GetAllUsersResult.cs" />
+    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordResult.cs" />
+    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordWithFormatResult.cs" />
     <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordWithFormat_Result.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPassword_Result.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\aspnet_Membership_GetUserByName_Result.cs">
@@ -293,6 +292,7 @@
     <Compile Include="Models\AspNetModels\aspnet_PathsRepository.cs">
       <DependentUpon>Edward.IRepository.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\aspnet_PersonalizationAdministration_DeleteAllState_Result.cs" />
     <Compile Include="Models\AspNetModels\aspnet_PersonalizationAllUsers.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
@@ -428,26 +428,35 @@
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_ApplicationsRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Applications_CreateApplication_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_Membership.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_MembershipRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Membership_GetUserByEmail_Result.cs" />
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Membership_GetUserByName_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_PathsRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_PersonalizationAdministration_FindState_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_PersonalizationAllUsersRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\aspnet_PersonalizationAllUsers_GetPageSettings_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_PersonalizationPerUserRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_PersonalizationPerUser_GetPageSettings_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_ProfileRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Profile_DeleteProfiles_Result.cs" />
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Profile_GetProfiles_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_Roles.partialClass.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_RolesRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_Roles_GetAllRoles_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_SchemaVersionsRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
@@ -458,6 +467,9 @@
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_Users.partialClass.cs" />
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_UsersInRoles_AddUsersToRoles_Result.cs" />
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_UsersInRoles_FindUsersInRole_Result.cs" />
+    <Compile Include="Models\AspNetModels\partailClasses\aspnet_UsersInRoles_GetRolesForUser_Result.cs" />
     <Compile Include="Models\AspNetModels\partailClasses\aspnet_UsersRepository.partialClass.cs">
       <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
@@ -497,6 +509,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Helpers\StoredProcedureExtension.cs" />
+    <Compile Include="Models\AspNetModels\aspnet_Paths_CreatePath_Result.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\css\bootstrap.css" />
@@ -519,6 +532,7 @@
     <Content Include="Content\style\style - Copy.css" />
     <Content Include="Content\style\style.css" />
     <Content Include="favicon.ico" />
+    <Content Include="Generator1.tt" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\fonts\fontawesome-webfont.eot" />

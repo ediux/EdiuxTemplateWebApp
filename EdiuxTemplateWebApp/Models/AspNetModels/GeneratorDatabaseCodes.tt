@@ -1,0 +1,2062 @@
+﻿<#@ template debug="true" hostSpecific="true" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core.dll" #>
+<#@ Assembly Name="System.Xml.dll" #>
+<#@ Assembly Name="System.Xml.Linq.dll" #>
+<#@ Assembly Name="System.Windows.Forms.dll" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="EnvDTE"#>
+<#@ assembly name="EnvDTE80" #>
+<#@ assembly name="Microsoft.VisualStudio.Shell.10.0"#>
+<#@ assembly name="Microsoft.VisualStudio.Shell.Interop "#>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Xml.Linq" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #> 
+<#@ import namespace="Microsoft.VisualStudio.Shell.Interop"#>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Data.Objects" #>
+<#@ import namespace="System.Data.Objects.DataClasses" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Globalization" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.CodeDom" #>
+<#@ import namespace="System.CodeDom.Compiler" #>
+<#@ import namespace="Microsoft.CSharp"#>
+<#@ import namespace="System.Text"#>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#@ include file="EF.Utility.CS.ttinclude"#>
+<#
+	
+string inputFile = FindEDMXFileName();
+
+var textTransform = DynamicTextTransformation.Create(this);
+var code = new CodeGenerationTools(this);
+var ef = new MetadataTools(this);
+var typeMapper = new TypeMapper(code, ef, textTransform.Errors);
+var fileManager= TemplateFileManager.Create(this);
+var edmxLoader = new EdmMetadataLoader(textTransform.Host, textTransform.Errors);
+var itemCollection = edmxLoader.CreateEdmItemCollection(inputFile);
+var codeStringGenerator = new CodeStringGenerator(code, typeMapper, ef);
+var serviceProvider = (IServiceProvider)this.Host;
+// Get the automation root object
+var dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
+ 
+// Get the project item
+var projectItem = dte.Solution.FindProjectItem(this.Host.TemplateFile);
+ 
+// Get the project
+var project = projectItem.ContainingProject;
+var container = itemCollection.OfType<EntityContainer>().FirstOrDefault();
+if (!typeMapper.VerifyCaseInsensitiveTypeUniqueness(typeMapper.GetAllGlobalItems(itemCollection), inputFile))
+{
+	return string.Empty;
+}
+
+#>
+//********************************
+// Tools
+//********************************
+<#	
+string dirName = System.IO.Path.GetFileNameWithoutExtension(GetCurrentDirectory());
+string SubDirName = "DataEntity";	
+foreach (var entity in typeMapper.GetItemsToGenerate<EntityType>(itemCollection))
+{
+	
+	
+	string csFileName = string.Format("{0}.Partial.cs",entity.Name);
+	if(!DoesFileExist(csFileName))
+    {
+		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
+		BeginNamespace(code);
+			#>
+<#=codeStringGenerator.UsingDirectives(inHeader: false)#>
+using System.ComponentModel.DataAnnotations;
+
+[MetadataType(typeof(<#=code.Escape(entity)#>MetaData))]
+<#=codeStringGenerator.EntityClassOpening(entity)#>
+{
+}
+
+<#=codeStringGenerator.EntityClassOpening(entity)#>MetaData
+{
+<#
+		var propertiesWithDefaultValues = typeMapper.GetPropertiesWithDefaultValues(entity);
+		var collectionNavigationProperties = typeMapper.GetCollectionNavigationProperties(entity);
+		var complexProperties = typeMapper.GetComplexProperties(entity);
+
+		var simpleProperties = typeMapper.GetSimpleProperties(entity);
+		if (simpleProperties.Any())
+		{
+			foreach (var edmProperty in simpleProperties)
+			{
+				// begin max length attribute
+				if (code.Escape(edmProperty.TypeUsage) == "string")
+				{
+					int maxLength = 0;
+					if (edmProperty.TypeUsage.Facets["MaxLength"].Value != null && Int32.TryParse(
+							edmProperty.TypeUsage.Facets["MaxLength"].Value.ToString(),
+							out maxLength))
+					{
+#>    
+    [StringLength(<#=code.CreateLiteral(maxLength)#>, ErrorMessage="欄位長度不得大於 <#=code.CreateLiteral(maxLength)#> 個字元")]
+<#
+					}
+				}
+				// begin required attribute
+				if (edmProperty.TypeUsage.Facets["Nullable"].Value.ToString() =="False")
+				{
+#>
+    [Required]
+<#
+				}
+#>
+    <#=codeStringGenerator.Property(edmProperty)#>
+<#
+			}
+		}
+
+		if (complexProperties.Any())
+		{
+			foreach(var complexProperty in complexProperties)
+			{
+#>
+    <#=codeStringGenerator.Property(complexProperty)#>
+<#
+			}
+		}
+
+		var navigationProperties = typeMapper.GetNavigationProperties(entity);
+		if (navigationProperties.Any())
+		{
+			foreach (var navigationProperty in navigationProperties)
+			{
+#>
+    <#=codeStringGenerator.NavigationProperty(navigationProperty)#>
+<#
+			}
+		}
+#>
+}
+<#
+		EndNamespace(code);
+
+	}
+	else
+	{	
+		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
+		
+		this.Write(ReadOutputFile(csFileName));
+	}
+}
+
+foreach (var complex in typeMapper.GetItemsToGenerate<ComplexType>(itemCollection))
+{
+	string csFileName = string.Format("{0}.Partial.cs",complex.Name);
+	string PhyFileName = Path.Combine(SubDirName,csFileName);
+	if(!DoesFileExist(PhyFileName))
+	{
+		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
+		BeginNamespace(code);
+#>
+<#=codeStringGenerator.UsingDirectives(inHeader: false, includeCollections: false)#>using System.ComponentModel.DataAnnotations;
+
+[MetadataType(typeof(<#=code.Escape(complex)#>MetaData))]
+<#=Accessibility.ForType(complex)#> partial class <#=code.Escape(complex)#>
+{
+}
+
+<#=Accessibility.ForType(complex)#> partial class <#=code.Escape(complex)#>MetaData
+{
+<#
+		var complexProperties = typeMapper.GetComplexProperties(complex);
+		var propertiesWithDefaultValues = typeMapper.GetPropertiesWithDefaultValues(complex);
+
+		var simpleProperties = typeMapper.GetSimpleProperties(complex);
+		if (simpleProperties.Any())
+		{
+			foreach(var edmProperty in simpleProperties)
+			{
+				// begin max length attribute
+				if (code.Escape(edmProperty.TypeUsage) == "string")
+				{
+					int maxLength = 0;
+					if (edmProperty.TypeUsage.Facets["MaxLength"].Value != null && Int32.TryParse(
+							edmProperty.TypeUsage.Facets["MaxLength"].Value.ToString(),
+							out maxLength))
+					{
+#>    
+    [StringLength(<#=code.CreateLiteral(maxLength)#>, ErrorMessage="欄位長度不得大於 <#=code.CreateLiteral(maxLength)#> 個字元")]
+<#
+				   }
+				}
+				// begin required attribute
+				if (edmProperty.TypeUsage.Facets["Nullable"].Value.ToString() =="False")
+				{
+#>
+    [Required]
+<#
+				}
+#>
+    <#=codeStringGenerator.Property(edmProperty)#>
+<#
+			}
+		}
+
+		if (complexProperties.Any())
+		{
+#>
+
+<#
+			foreach(var edmProperty in complexProperties)
+			{
+#>
+    <#=codeStringGenerator.Property(edmProperty)#>
+<#
+			}
+		}
+#>
+}
+<#
+		EndNamespace(code);
+	
+	}
+	else
+	{
+		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
+	
+		this.Write(ReadOutputFile(PhyFileName));
+	}
+}
+string SubSPDirName = "StoredProcedures";
+string InParamsDir = "InputParameter";
+string OutParamsDir = "OutputParameter";
+foreach (var edmFunction in container.FunctionImports)
+{	
+	
+	string fnName = code.Escape(edmFunction);
+	string csFileName = string.Format("{0}{1}{2}InputParameter.cs",InParamsDir,Path.DirectorySeparatorChar,fnName);
+	string phyFilePath = Path.Combine(GetCurrentDirectory(),SubSPDirName,csFileName);
+
+	if(!DoesFileExist(phyFilePath))
+	{
+		fileManager.StartNewFile(csFileName,project.Name,SubSPDirName);
+		BeginNamespace(code);
+	#>
+	public partial class <#=fnName#>_InputParameter
+	{
+<#
+		var parameters = FunctionImportParameter.Create(edmFunction.Parameters, code, ef);
+        foreach (var parameter in parameters.Where(p => p.NeedsLocalVariable))
+        {
+#>
+			public virtual <#=parameter.RawClrTypeName#> <#=parameter.FunctionParameterName#> { get; set; }       
+<#
+        }
+#>
+	}
+<#
+		EndNamespace(code);
+    }
+	else
+	{
+		fileManager.StartNewFile(csFileName,project.Name,SubSPDirName);	
+		this.Write(ReadOutputFile(phyFilePath));
+    }
+
+	string Out_csFileName = string.Format("{0}{1}{2}OutputParameter.cs",OutParamsDir,Path.DirectorySeparatorChar,fnName);
+	string Out_phyFilePath = Path.Combine(GetCurrentDirectory(),SubSPDirName,Out_csFileName);
+	if(!DoesFileExist(Out_phyFilePath))
+    {
+		fileManager.StartNewFile(Out_csFileName,project.Name,SubSPDirName);
+		BeginNamespace(code);
+#>
+	public partial class <#=fnName#>_OutputParameter
+	{
+<#
+
+		foreach(var parameter in edmFunction.Parameters.Where(p => p.Mode==ParameterMode.In || p.Mode==ParameterMode.InOut))
+		{
+			if(parameter!=null)
+            {
+#>
+		public virtual dynamic <#=parameter.Name#> { get; set; }
+<#				
+            }
+		}			  
+#>
+	}
+<#
+		EndNamespace(code);
+    }
+	else
+    {
+		fileManager.StartNewFile(Out_csFileName,project.Name,SubSPDirName);	
+		this.Write(ReadOutputFile(Out_phyFilePath));		
+    }
+}
+	
+fileManager.Process();
+#>
+
+
+<#+ 
+/*
+   This software is supplied "AS IS". The authors disclaim all warranties, 
+   expressed or implied, including, without limitation, the warranties of 
+   merchantability and of fitness for any purpose. The authors assume no
+   liability for direct, indirect, incidental, special, exemplary, or
+   consequential damages, which may result from the use of this software,
+   even if advised of the possibility of such damage.
+
+The TemplateFileManager is based on EntityFrameworkTemplateFileManager (EFTFM) from MS.
+
+Differences to EFTFM
+Version 2.1:
+- Replace Enum BuildAction with class for more flexibility
+Version 2:
+- StartHeader works with Parameter $filename$
+- StartNewFile has a new named parameter FileProperties
+  - Support for:
+   - BuildAction
+   - CustomTool
+   - user defined parameter for using in StartHeader-Block
+- Property IsAutoIndentEnabled for support Format Document (C#, VB) when set to true
+
+Version: 1.1
+Add method WriteLineToBuildPane, WriteToBuildPane
+
+Version 1:
+- StartNewFile with named parameters projectName and folderName for generating files to different locations.
+- Property CanOverrideExistingFile, to define whether existing files are can overwritten
+- Property Encoding Encode type for output files.
+*/
+
+/// <summary>
+/// Writes a line to the build pane in visual studio and activates it
+/// </summary>
+/// <param name="message">Text to output - a \n is appended</param>
+void WriteLineToBuildPane (string message){
+       WriteLineToBuildPane(String.Format("{0}\n", message));
+}
+
+/// <summary>
+/// Writes a string to the build pane in visual studio and activates it
+/// </summary>
+/// <param name="message">Text to output</param>
+void WriteToBuildPane (string message){
+       IVsOutputWindow outWindow = (this.Host as IServiceProvider).GetService(
+typeof( SVsOutputWindow ) ) as IVsOutputWindow;
+       Guid generalPaneGuid =
+Microsoft.VisualStudio.VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid;
+		// P.S. There's also the GUID_OutWindowDebugPane available.
+       IVsOutputWindowPane generalPane;
+       outWindow.GetPane( ref generalPaneGuid , out generalPane );
+       generalPane.OutputString( message  );
+       generalPane.Activate(); // Brings this pane into view
+}
+
+/// <summary>
+/// Responsible for marking the various sections of the generation,
+/// so they can be split up into separate files and projects
+/// </summary>
+/// <author>R. Leupold</author>
+public class TemplateFileManager
+{
+	private EnvDTE.ProjectItem templateProjectItem;
+    private Action<string> checkOutAction;
+    private Action<IEnumerable<OutputFile>> projectSyncAction;
+	private EnvDTE.DTE dte;
+	private List<string> templatePlaceholderList = new List<string>();
+	
+    /// <summary>
+    /// Creates files with VS sync
+    /// </summary>
+    public static TemplateFileManager Create(object textTransformation)
+    {
+        DynamicTextTransformation2 transformation = DynamicTextTransformation2.Create(textTransformation);
+        IDynamicHost2 host = transformation.Host;
+        return new TemplateFileManager(transformation);
+    }
+
+    private readonly List<Block> files = new List<Block>();
+    private readonly Block footer = new Block();
+    private readonly Block header = new Block();
+    private readonly DynamicTextTransformation2 _textTransformation;
+
+    // reference to the GenerationEnvironment StringBuilder on the
+    // TextTransformation object
+    private readonly StringBuilder _generationEnvironment;
+
+    private Block currentBlock;
+
+    /// <summary>
+    /// Initializes an TemplateFileManager Instance  with the
+    /// TextTransformation (T4 generated class) that is currently running
+    /// </summary>
+    private TemplateFileManager(object textTransformation)
+    {
+        if (textTransformation == null)
+        {
+            throw new ArgumentNullException("textTransformation");
+        }
+				
+        _textTransformation = DynamicTextTransformation2.Create(textTransformation);
+        _generationEnvironment = _textTransformation.GenerationEnvironment;
+		
+		var hostServiceProvider = _textTransformation.Host.AsIServiceProvider();
+        if (hostServiceProvider == null)
+        {
+            throw new ArgumentNullException("Could not obtain hostServiceProvider");
+        }
+
+        dte = (EnvDTE.DTE) hostServiceProvider.GetService(typeof(EnvDTE.DTE));
+        if (dte == null)
+        {
+            throw new ArgumentNullException("Could not obtain DTE from host");
+        }
+		
+		this.templateProjectItem = dte.Solution.FindProjectItem(_textTransformation.Host.TemplateFile);
+		this.CanOverrideExistingFile = true;
+		this.IsAutoIndentEnabled = false;
+		this.Encoding = System.Text.Encoding.UTF8;
+        checkOutAction = fileName => dte.SourceControl.CheckOutItem(fileName);
+        projectSyncAction = keepFileNames => ProjectSync(templateProjectItem, keepFileNames);
+    }
+
+	/// <summary>
+	/// If set to false, existing files are not overwritten
+	/// </summary>
+	/// <returns></returns>
+	public bool CanOverrideExistingFile { get; set; }
+	
+	/// <summary>
+	/// If set to true, output files (c#, vb) are formatted based on the vs settings.
+	/// </summary>
+	/// <returns></returns>
+	public bool IsAutoIndentEnabled { get; set; }
+	
+	/// <summary>
+	/// Defines Encoding format for generated output file. (Default UTF8)
+	/// </summary>
+	/// <returns></returns>
+	public System.Text.Encoding Encoding { get; set; }
+	
+    /// <summary>
+    /// Marks the end of the last file if there was one, and starts a new
+    /// and marks this point in generation as a new file.
+    /// </summary>
+	/// <param name="name">Filename</param>
+	/// <param name="projectName">Name of the target project for the new file.</param>
+	/// <param name="folderName">Name of the target folder for the new file.</param>
+	/// <param name="fileProperties">File property settings in vs for the new File</param>
+    public void StartNewFile(string name
+		, string projectName = "", string folderName = "", FileProperties fileProperties = null)
+    {
+        if (String.IsNullOrWhiteSpace(name) == true)
+        {
+            throw new ArgumentException("name");
+        }
+
+        CurrentBlock = new Block
+					  {
+						Name = name,
+						ProjectName = projectName,
+						FolderName = folderName,
+						FileProperties = fileProperties ?? new FileProperties()
+					  };
+    }
+
+    public void StartFooter()
+    {
+        CurrentBlock = footer;
+    }
+
+    public void StartHeader()
+    {
+        CurrentBlock = header;
+    }
+
+    public void EndBlock()
+    {
+        if (CurrentBlock == null)
+        {
+            return;
+        }
+
+        CurrentBlock.Length = _generationEnvironment.Length - CurrentBlock.Start;
+
+        if (CurrentBlock != header && CurrentBlock != footer)
+        {
+            files.Add(CurrentBlock);
+        }
+
+        currentBlock = null;
+    }
+	
+    /// <summary>
+    /// Produce the template output files.
+    /// </summary>
+    public virtual IEnumerable<OutputFile> Process(bool split = true)
+    {
+		var list = new List<OutputFile>();
+		
+        if (split)
+        {
+            EndBlock();
+
+            var headerText = _generationEnvironment.ToString(header.Start, header.Length);
+            var footerText = _generationEnvironment.ToString(footer.Start, footer.Length);
+            files.Reverse();
+
+			var defaultPath = Path.GetDirectoryName(_textTransformation.Host.TemplateFile);
+            foreach (var block in files)
+            {
+				
+				var outputPath = VSHelper.GetOutputPath(dte, block, defaultPath);
+				
+                var fileName = Path.Combine(outputPath, block.Name);
+                var content = this.ReplaceParameter(headerText, block) + 
+				_generationEnvironment.ToString(block.Start, block.Length) + 
+				footerText;
+
+                var file = new OutputFile 
+				   { 
+						FileName = fileName, 
+						ProjectName = block.ProjectName, 
+						FolderName = block.FolderName,
+						FileProperties = block.FileProperties,
+						Content = content
+					};
+				
+                CreateFile(file);
+
+                _generationEnvironment.Remove(block.Start, block.Length);
+				list.Add(file);		
+            }
+        }
+		
+		projectSyncAction.EndInvoke(projectSyncAction.BeginInvoke(list, null, null));
+		this.CleanUpTemplatePlaceholders();
+		var items = VSHelper.GetOutputFilesAsProjectItems(this.dte, list);
+		this.WriteVsProperties(items, list);
+		
+		if (this.IsAutoIndentEnabled == true && split == true)
+		{
+			this.FormatProjectItems(items);
+		}
+			
+		this.WriteLog(list);
+		
+		return list;
+    }
+	
+	private void FormatProjectItems(IEnumerable<EnvDTE.ProjectItem> items)
+	{
+		foreach (var item in items)
+		{
+			this._textTransformation.WriteLine(
+			VSHelper.ExecuteVsCommand(this.dte, item, "Edit.FormatDocument")); //, "Edit.RemoveAndSort"));
+			this._textTransformation.WriteLine("//-> " + item.Name);
+		}
+	}
+	
+	private void WriteVsProperties(IEnumerable<EnvDTE.ProjectItem> items, IEnumerable<OutputFile> outputFiles)
+	{
+		foreach (var file in outputFiles)
+		{
+			var item = items.Where(p => p.Name == Path.GetFileName(file.FileName)).FirstOrDefault();
+			if (item == null) continue; 
+			
+			if (String.IsNullOrEmpty(file.FileProperties.CustomTool) == false)
+			{
+				VSHelper.SetPropertyValue(item, "CustomTool", file.FileProperties.CustomTool);
+			}
+
+			if (String.IsNullOrEmpty(file.FileProperties.BuildActionString) == false)
+			{
+				VSHelper.SetPropertyValue(item, "ItemType", file.FileProperties.BuildActionString);
+			}
+		}
+	}
+	
+	private string ReplaceParameter(string text, Block block)
+	{
+		if (String.IsNullOrEmpty(text) == false)
+		{
+			text = text.Replace("$filename$", block.Name);
+		}
+		
+		
+		foreach (var item in block.FileProperties.TemplateParameter.AsEnumerable())
+		{
+			text = text.Replace(item.Key, item.Value);
+		}
+		
+		return text;
+	}
+	
+	/// <summary>
+	/// Write log to the default output file.
+	/// </summary>
+	/// <param name="list"></param>
+	private void WriteLog(IEnumerable<OutputFile> list)
+	{
+		this._textTransformation.WriteLine("// Generated helper templates");
+		foreach (var item in templatePlaceholderList)
+		{
+			this._textTransformation.WriteLine("// " + this.GetDirectorySolutionRelative(item));		 
+		}
+		
+		this._textTransformation.WriteLine("// Generated items");
+		foreach (var item in list)
+		{
+			this._textTransformation.WriteLine("// " + this.GetDirectorySolutionRelative(item.FileName)); 
+		}
+	}
+	
+	/// <summary>
+	/// Removes old template placeholders from the solution.
+	/// </summary>
+	private void CleanUpTemplatePlaceholders()		
+	{
+		string[] activeTemplateFullNames = this.templatePlaceholderList.ToArray();
+		string[] allHelperTemplateFullNames = VSHelper.GetAllSolutionItems(this.dte)
+			.Where(p => p.Name == VSHelper.GetTemplatePlaceholderName(this.templateProjectItem))
+			.Select(p => VSHelper.GetProjectItemFullPath(p))
+			.ToArray();
+		
+		var delta = allHelperTemplateFullNames.Except(activeTemplateFullNames).ToArray();
+			
+		var dirtyHelperTemplates = VSHelper.GetAllSolutionItems(this.dte)
+			.Where(p => delta.Contains(VSHelper.GetProjectItemFullPath(p)));
+
+		foreach (ProjectItem item in dirtyHelperTemplates)
+		{
+			if (item.ProjectItems != null)
+			{
+				foreach (ProjectItem subItem in item.ProjectItems)
+				{
+					subItem.Remove(); 
+				}
+			}
+			
+			item.Remove();
+		}
+	}
+	
+	/// <summary>
+	/// Gets a list of helper templates from the log.
+	/// </summary>
+	/// <returns>List of generated helper templates.</returns>
+	private string[] GetPreviousTemplatePlaceholdersFromLog()
+	{
+		string path = Path.GetDirectoryName(this._textTransformation.Host.ResolvePath(this._textTransformation.Host.TemplateFile));
+		string file1 = Path.GetFileNameWithoutExtension(this._textTransformation.Host.TemplateFile) + ".txt";
+		string contentPrevious = File.ReadAllText(Path.Combine(path, file1));
+		
+		var result = contentPrevious
+              .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+              .Select(x => x.Split(new[] { "=>" }, StringSplitOptions.RemoveEmptyEntries).First())
+              .Select(x => Regex.Replace(x, "//", String.Empty).Trim())
+			  .Where(x => x.EndsWith(VSHelper.GetTemplatePlaceholderName(this.templateProjectItem)))
+			  .ToArray();
+		
+		return result;
+	}
+	
+	private string GetDirectorySolutionRelative(string fullName)
+	{
+		int slnPos = fullName.IndexOf(Path.GetFileNameWithoutExtension(this.dte.Solution.FileName));
+		if (slnPos < 0)
+		{
+			slnPos = 0;
+		}
+		
+		return fullName.Substring(slnPos);
+	}
+	
+    protected virtual void CreateFile(OutputFile file)
+    {
+		if(Directory.Exists(Path.GetDirectoryName(file.FileName))==false){
+			Directory.CreateDirectory(Path.GetDirectoryName(file.FileName));
+        }
+
+		if (this.CanOverrideExistingFile == false && File.Exists(file.FileName) == true)
+		{
+			return;
+		}
+
+        if (IsFileContentDifferent(file))
+        {
+			CheckoutFileIfRequired(file.FileName);
+            File.WriteAllText(file.FileName, file.Content, this.Encoding);
+        }
+    }
+
+    internal bool IsFileContentDifferent(OutputFile file)
+    {
+        return !(File.Exists(file.FileName) && File.ReadAllText(file.FileName) == file.Content);
+    }
+
+    private Block CurrentBlock
+    {
+        get { return currentBlock; }
+        set
+        {
+            if (CurrentBlock != null)
+            {
+                EndBlock();
+            }
+
+            if (value != null)
+            {
+                value.Start = _generationEnvironment.Length;
+            }
+
+            currentBlock = value;
+        }		
+    }
+	
+	private void ProjectSync(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+	{
+		var groupedFileNames = from f in keepFileNames
+								group f by new { f.ProjectName, f.FolderName }
+								into l
+								select new { 
+									ProjectName = l.Key.ProjectName,
+									FolderName = l.Key.FolderName,
+									FirstItem = l.First(),
+									OutputFiles = l
+								};
+		
+		this.templatePlaceholderList.Clear();
+								
+		foreach (var item in groupedFileNames)
+		{
+			EnvDTE.ProjectItem pi = VSHelper.GetTemplateProjectItem(templateProjectItem.DTE, item.FirstItem, templateProjectItem);
+			ProjectSyncPart(pi, item.OutputFiles);
+			
+			if (pi.Name.EndsWith("txt4"))
+				this.templatePlaceholderList.Add(VSHelper.GetProjectItemFullPath(pi));			
+		}
+	
+		// clean up
+		bool hasDefaultItems = groupedFileNames.Where(f => String.IsNullOrEmpty(f.ProjectName) && String.IsNullOrEmpty(f.FolderName)).Count() > 0;
+		if (hasDefaultItems == false)
+		{
+			ProjectSyncPart(templateProjectItem, new List<OutputFile>());
+		}
+	}
+	
+    private static void ProjectSyncPart(EnvDTE.ProjectItem templateProjectItem, IEnumerable<OutputFile> keepFileNames)
+    {
+        var keepFileNameSet = new HashSet<OutputFile>(keepFileNames);
+        var projectFiles = new Dictionary<string, EnvDTE.ProjectItem>();
+        var originalOutput = Path.GetFileNameWithoutExtension(templateProjectItem.FileNames[0]);
+
+        foreach (EnvDTE.ProjectItem projectItem in templateProjectItem.ProjectItems)
+        {
+            projectFiles.Add(projectItem.FileNames[0], projectItem);
+        }
+
+        // Remove unused items from the project
+        foreach (var pair in projectFiles)
+        {
+			bool isNotFound = keepFileNames.Where(f=>f.FileName == pair.Key).Count() == 0;
+            if (isNotFound == true
+                && !(Path.GetFileNameWithoutExtension(pair.Key) + ".").StartsWith(originalOutput + "."))
+            {
+                pair.Value.Delete();
+            }
+        }
+
+        // Add missing files to the project
+        foreach (var fileName in keepFileNameSet)
+        {
+	
+            if (!projectFiles.ContainsKey(fileName.FileName))
+            {			
+                templateProjectItem.ProjectItems.AddFromFile(fileName.FileName);
+            }
+        }
+    }
+
+    private void CheckoutFileIfRequired(string fileName)
+    {
+        if (dte.SourceControl == null
+            || !dte.SourceControl.IsItemUnderSCC(fileName)
+                || dte.SourceControl.IsItemCheckedOut(fileName))
+        {
+            return;
+        }
+
+        // run on worker thread to prevent T4 calling back into VS
+        checkOutAction.EndInvoke(checkOutAction.BeginInvoke(fileName, null, null));
+    }		
+}
+
+/// <summary>
+/// Responsible creating an instance that can be passed
+/// to helper classes that need to access the TextTransformation
+/// members.  It accesses member by name and signature rather than
+/// by type.  This is necessary when the
+/// template is being used in Preprocessed mode
+/// and there is no common known type that can be
+/// passed instead
+/// </summary>
+public class DynamicTextTransformation2
+{
+    private object _instance;
+    IDynamicHost2 _dynamicHost;
+
+    private readonly MethodInfo _write;
+    private readonly MethodInfo _writeLine;
+    private readonly PropertyInfo _generationEnvironment;
+    private readonly PropertyInfo _errors;
+    private readonly PropertyInfo _host;
+
+    /// <summary>
+    /// Creates an instance of the DynamicTextTransformation class around the passed in
+    /// TextTransformation shapped instance passed in, or if the passed in instance
+    /// already is a DynamicTextTransformation, it casts it and sends it back.
+    /// </summary>
+    public static DynamicTextTransformation2 Create(object instance)
+    {
+        if (instance == null)
+        {
+            throw new ArgumentNullException("instance");
+        }
+
+        DynamicTextTransformation2 textTransformation = instance as DynamicTextTransformation2;
+        if (textTransformation != null)
+        {
+            return textTransformation;
+        }
+
+        return new DynamicTextTransformation2(instance);
+    }
+
+    private DynamicTextTransformation2(object instance)
+    {
+        _instance = instance;
+        Type type = _instance.GetType();
+        _write = type.GetMethod("Write", new Type[] { typeof(string) });
+        _writeLine = type.GetMethod("WriteLine", new Type[] { typeof(string) });
+        _generationEnvironment = type.GetProperty("GenerationEnvironment", BindingFlags.Instance | BindingFlags.NonPublic);
+        _host = type.GetProperty("Host");
+        _errors = type.GetProperty("Errors");
+    }
+
+    /// <summary>
+    /// Gets the value of the wrapped TextTranformation instance's GenerationEnvironment property
+    /// </summary>
+    public StringBuilder GenerationEnvironment { get { return (StringBuilder)_generationEnvironment.GetValue(_instance, null); } }
+
+    /// <summary>
+    /// Gets the value of the wrapped TextTranformation instance's Errors property
+    /// </summary>
+    public System.CodeDom.Compiler.CompilerErrorCollection Errors { get { return (System.CodeDom.Compiler.CompilerErrorCollection)_errors.GetValue(_instance, null); } }
+
+    /// <summary>
+    /// Calls the wrapped TextTranformation instance's Write method.
+    /// </summary>
+    public void Write(string text)
+    {
+        _write.Invoke(_instance, new object[] { text });
+    }
+
+    /// <summary>
+    /// Calls the wrapped TextTranformation instance's WriteLine method.
+    /// </summary>
+    public void WriteLine(string text)
+    {
+        _writeLine.Invoke(_instance, new object[] { text });
+    }
+
+    /// <summary>
+    /// Gets the value of the wrapped TextTranformation instance's Host property
+    /// if available (shows up when hostspecific is set to true in the template directive) and returns
+    /// the appropriate implementation of IDynamicHost
+    /// </summary>
+    public IDynamicHost2 Host
+    {
+        get
+        {
+            if (_dynamicHost == null)
+            {
+                if(_host == null)
+                {
+                    _dynamicHost = new NullHost2();
+                }
+                else
+                {
+                    _dynamicHost = new DynamicHost2(_host.GetValue(_instance, null));
+                }
+            }
+            return _dynamicHost;
+        }
+    }
+}
+
+/// <summary>
+/// Reponsible for abstracting the use of Host between times
+/// when it is available and not
+/// </summary>
+public interface IDynamicHost2
+{
+    /// <summary>
+    /// An abstracted call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost ResolveParameterValue
+    /// </summary>
+    string ResolveParameterValue(string id, string name, string otherName);
+
+    /// <summary>
+    /// An abstracted call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost ResolvePath
+    /// </summary>
+    string ResolvePath(string path);
+
+    /// <summary>
+    /// An abstracted call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost TemplateFile
+    /// </summary>
+    string TemplateFile { get; }
+
+    /// <summary>
+    /// Returns the Host instance cast as an IServiceProvider
+    /// </summary>
+    IServiceProvider AsIServiceProvider();
+}
+
+/// <summary>
+/// Reponsible for implementing the IDynamicHost as a dynamic
+/// shape wrapper over the Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost interface
+/// rather than type dependent wrapper.  We don't use the
+/// interface type so that the code can be run in preprocessed mode
+/// on a .net framework only installed machine.
+/// </summary>
+public class DynamicHost2 : IDynamicHost2
+{
+    private readonly object _instance;
+    private readonly MethodInfo _resolveParameterValue;
+    private readonly MethodInfo _resolvePath;
+    private readonly PropertyInfo _templateFile;
+
+    /// <summary>
+    /// Creates an instance of the DynamicHost class around the passed in
+    /// Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost shapped instance passed in.
+    /// </summary>
+    public DynamicHost2(object instance)
+    {
+        _instance = instance;
+        Type type = _instance.GetType();
+        _resolveParameterValue = type.GetMethod("ResolveParameterValue", new Type[] { typeof(string), typeof(string), typeof(string) });
+        _resolvePath = type.GetMethod("ResolvePath", new Type[] { typeof(string) });
+        _templateFile = type.GetProperty("TemplateFile");
+
+    }
+
+    /// <summary>
+    /// A call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost ResolveParameterValue
+    /// </summary>
+    public string ResolveParameterValue(string id, string name, string otherName)
+    {
+        return (string)_resolveParameterValue.Invoke(_instance, new object[] { id, name, otherName });
+    }
+
+    /// <summary>
+    /// A call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost ResolvePath
+    /// </summary>
+    public string ResolvePath(string path)
+    {
+        return (string)_resolvePath.Invoke(_instance, new object[] { path });
+    }
+
+    /// <summary>
+    /// A call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost TemplateFile
+    /// </summary>
+    public string TemplateFile
+    {
+        get
+        {
+            return (string)_templateFile.GetValue(_instance, null);
+        }
+    }
+
+    /// <summary>
+    /// Returns the Host instance cast as an IServiceProvider
+    /// </summary>
+    public IServiceProvider AsIServiceProvider()
+    {
+        return _instance as IServiceProvider;
+    }
+}
+
+/// <summary>
+/// Reponsible for implementing the IDynamicHost when the
+/// Host property is not available on the TextTemplating type. The Host
+/// property only exists when the hostspecific attribute of the template
+/// directive is set to true.
+/// </summary>
+public class NullHost2 : IDynamicHost2
+{
+    /// <summary>
+    /// An abstraction of the call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost ResolveParameterValue
+    /// that simply retuns null.
+    /// </summary>
+    public string ResolveParameterValue(string id, string name, string otherName)
+    {
+        return null;
+    }
+
+    /// <summary>
+    /// An abstraction of the call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost ResolvePath
+    /// that simply retuns the path passed in.
+    /// </summary>
+    public string ResolvePath(string path)
+    {
+        return path;
+    }
+
+    /// <summary>
+    /// An abstraction of the call to Microsoft.VisualStudio.TextTemplating.ITextTemplatingEngineHost TemplateFile
+    /// that returns null.
+    /// </summary>
+    public string TemplateFile
+    {
+        get
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns null.
+    /// </summary>
+    public IServiceProvider AsIServiceProvider()
+    {
+        return null;
+    }
+}
+
+public sealed class Block
+{
+    public String Name;
+    public int Start, Length;
+	public string ProjectName { get; set; }
+	public string FolderName { get; set; }
+	public FileProperties FileProperties { get; set; }
+}
+
+public class ParamTextTemplate
+{
+	private ITextTemplatingEngineHost Host { get; set; }
+	
+	private ParamTextTemplate(ITextTemplatingEngineHost host)
+	{
+		this.Host = host;
+	}
+	
+	public static ParamTextTemplate Create(ITextTemplatingEngineHost host)
+	{
+		return new ParamTextTemplate(host);
+	}
+	
+	public static TextTemplatingSession GetSessionObject()
+	{
+		return new TextTemplatingSession();
+	}
+	
+	public string TransformText(string templateName, TextTemplatingSession session)
+	{
+		return this.GetTemplateContent(templateName, session);
+	}
+	
+	public string GetTemplateContent(string templateName, TextTemplatingSession session)
+	{
+		string fullName = this.Host.ResolvePath(templateName);
+		string templateContent = File.ReadAllText(fullName);
+		
+		var sessionHost = this.Host as ITextTemplatingSessionHost;
+		sessionHost.Session = session;
+
+		Engine engine = new Engine();
+		return engine.ProcessTemplate(templateContent, this.Host);
+	}
+}
+
+public class VSHelper
+{
+	/// <summary>
+	/// Execute Visual Studio commands against the project item.
+	/// </summary>
+	/// <param name="item">The current project item.</param>
+	/// <param name="command">The vs command as string.</param>
+	/// <returns>An error message if the command fails.</returns>
+	public static string ExecuteVsCommand(EnvDTE.DTE dte, EnvDTE.ProjectItem item, params string[] command)
+	{
+		if (item == null)
+		{
+			throw new ArgumentNullException("item");
+		}
+		
+		string error = String.Empty;
+		
+		try
+		{
+			EnvDTE.Window window = item.Open();
+			window.Activate();
+			
+			foreach (var cmd in command)
+			{
+				if (String.IsNullOrWhiteSpace(cmd) == true)
+				{
+					continue;
+				}
+				
+				EnvDTE80.DTE2 dte2 = dte as EnvDTE80.DTE2;
+				dte2.ExecuteCommand(cmd, String.Empty);		
+			}
+			
+			item.Save();
+			window.Visible = false;
+			// window.Close(); // Ends VS, but not the tab :(
+		}
+		catch (Exception ex)
+		{
+			error = String.Format("Error processing file {0} {1}", item.Name, ex.Message);
+		}
+		
+		return error;
+	}
+	
+	/// <summary>
+	/// Sets a property value for the vs project item.
+	/// </summary>
+	public static void SetPropertyValue(EnvDTE.ProjectItem item, string propertyName, object value)
+	{
+		EnvDTE.Property property = item.Properties.Item(propertyName);
+		if (property == null)
+		{
+			throw new ArgumentException(String.Format("The property {0} was not found.", propertyName));
+		}
+		else
+		{
+			property.Value = value;
+		}
+	}
+	
+	public static IEnumerable<ProjectItem> GetOutputFilesAsProjectItems(EnvDTE.DTE dte, IEnumerable<OutputFile> outputFiles)
+	{
+		var fileNames = (from o in outputFiles
+						select Path.GetFileName(o.FileName)).ToArray();
+
+		return VSHelper.GetAllSolutionItems(dte).Where(f => fileNames.Contains(f.Name));
+	}
+	
+	public static string GetOutputPath(EnvDTE.DTE dte, Block block, string defaultPath)
+	{
+		if (String.IsNullOrEmpty(block.ProjectName) == true && String.IsNullOrEmpty(block.FolderName) == true)
+		{
+			return defaultPath;
+		}
+		
+		EnvDTE.Project prj = null;
+		EnvDTE.ProjectItem item = null;
+		
+		if (String.IsNullOrEmpty(block.ProjectName) == false)
+		{
+			prj = GetProject(dte, block.ProjectName);			
+		}
+		
+		if (String.IsNullOrEmpty(block.FolderName) == true && prj != null)
+		{
+			return Path.GetDirectoryName(prj.FullName);
+		}
+		else if (prj != null && String.IsNullOrEmpty(block.FolderName) == false)
+		{
+			item = GetAllProjectItemsRecursive(prj.ProjectItems).Where(i=> block.FolderName == i.Name).FirstOrDefault();
+		}
+		else if (String.IsNullOrEmpty(block.FolderName) == false)
+		{
+			item = GetAllProjectItemsRecursive(
+				dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems).
+				Where(i=>block.FolderName == i.Name).First();
+		}
+		
+		if (item != null)
+		{
+			return GetProjectItemFullPath(item);
+		}
+		
+		return defaultPath;
+	}
+	public static string GetTemplatePlaceholderName(EnvDTE.ProjectItem item)
+	{
+		Random d= new Random();
+		int rndInt = d.Next(int.MaxValue);
+		return String.Format("{0}.{1}.txt4",item.Name,rndInt);
+	}
+	
+	public static EnvDTE.ProjectItem GetTemplateProjectItem(EnvDTE.DTE dte, OutputFile file, EnvDTE.ProjectItem defaultItem)
+	{
+		if (String.IsNullOrEmpty(file.ProjectName) == true && String.IsNullOrEmpty(file.FolderName) == true)
+		{
+			return defaultItem;
+		}
+		
+		string templatePlaceholder = GetTemplatePlaceholderName(defaultItem);
+		string itemPath = Path.GetDirectoryName(file.FileName); 
+		string fullName = Path.Combine(itemPath, templatePlaceholder);
+		EnvDTE.Project prj = null;
+		EnvDTE.ProjectItem item = null;
+		
+		if (String.IsNullOrEmpty(file.ProjectName) == false)
+		{
+			prj = GetProject(dte, file.ProjectName);			
+		}
+		
+		if (String.IsNullOrEmpty(file.FolderName) == true && prj != null)
+		{
+			return FindProjectItem(prj.ProjectItems, fullName, true);
+		}
+		else if (prj != null && String.IsNullOrEmpty(file.FolderName) == false)
+		{
+			item = GetAllProjectItemsRecursive(prj.ProjectItems).Where(i=>i.Name == file.FolderName).FirstOrDefault();
+		}
+		else if (String.IsNullOrEmpty(file.FolderName) == false)
+		{
+			item = GetAllProjectItemsRecursive(
+				dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems).
+				Where(i=>i.Name == file.FolderName).First();
+		}
+		
+		if (item != null)
+		{
+			return FindProjectItem(item.ProjectItems, fullName, true);
+		}
+		
+		return defaultItem;
+	}
+	
+	private static EnvDTE.ProjectItem FindProjectItem(EnvDTE.ProjectItems items, string fullName, bool canCreateIfNotExists)
+	{
+		EnvDTE.ProjectItem item = (from i in items.Cast<EnvDTE.ProjectItem>()
+								  where i.Name == Path.GetFileName(fullName)
+								  select i).FirstOrDefault();
+		if (item == null)
+		{
+			File.CreateText(fullName);
+			item = items.AddFromFile(fullName);
+		}
+		
+		return item;
+	}
+	
+	public static EnvDTE.Project GetProject(EnvDTE.DTE dte, string projectName)
+	{
+		return GetAllProjects(dte).Where(p=>p.Name == projectName).First();
+	}
+	
+	public static IEnumerable<EnvDTE.Project> GetAllProjects(EnvDTE.DTE dte)
+	{
+		List<EnvDTE.Project> projectList = new List<EnvDTE.Project>();
+		
+		var folders = dte.Solution.Projects.Cast<EnvDTE.Project>().Where(p=>p.Kind == EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
+
+		foreach (EnvDTE.Project folder in folders)
+		{
+			if (folder.ProjectItems == null) continue;
+			
+			foreach (EnvDTE.ProjectItem item in folder.ProjectItems)
+			{
+				if (item.Object is EnvDTE.Project)
+					projectList.Add(item.Object as EnvDTE.Project);
+			}
+		}
+		
+		var projects = dte.Solution.Projects.Cast<EnvDTE.Project>().Where(p=>p.Kind != EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder);
+
+		if (projects.Count() > 0)
+			projectList.AddRange(projects);
+		
+		return projectList;
+	}
+	
+	public static EnvDTE.ProjectItem GetProjectItemWithName(EnvDTE.ProjectItems items, string itemName)
+	{
+		return GetAllProjectItemsRecursive(items).Cast<ProjectItem>().Where(i=>i.Name == itemName).First();
+	}
+	
+	public static string GetProjectItemFullPath(EnvDTE.ProjectItem item)
+	{
+		return item.Properties.Item("FullPath").Value.ToString();
+	}
+	
+	public static IEnumerable<EnvDTE.ProjectItem> GetAllSolutionItems(EnvDTE.DTE dte)
+	{
+		List<EnvDTE.ProjectItem> itemList = new List<EnvDTE.ProjectItem>();
+
+		foreach (Project item in GetAllProjects(dte))
+		{
+			if (item == null || item.ProjectItems == null) continue;
+			
+			itemList.AddRange(GetAllProjectItemsRecursive(item.ProjectItems));	 
+		}
+		
+		return itemList;
+	}
+	
+	public static IEnumerable<EnvDTE.ProjectItem> GetAllProjectItemsRecursive(EnvDTE.ProjectItems projectItems) 
+	{
+    	foreach (EnvDTE.ProjectItem projectItem in projectItems) 
+		{
+			if (projectItem.ProjectItems == null) continue;
+
+        	foreach (EnvDTE.ProjectItem subItem in GetAllProjectItemsRecursive(projectItem.ProjectItems))
+        	{
+            	yield return subItem;
+        	}
+			
+			
+        	yield return projectItem;
+    	}
+	}
+}
+
+public sealed class OutputFile
+{
+	public OutputFile()
+	{
+		this.FileProperties = new FileProperties
+		{
+			CustomTool = String.Empty,
+			BuildAction = BuildAction.None
+		};
+	}
+	
+	public string FileName { get; set; }
+	public string ProjectName { get; set; }
+	public string FolderName { get; set; }
+	public string Content { get; set; }
+	public FileProperties FileProperties { get; set; }
+}
+
+public class BuildAction
+{
+	public const string None = "None";
+	public const string Compile = "Compile";
+	public const string Content = "Content";
+	public const string EmbeddedResource = "EmbeddedResource";
+	public const string EntityDeploy = "EntityDeploy";
+}
+
+public sealed class FileProperties
+{
+	public FileProperties ()
+	{
+		this.TemplateParameter = new Dictionary<string,string>();	
+	}
+	
+	public string CustomTool { get; set; }
+	public string BuildAction { get; set; }
+	public Dictionary<string, string> TemplateParameter { get; set; }
+	
+	internal string BuildActionString
+	{
+		get
+		{
+			return this.BuildAction;
+		}
+	}
+}
+
+public const string TemplateId = "CSharp_DbContext_Types_EF5";
+
+public class CodeStringGenerator
+{
+    private readonly CodeGenerationTools _code;
+    private readonly TypeMapper _typeMapper;
+    private readonly MetadataTools _ef;
+
+    public CodeStringGenerator(CodeGenerationTools code, TypeMapper typeMapper, MetadataTools ef)
+    {
+        ArgumentNotNull(code, "code");
+        ArgumentNotNull(typeMapper, "typeMapper");
+        ArgumentNotNull(ef, "ef");
+
+        _code = code;
+        _typeMapper = typeMapper;
+        _ef = ef;
+    }
+
+    public string Property(EdmProperty edmProperty)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2} {{ {3}get; {4}set; }}",
+            Accessibility.ForProperty(edmProperty),
+            _typeMapper.GetTypeName(edmProperty.TypeUsage),
+            _code.Escape(edmProperty),
+            _code.SpaceAfter(Accessibility.ForGetter(edmProperty)),
+            _code.SpaceAfter(Accessibility.ForSetter(edmProperty)));
+    }
+
+    public string NavigationProperty(NavigationProperty navigationProperty)
+    {
+        var endType = _typeMapper.GetTypeName(navigationProperty.ToEndMember.GetEntityType());
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2} {{ {3}get; {4}set; }}",
+            AccessibilityAndVirtual(Accessibility.ForProperty(navigationProperty)),
+            navigationProperty.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many ? ("ICollection<" + endType + ">") : endType,
+            _code.Escape(navigationProperty),
+            _code.SpaceAfter(Accessibility.ForGetter(navigationProperty)),
+            _code.SpaceAfter(Accessibility.ForSetter(navigationProperty)));
+    }
+    
+    public string AccessibilityAndVirtual(string accessibility)
+    {
+        return accessibility + (accessibility != "private" ? " virtual" : "");
+    }
+    
+    public string EntityClassOpening(EntityType entity)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} {1}partial class {2}{3}",
+            Accessibility.ForType(entity),
+            _code.SpaceAfter(_code.AbstractOption(entity)),
+            _code.Escape(entity),
+            _code.StringBefore(" : ", _typeMapper.GetTypeName(entity.BaseType)));
+    }
+    
+    public string EnumOpening(SimpleType enumType)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} enum {1} : {2}",
+            Accessibility.ForType(enumType),
+            _code.Escape(enumType),
+            _code.Escape(_typeMapper.UnderlyingClrType(enumType)));
+        }
+    
+    public void WriteFunctionParameters(EdmFunction edmFunction, Action<string, string, string, string> writeParameter)
+    {
+        var parameters = FunctionImportParameter.Create(edmFunction.Parameters, _code, _ef);
+        foreach (var parameter in parameters.Where(p => p.NeedsLocalVariable))
+        {
+            var isNotNull = parameter.IsNullableOfT ? parameter.FunctionParameterName + ".HasValue" : parameter.FunctionParameterName + " != null";
+            var notNullInit = "new ObjectParameter(\"" + parameter.EsqlParameterName + "\", " + parameter.FunctionParameterName + ")";
+            var nullInit = "new ObjectParameter(\"" + parameter.EsqlParameterName + "\", typeof(" + parameter.RawClrTypeName + "))";
+            writeParameter(parameter.LocalVariableName, isNotNull, notNullInit, nullInit);
+        }
+    }
+    
+    public string ComposableFunctionMethod(EdmFunction edmFunction, string modelNamespace)
+    {
+        var parameters = _typeMapper.GetParameters(edmFunction);
+        
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} IQueryable<{1}> {2}({3})",
+            AccessibilityAndVirtual(Accessibility.ForMethod(edmFunction)),
+            _typeMapper.GetTypeName(_typeMapper.GetReturnType(edmFunction), modelNamespace),
+            _code.Escape(edmFunction),
+            string.Join(", ", parameters.Select(p => p.FunctionParameterType + " " + p.FunctionParameterName).ToArray()));
+    }
+	
+	public string ComposableFunctionMethod2(EdmFunction edmFunction, string modelNamespace)
+    {
+        var parameters = _typeMapper.GetParameters(edmFunction);
+        
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} IEnumerable<{1}> {2}({3})",
+            AccessibilityAndVirtual(Accessibility.ForMethod(edmFunction)),
+            _typeMapper.GetTypeName(_typeMapper.GetReturnType(edmFunction), modelNamespace),
+            _code.Escape(edmFunction),
+            string.Join(", ", parameters.Select(p => p.FunctionParameterType + " " + p.FunctionParameterName).ToArray()));
+    }
+    
+    public string ComposableCreateQuery(EdmFunction edmFunction, string modelNamespace)
+    {
+        var parameters = _typeMapper.GetParameters(edmFunction);
+        
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "return ((IObjectContextAdapter)this).ObjectContext.CreateQuery<{0}>(\"[{1}].[{2}]({3})\"{4});",
+            _typeMapper.GetTypeName(_typeMapper.GetReturnType(edmFunction), modelNamespace),
+            edmFunction.NamespaceName,
+            edmFunction.Name,
+            string.Join(", ", parameters.Select(p => "@" + p.EsqlParameterName).ToArray()),
+            _code.StringBefore(", ", string.Join(", ", parameters.Select(p => p.ExecuteParameterName).ToArray())));
+    }
+    
+    public string FunctionMethod(EdmFunction edmFunction, string modelNamespace, bool includeMergeOption)
+    {
+        var parameters = _typeMapper.GetParameters(edmFunction);
+		
+        var returnType = _typeMapper.GetReturnType(edmFunction);
+		
+        var paramList = String.Join(", ", parameters.Select(p => p.FunctionParameterType + " " + p.FunctionParameterName).ToArray());
+        if (includeMergeOption)
+        {
+            paramList = _code.StringAfter(paramList, ", ") + "MergeOption mergeOption";
+        }
+
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2}({3})",
+            AccessibilityAndVirtual(Accessibility.ForMethod(edmFunction)),
+            returnType == null ? "int" : "ObjectResult<" + _typeMapper.GetTypeName(returnType, modelNamespace) + ">",
+            _code.Escape(edmFunction),
+            paramList);
+    }
+	
+    public string FunctionMethod2(EdmFunction edmFunction, string modelNamespace, bool includeMergeOption)
+    {
+        var parameters = _typeMapper.GetParameters(edmFunction);
+        var returnType = _typeMapper.GetReturnType(edmFunction);
+
+        var paramList = String.Join(", ", parameters.Select(p => p.FunctionParameterType + " " + p.FunctionParameterName).ToArray());
+		
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2}({3})",
+            AccessibilityAndVirtual(Accessibility.ForMethod(edmFunction)),
+            returnType == null ? "int" : "IEnumerable<" + _typeMapper.GetTypeName(returnType, modelNamespace) + ">",			
+            _code.Escape(edmFunction),
+            paramList);
+    }
+    
+	public string GetFunctionName(EdmFunction edmFunction){
+		return _code.Escape(edmFunction);
+	}
+    public string ExecuteFunction(EdmFunction edmFunction, string modelNamespace, bool includeMergeOption)
+    {
+        var parameters = _typeMapper.GetParameters(edmFunction);
+        var returnType = _typeMapper.GetReturnType(edmFunction);
+
+        var callParams = _code.StringBefore(", ", String.Join(", ", parameters.Select(p => p.ExecuteParameterName).ToArray()));
+        if (includeMergeOption)
+        {
+            callParams = ", mergeOption" + callParams;
+        }
+        
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction{0}(\"{1}\"{2});",
+            returnType == null ? "" : "<" + _typeMapper.GetTypeName(returnType, modelNamespace) + ">",
+            edmFunction.Name,
+            callParams);
+    }
+    
+    public string DbSet(EntitySet entitySet)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0} DbSet<{1}> {2} {{ get; set; }}",
+            Accessibility.ForReadOnlyProperty(entitySet),
+            _typeMapper.GetTypeName(entitySet.ElementType),
+            _code.Escape(entitySet));
+    }
+
+    public string UsingDirectives(bool inHeader, bool includeCollections = true)
+    {
+        return inHeader == string.IsNullOrEmpty(_code.VsNamespaceSuggestion())
+            ? string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}using System;{1}" +
+                "{2}",
+                inHeader ? Environment.NewLine : "",
+                includeCollections ? (Environment.NewLine + "using System.Collections.Generic;") : "",
+                inHeader ? "" : Environment.NewLine)
+            : "";
+    }
+}
+
+public class TypeMapper
+{
+    private const string ExternalTypeNameAttributeName = @"http://schemas.microsoft.com/ado/2006/04/codegeneration:ExternalTypeName";
+
+    private readonly System.Collections.IList _errors;
+    private readonly CodeGenerationTools _code;
+    private readonly MetadataTools _ef;
+
+    public TypeMapper(CodeGenerationTools code, MetadataTools ef, System.Collections.IList errors)
+    {
+        ArgumentNotNull(code, "code");
+        ArgumentNotNull(ef, "ef");
+        ArgumentNotNull(errors, "errors");
+
+        _code = code;
+        _ef = ef;
+        _errors = errors;
+    }
+
+    public string GetTypeName(TypeUsage typeUsage)
+    {
+        return typeUsage == null ? null : GetTypeName(typeUsage.EdmType, _ef.IsNullable(typeUsage), modelNamespace: null);
+    }
+
+    public string GetTypeName(EdmType edmType)
+    {
+        return GetTypeName(edmType, isNullable: null, modelNamespace: null);
+    }
+
+    public string GetTypeName(TypeUsage typeUsage, string modelNamespace)
+    {
+        return typeUsage == null ? null : GetTypeName(typeUsage.EdmType, _ef.IsNullable(typeUsage), modelNamespace);
+    }
+
+    public string GetTypeName(EdmType edmType, string modelNamespace)
+    {
+        return GetTypeName(edmType, isNullable: null, modelNamespace: modelNamespace);
+    }
+
+    public string GetTypeName(EdmType edmType, bool? isNullable, string modelNamespace)
+    {
+        if (edmType == null)
+        {
+            return null;
+        }
+
+        var collectionType = edmType as CollectionType;
+        if (collectionType != null)
+        {
+            return String.Format(CultureInfo.InvariantCulture, "ICollection<{0}>", GetTypeName(collectionType.TypeUsage, modelNamespace));
+        }
+
+        var typeName = _code.Escape(edmType.MetadataProperties
+                                .Where(p => p.Name == ExternalTypeNameAttributeName)
+                                .Select(p => (string)p.Value)
+                                .FirstOrDefault())
+            ?? (modelNamespace != null && edmType.NamespaceName != modelNamespace ?
+                _code.CreateFullName(_code.EscapeNamespace(edmType.NamespaceName), _code.Escape(edmType)) :
+                _code.Escape(edmType));
+
+        if (edmType is StructuralType)
+        {
+            return typeName;
+        }
+
+        if (edmType is SimpleType)
+        {
+            var clrType = UnderlyingClrType(edmType);
+            if (!IsEnumType(edmType))
+            {
+                typeName = _code.Escape(clrType);
+            }
+
+            return clrType.IsValueType && isNullable == true ?
+                String.Format(CultureInfo.InvariantCulture, "Nullable<{0}>", typeName) :
+                typeName;
+        }
+
+        throw new ArgumentException("edmType");
+    }
+    
+    public Type UnderlyingClrType(EdmType edmType)
+    {
+        ArgumentNotNull(edmType, "edmType");
+
+        var primitiveType = edmType as PrimitiveType;
+        if (primitiveType != null)
+        {
+            return primitiveType.ClrEquivalentType;
+        }
+
+        if (IsEnumType(edmType))
+        {
+            return GetEnumUnderlyingType(edmType).ClrEquivalentType;
+        }
+
+        return typeof(object);
+    }
+    
+    public object GetEnumMemberValue(MetadataItem enumMember)
+    {
+        ArgumentNotNull(enumMember, "enumMember");
+        
+        var valueProperty = enumMember.GetType().GetProperty("Value");
+        return valueProperty == null ? null : valueProperty.GetValue(enumMember, null);
+    }
+    
+    public string GetEnumMemberName(MetadataItem enumMember)
+    {
+        ArgumentNotNull(enumMember, "enumMember");
+        
+        var nameProperty = enumMember.GetType().GetProperty("Name");
+        return nameProperty == null ? null : (string)nameProperty.GetValue(enumMember, null);
+    }
+
+    public System.Collections.IEnumerable GetEnumMembers(EdmType enumType)
+    {
+        ArgumentNotNull(enumType, "enumType");
+
+        var membersProperty = enumType.GetType().GetProperty("Members");
+        return membersProperty != null 
+            ? (System.Collections.IEnumerable)membersProperty.GetValue(enumType, null)
+            : Enumerable.Empty<MetadataItem>();
+    }
+    
+    public bool EnumIsFlags(EdmType enumType)
+    {
+        ArgumentNotNull(enumType, "enumType");
+        
+        var isFlagsProperty = enumType.GetType().GetProperty("IsFlags");
+        return isFlagsProperty != null && (bool)isFlagsProperty.GetValue(enumType, null);
+    }
+
+    public bool IsEnumType(GlobalItem edmType)
+    {
+        ArgumentNotNull(edmType, "edmType");
+
+        return edmType.GetType().Name == "EnumType";
+    }
+
+    public PrimitiveType GetEnumUnderlyingType(EdmType enumType)
+    {
+        ArgumentNotNull(enumType, "enumType");
+
+        return (PrimitiveType)enumType.GetType().GetProperty("UnderlyingType").GetValue(enumType, null);
+    }
+
+    public string CreateLiteral(object value)
+    {
+        if (value == null || value.GetType() != typeof(TimeSpan))
+        {
+            return _code.CreateLiteral(value);
+        }
+
+        return string.Format(CultureInfo.InvariantCulture, "new TimeSpan({0})", ((TimeSpan)value).Ticks);
+    }
+    
+    public bool VerifyCaseInsensitiveTypeUniqueness(IEnumerable<string> types, string sourceFile)
+    {
+        ArgumentNotNull(types, "types");
+        ArgumentNotNull(sourceFile, "sourceFile");
+        
+        var hash = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+        if (types.Any(item => !hash.Add(item)))
+        {
+            _errors.Add(
+                new CompilerError(sourceFile, -1, -1, "6023",
+                    String.Format(CultureInfo.CurrentCulture, GetResourceString("Template_CaseInsensitiveTypeConflict"))));
+            return false;
+        }
+        return true;
+    }
+    
+    public IEnumerable<SimpleType> GetEnumItemsToGenerate(IEnumerable<GlobalItem> itemCollection)
+    {
+        return GetItemsToGenerate<SimpleType>(itemCollection)
+            .Where(e => IsEnumType(e));
+    }
+    
+    public IEnumerable<T> GetItemsToGenerate<T>(IEnumerable<GlobalItem> itemCollection) where T: EdmType
+    {
+        return itemCollection
+            .OfType<T>()
+            .Where(i => !i.MetadataProperties.Any(p => p.Name == ExternalTypeNameAttributeName))
+            .OrderBy(i => i.Name);
+    }
+
+    public IEnumerable<string> GetAllGlobalItems(IEnumerable<GlobalItem> itemCollection)
+    {
+        return itemCollection
+            .Where(i => i is EntityType || i is ComplexType || i is EntityContainer || IsEnumType(i))
+            .Select(g => GetGlobalItemName(g));
+    }
+
+    public string GetGlobalItemName(GlobalItem item)
+    {
+        if (item is EdmType)
+        {
+            return ((EdmType)item).Name;
+        }
+        else
+        {
+            return ((EntityContainer)item).Name;
+        }
+    }
+
+    public IEnumerable<EdmProperty> GetSimpleProperties(EntityType type)
+    {
+        return type.Properties.Where(p => p.TypeUsage.EdmType is SimpleType && p.DeclaringType == type);
+    }
+    
+    public IEnumerable<EdmProperty> GetSimpleProperties(ComplexType type)
+    {
+        return type.Properties.Where(p => p.TypeUsage.EdmType is SimpleType && p.DeclaringType == type);
+    }
+    
+    public IEnumerable<EdmProperty> GetComplexProperties(EntityType type)
+    {
+        return type.Properties.Where(p => p.TypeUsage.EdmType is ComplexType && p.DeclaringType == type);
+    }
+    
+    public IEnumerable<EdmProperty> GetComplexProperties(ComplexType type)
+    {
+        return type.Properties.Where(p => p.TypeUsage.EdmType is ComplexType && p.DeclaringType == type);
+    }
+
+    public IEnumerable<EdmProperty> GetPropertiesWithDefaultValues(EntityType type)
+    {
+        return type.Properties.Where(p => p.TypeUsage.EdmType is SimpleType && p.DeclaringType == type && p.DefaultValue != null);
+    }
+    
+    public IEnumerable<EdmProperty> GetPropertiesWithDefaultValues(ComplexType type)
+    {
+        return type.Properties.Where(p => p.TypeUsage.EdmType is SimpleType && p.DeclaringType == type && p.DefaultValue != null);
+    }
+
+    public IEnumerable<NavigationProperty> GetNavigationProperties(EntityType type)
+    {
+        return type.NavigationProperties.Where(np => np.DeclaringType == type);
+    }
+    
+    public IEnumerable<NavigationProperty> GetCollectionNavigationProperties(EntityType type)
+    {
+        return type.NavigationProperties.Where(np => np.DeclaringType == type && np.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many);
+    }
+    
+    public FunctionParameter GetReturnParameter(EdmFunction edmFunction)
+    {
+        ArgumentNotNull(edmFunction, "edmFunction");
+
+        var returnParamsProperty = edmFunction.GetType().GetProperty("ReturnParameters");
+        return returnParamsProperty == null
+            ? edmFunction.ReturnParameter
+            : ((IEnumerable<FunctionParameter>)returnParamsProperty.GetValue(edmFunction, null)).FirstOrDefault();
+    }
+
+    public bool IsComposable(EdmFunction edmFunction)
+    {
+        ArgumentNotNull(edmFunction, "edmFunction");
+
+        var isComposableProperty = edmFunction.GetType().GetProperty("IsComposableAttribute");
+        return isComposableProperty != null && (bool)isComposableProperty.GetValue(edmFunction, null);
+    }
+
+    public IEnumerable<FunctionImportParameter> GetParameters(EdmFunction edmFunction)
+    {
+        return FunctionImportParameter.Create(edmFunction.Parameters, _code, _ef);
+    }
+
+    public TypeUsage GetReturnType(EdmFunction edmFunction)
+    {
+        var returnParam = GetReturnParameter(edmFunction);
+        return returnParam == null ? null : _ef.GetElementType(returnParam.TypeUsage);
+    }
+    
+    public bool GenerateMergeOptionFunction(EdmFunction edmFunction, bool includeMergeOption)
+    {
+        var returnType = GetReturnType(edmFunction);
+        return !includeMergeOption && returnType != null && returnType.EdmType.BuiltInTypeKind == BuiltInTypeKind.EntityType;
+    }
+}
+
+public class EdmMetadataLoader
+{
+    private readonly IDynamicHost _host;
+    private readonly System.Collections.IList _errors;
+
+    public EdmMetadataLoader(IDynamicHost host, System.Collections.IList errors)
+    {
+        ArgumentNotNull(host, "host");
+        ArgumentNotNull(errors, "errors");
+
+        _host = host;
+        _errors = errors;
+    }
+
+    public IEnumerable<GlobalItem> CreateEdmItemCollection(string sourcePath)
+    {
+        ArgumentNotNull(sourcePath, "sourcePath");
+
+        if (!ValidateInputPath(sourcePath))
+        {
+            return new EdmItemCollection();
+        }
+
+        var schemaElement = LoadRootElement(_host.ResolvePath(sourcePath));
+        if (schemaElement != null)
+        {
+            using (var reader = schemaElement.CreateReader())
+            {
+                IList<EdmSchemaError> errors;
+                var itemCollection = MetadataItemCollectionFactory.CreateEdmItemCollection(new[] { reader }, out errors);
+
+                ProcessErrors(errors, sourcePath);
+
+                return itemCollection;
+            }
+        }
+        return new EdmItemCollection();
+    }
+
+    public string GetModelNamespace(string sourcePath)
+    {
+        ArgumentNotNull(sourcePath, "sourcePath");
+
+        if (!ValidateInputPath(sourcePath))
+        {
+            return string.Empty;
+        }
+
+        var model = LoadRootElement(_host.ResolvePath(sourcePath));
+        if (model == null)
+        {
+            return string.Empty;
+        }
+
+        var attribute = model.Attribute("Namespace");
+        return attribute != null ? attribute.Value : "";
+    }
+
+    private bool ValidateInputPath(string sourcePath)
+    {
+        if (sourcePath == "$" + "edmxInputFile" + "$")
+        {
+            _errors.Add(
+                new CompilerError(_host.TemplateFile ?? sourcePath, 0, 0, string.Empty,
+                    GetResourceString("Template_ReplaceVsItemTemplateToken")));
+            return false;
+        }
+
+        return true;
+    }
+
+    public XElement LoadRootElement(string sourcePath)
+    {
+        ArgumentNotNull(sourcePath, "sourcePath");
+
+        var root = XElement.Load(sourcePath, LoadOptions.SetBaseUri | LoadOptions.SetLineInfo);
+        return root.Elements()
+            .Where(e => e.Name.LocalName == "Runtime")
+            .Elements()
+            .Where(e => e.Name.LocalName == "ConceptualModels")
+            .Elements()
+            .Where(e => e.Name.LocalName == "Schema")
+            .FirstOrDefault()
+                ?? root;
+    }
+
+    private void ProcessErrors(IEnumerable<EdmSchemaError> errors, string sourceFilePath)
+    {
+        foreach (var error in errors)
+        {
+            _errors.Add(
+                new CompilerError(
+                    error.SchemaLocation ?? sourceFilePath,
+                    error.Line,
+                    error.Column,
+                    error.ErrorCode.ToString(CultureInfo.InvariantCulture),
+                    error.Message)
+                {
+                    IsWarning = error.Severity == EdmSchemaErrorSeverity.Warning
+                });
+        }
+    }
+    
+    public bool IsLazyLoadingEnabled(EntityContainer container)
+    {
+        string lazyLoadingAttributeValue;
+        var lazyLoadingAttributeName = MetadataConstants.EDM_ANNOTATION_09_02 + ":LazyLoadingEnabled";
+        bool isLazyLoading;
+        return !MetadataTools.TryGetStringMetadataPropertySetting(container, lazyLoadingAttributeName, out lazyLoadingAttributeValue)
+            || !bool.TryParse(lazyLoadingAttributeValue, out isLazyLoading)
+            || isLazyLoading;
+    }
+}
+
+public static void ArgumentNotNull<T>(T arg, string name) where T : class
+{
+    if (arg == null)
+    {
+        throw new ArgumentNullException(name);
+    }
+}
+    
+private static readonly Lazy<System.Resources.ResourceManager> ResourceManager =
+    new Lazy<System.Resources.ResourceManager>(
+        () => new System.Resources.ResourceManager("System.Data.Entity.Design", typeof(MetadataItemCollectionFactory).Assembly), isThreadSafe: true);
+
+public static string GetResourceString(string resourceName)
+{
+    ArgumentNotNull(resourceName, "resourceName");
+
+    return ResourceManager.Value.GetString(resourceName, null);
+}
+
+bool DoesFileExist(string filename)
+{			
+	return File.Exists(Path.Combine(GetCurrentDirectory(),filename));	
+}
+
+string ReadOutputFile(string filename)
+{
+	using(StreamReader sr = new StreamReader(Path.Combine(GetCurrentDirectory(),filename)))
+	{
+		string contents = sr.ReadToEnd();
+		return contents;
+	}
+}
+
+string GetCurrentDirectory()
+{
+	string executingDirectoryName = "";
+	string stackTraceFileName = new StackTrace(true).GetFrame(0).GetFileName();
+	if (String.IsNullOrEmpty(stackTraceFileName))
+	{
+		throw new ArgumentException("No value was specified for the 'directoryName' configuration parameter" +
+			", and we could not figure out the file name from the stack trace (most likely because of running " +
+			"the template with debug='False' specified in the <\u0023@ template \u0023> directive.");
+	}
+	else
+	{		
+		executingDirectoryName = Path.GetDirectoryName(stackTraceFileName);
+	}	
+	return executingDirectoryName;
+}
+
+string FindEDMXFileName()
+{
+	string edmxFile = "";
+				
+	string[] entityFrameworkFiles = Directory.GetFiles(GetCurrentDirectory(), "*.edmx");
+	if(entityFrameworkFiles.Length > 0)
+		edmxFile = entityFrameworkFiles[0];
+	
+	return edmxFile;
+}
+public void BeginNamespace(CodeGenerationTools code)
+{
+    var codeNamespace = code.VsNamespaceSuggestion();
+    if (!String.IsNullOrEmpty(codeNamespace))
+    {
+#>
+namespace <#=code.EscapeNamespace(codeNamespace)#>
+{
+<#+
+        PushIndent("    ");
+    }
+}
+
+public void EndNamespace(CodeGenerationTools code)
+{
+    if (!String.IsNullOrEmpty(code.VsNamespaceSuggestion()))
+    {
+        PopIndent();
+#>
+}
+<#+
+    }
+}
+#>

@@ -234,6 +234,33 @@ foreach (var complex in typeMapper.GetItemsToGenerate<ComplexType>(itemCollectio
 		this.Write(ReadOutputFile(ComplexType_csFilePath));
 	}
 }
+
+foreach (var edmFunction in container.FunctionImports)
+{
+	string fnName = code.Escape(edmFunction);
+	string className =  string.Format("{0}_Result",fnName);
+	string OtherResultEntity_csFileName = string.Format("{0}.Partial.cs",className);
+	string OtherResultEntity_csFilePath = string.Format(GetCurrentDirectory(),DataEntitySubDirName,OtherResultEntity_csFileName);
+
+	if(!DoesFileExist(OtherResultEntity_csFilePath))
+    {
+		fileManager.StartNewFile(OtherResultEntity_csFileName,project.Name,DataEntitySubDirName);
+		BeginNamespace(code);
+#>
+public partial class <#=className#>
+{
+
+}
+<#
+		EndNamespace(code);
+    }
+	else
+    {
+		fileManager.StartNewFile(OtherResultEntity_csFileName,project.Name,DataEntitySubDirName);
+		this.Write(ReadOutputFile(OtherResultEntity_csFilePath));
+    }
+}
+
 string OthersEntity_csFileName = "Others.cs";
 string OthersEntity_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,OthersEntity_csFileName);
 if(!DoesFileExist(OthersEntity_csFilePath))
@@ -579,7 +606,7 @@ if(!DoesFileExist(RepositoryHelper_csFilePath))
 #>
 using System;
 
-<#	BeginNamespace(code);#>
+<#BeginNamespace(code);#>
 	public static class RepositoryHelper
 	{
 		public static IUnitOfWork GetUnitOfWork()
@@ -665,142 +692,88 @@ if(!DoesFileExist(spContext_phyFilePath))
 using System.Collections.Generic;
 <#
 	BeginNamespace(code);
-#>public partial class <#=code.Escape(container)#>
+#>
+	public partial class <#=code.Escape(container)#>
 	{
 		<#foreach (var edmFunction in container.FunctionImports)
 		{
 			string fnName = code.Escape(edmFunction);
-
-			if(string.IsNullOrEmpty(fnName))
-            {
-				continue;
-            }
 			var edmType = typeMapper.GetReturnType(edmFunction);
 			string returnTypeName = typeMapper.GetTypeName(edmType, modelNamespace);
 			
-			var queryp = edmFunction.Parameters.Where(p=>p.Mode==ParameterMode.In || p.Mode==ParameterMode.InOut);
+			var queryp = edmFunction.Parameters.Where(p=>p.Mode==ParameterMode.In);
 			var parameters_In = FunctionImportParameter.Create(queryp, code, ef);
 			int InParams_Count = parameters_In.Count();
 
 			var queryoutp = edmFunction.Parameters.Where(p=>p.Mode==ParameterMode.Out || p.Mode==ParameterMode.InOut);
-			var parameters_Out = FunctionImportParameter.Create(queryp, code, ef);
-			int OutParams_Count = parameters_In.Count();
+			var parameters_Out = FunctionImportParameter.Create(queryoutp, code, ef);
+			int OutParams_Count = parameters_Out.Count();
 
 			if(string.IsNullOrEmpty(returnTypeName))
             {
-				returnTypeName = "int";
-            }
-			
-			Type returnCLRType = Type.GetType(returnTypeName);
-			
-			if(returnCLRType!=null)
-            {
-				if(returnCLRType.IsValueType)
-                {
-					var propTypeName = returnTypeName;
-					returnTypeName = string.Format("{0}_Result",fnName);
-
-					if(Type.GetType(returnTypeName)==null)
-                    {
-						string ResultEntity_csFileName = string.Format("{0}.cs",returnTypeName);
-						string ResultEntity_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,ResultEntity_csFileName);
-						if(!DoesFileExist(ResultEntity_csFilePath))
-                        {
-							fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
-							BeginNamespace(code);
 #>
-	public partial class <#=returnTypeName#>
-	{
-		public virtual <#=propTypeName#> Column1 {get;set;} 
-	}
-<#
-							EndNamespace(code);
-                        }
-						else
-                        {
-							fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
-							this.Write(ReadOutputFile(ResultEntity_csFilePath));
-                        }
-                    }
-                }
-				else
-				{
-					if(returnCLRType.IsInterface || returnCLRType.IsAnsiClass||returnCLRType.IsClass)
-                    {
-						returnTypeName = string.Format("{0}",returnCLRType.Name);
-						if(Type.GetType(returnTypeName)==null)
-						{
-							string ResultEntity_csFileName = string.Format("{0}.cs",returnTypeName);
-							string ResultEntity_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,ResultEntity_csFileName);
-							if(!DoesFileExist(ResultEntity_csFilePath))
-							{
-								fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
-								BeginNamespace(code);
-#>
-	public partial class <#=returnTypeName#>
-	{
-	}
-<#
-								EndNamespace(code);
-							}
-							else
-							{
-								fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
-								this.Write(ReadOutputFile(ResultEntity_csFilePath));
-							}
-						}
-                    }
-                }
-            }
-			else
-            {
-				returnTypeName = "int";
-
-            }
-	
-			if(returnTypeName!="int")
-            {
-		#>public IEnumerable<<#=returnTypeName#>> <#=fnName#>(<#=fnName#>_InputParameter spParameters)
-		{
-			int returnValue;
-			<#
-			if(OutParams_Count>0)
-            {
-			 #><#=fnName#>_OutputParameter outputparameter;
-			<#}#>
-			IEnumerable<<#=returnTypeName#>> result = this.ExecuteStoredProcedure<<#=returnTypeName#>,<#=fnName#>_OutputParameter>(
-				"<#=fnName #>",
-				out outputparameter,
-				out returnValue,
-				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);
-			<#if(OutParams_Count>0)
-			{#>
-			spParameters.OutputParameter = outputparameter;
-			<#}#>
-			spParameters.ReturnValue = returnValue;
-			return result;
-		}
-        <#  }
-			else
-            {
-		#>public void <#=fnName#>(<#=fnName#>_InputParameter spParameters)
+		public void <#=fnName#>(<#=fnName#>_InputParameter spParameters)
 		{
 			int returnValue = 0;
+			<#
+				if(OutParams_Count>0)
+				{#>
 			<#=fnName#>_OutputParameter outputparameter;
-			IEnumerable<<#=returnTypeName#>> result = this.ExecuteStoredProcedure<<#=returnTypeName#>,<#=fnName#>_OutputParameter>(
+			this.ExecuteStoredProcedure(
 				"<#=fnName #>",
 				out outputparameter,
 				out returnValue,
-				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);
+				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);  
 			spParameters.OutputParameter = outputparameter;
-			spParameters.ReturnValue = returnValue;
-		}
-        <#  }#>
-		<#
-        }#>
+			spParameters.ReturnValue=returnValue;
+<#
+				}
+				else
+				{#>
+			returnValue = this.ExecuteStoredProcedure(
+				"<#=fnName #>",
+				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);  
+			spParameters.ReturnValue=returnValue;
+			<#}#>
+		}<#
+				
+            }
+			else
+            {
 
-	}
-<#	
+				returnTypeName= string.Format("{0}_Result",fnName);
+
+#>			
+			public IEnumerable<<#=returnTypeName#>> <#=fnName#>(<#=fnName#>_InputParameter spParameters)
+			{
+			int returnValue = 0;
+			IEnumerable<<#=returnTypeName#>> result;
+			<#if(OutParams_Count>0)
+			{#>
+			<#=fnName#>_OutputParameter outputparameter;
+			result=this.ExecuteStoredProcedure<<#=returnTypeName#>,<#=fnName#>_OutputParameter>(
+				"<#=fnName#>",
+				out outputparameter,
+                out returnValue,
+				<#=string.Join(",\n",parameters_In.Select(p => string.Format("\t\tspParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>
+				);
+				spParameters.OutputParameter = outputparameter;
+				spParameters.ReturnValue = returnValue;
+			<#	}
+				else
+				{#>
+            returnValue = this.ExecuteStoredProcedure(
+                 "<#=fnName#>",
+                 out result,
+                 <#=string.Join(",\n",parameters_In.Select(p => string.Format("\t\tspParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);
+            spParameters.ReturnValue = returnValue;
+				<#}#>
+			return result;
+			}
+		<#}
+        }
+	#>}
+	<#
 	EndNamespace(code);
 }
 else
@@ -823,21 +796,23 @@ foreach (var edmFunction in container.FunctionImports)
 	public partial class <#=fnName#>_InputParameter
 	{
 <#
-		var parameters = FunctionImportParameter.Create(edmFunction.Parameters, code, ef);
+        var edmxinfo = edmFunction.Parameters.Where(p => p.Mode==ParameterMode.In);
+		var parameters = FunctionImportParameter.Create(edmxinfo, code, ef);
         foreach (var parameter in parameters.Where(p => p.NeedsLocalVariable))
         {
 #>
-			public virtual <#=parameter.RawClrTypeName#> <#=parameter.FunctionParameterName#> { get; set; }       
+		public virtual <#=parameter.RawClrTypeName#> <#=parameter.FunctionParameterName#> { get; set; }       
 <#
         }
 
 		if(edmFunction.Parameters.Any(p => p.Mode==ParameterMode.Out || p.Mode==ParameterMode.InOut))
         {
 		#>
-			public virtual <#=fnName#>_OutputParameter OutputParameter { get; set; }      
+		public virtual <#=fnName#>_OutputParameter OutputParameter { get; set; }      
 		<#
 		}
 #>
+		public virtual int ReturnValue { get; set; }
 	}
 <#
 		EndNamespace(code);

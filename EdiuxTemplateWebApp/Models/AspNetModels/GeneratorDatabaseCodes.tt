@@ -63,17 +63,18 @@ if (!typeMapper.VerifyCaseInsensitiveTypeUniqueness(typeMapper.GetAllGlobalItems
 //********************************
 // Tools
 //********************************
-<#	
+<#
+//產生DBEntity	
 string dirName = System.IO.Path.GetFileNameWithoutExtension(GetCurrentDirectory());
-string SubDirName = "DataEntity";	
+string DataEntitySubDirName = "DataEntity";	
 foreach (var entity in typeMapper.GetItemsToGenerate<EntityType>(itemCollection))
 {
-	
-	
-	string csFileName = string.Format("{0}.Partial.cs",entity.Name);
-	if(!DoesFileExist(csFileName))
+	string DataEntity_csFileName = string.Format("{0}.Partial.cs",entity.Name);
+	string DataEntity_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,DataEntity_csFileName);
+
+	if(!DoesFileExist(DataEntity_csFilePath))
     {
-		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
+		fileManager.StartNewFile(DataEntity_csFileName,project.Name,DataEntitySubDirName);
 		BeginNamespace(code);
 			#>
 <#=codeStringGenerator.UsingDirectives(inHeader: false)#>
@@ -150,19 +151,19 @@ using System.ComponentModel.DataAnnotations;
 	}
 	else
 	{	
-		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
-		
-		this.Write(ReadOutputFile(csFileName));
+		fileManager.StartNewFile(DataEntity_csFileName,project.Name,DataEntitySubDirName);
+		this.Write(ReadOutputFile(DataEntity_csFilePath));
 	}
 }
 
 foreach (var complex in typeMapper.GetItemsToGenerate<ComplexType>(itemCollection))
 {
-	string csFileName = string.Format("{0}.Partial.cs",complex.Name);
-	string PhyFileName = Path.Combine(SubDirName,csFileName);
-	if(!DoesFileExist(PhyFileName))
+	string ComplexType_csFileName = string.Format("{0}.Partial.cs",complex.Name);
+	string ComplexType_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,ComplexType_csFileName);
+
+	if(!DoesFileExist(ComplexType_csFilePath))
 	{
-		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
+		fileManager.StartNewFile(ComplexType_csFileName,project.Name,DataEntitySubDirName);
 		BeginNamespace(code);
 #>
 <#=codeStringGenerator.UsingDirectives(inHeader: false, includeCollections: false)#>using System.ComponentModel.DataAnnotations;
@@ -229,19 +230,589 @@ foreach (var complex in typeMapper.GetItemsToGenerate<ComplexType>(itemCollectio
 	}
 	else
 	{
-		fileManager.StartNewFile(csFileName,project.Name,SubDirName);
-	
-		this.Write(ReadOutputFile(PhyFileName));
+		fileManager.StartNewFile(ComplexType_csFileName,project.Name,DataEntitySubDirName);
+		this.Write(ReadOutputFile(ComplexType_csFilePath));
 	}
 }
+string OthersEntity_csFileName = "Others.cs";
+string OthersEntity_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,OthersEntity_csFileName);
+if(!DoesFileExist(OthersEntity_csFilePath))
+{
+	fileManager.StartNewFile(OthersEntity_csFileName,project.Name,DataEntitySubDirName);
+	textTransform.WriteLine("/// =========================================");
+	textTransform.WriteLine("/// 產生額外資料庫回應物件");
+	textTransform.WriteLine("/// =========================================");
+	BeginNamespace(code);
+	EndNamespace(code);
+}
+else
+{
+	fileManager.StartNewFile(OthersEntity_csFileName,project.Name,DataEntitySubDirName);
+	this.Write(ReadOutputFile(OthersEntity_csFilePath));
+}
+
+//產生IRepository
+string RepositoryDirName = "DBService";
+
+string RepositoryBase_Interface_csFileName = "IRepositoryBase.cs";
+string RepositoryBase_Interface_csFilePath = Path.Combine(GetCurrentDirectory(),RepositoryDirName,RepositoryBase_Interface_csFileName);
+
+if(!DoesFileExist(RepositoryBase_Interface_csFilePath))
+{
+	fileManager.StartNewFile(RepositoryBase_Interface_csFileName,project.Name,RepositoryDirName);
+#>using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+<#BeginNamespace(code);#>
+    /// <summary>
+    /// <paramref name="T"/> 的儲存庫操作介面。
+    /// </summary>
+    /// <typeparam name="T">資料實體物件。</typeparam>	
+	public partial interface IRepositoryBase<T> :IDisposable
+		where T : class
+	{
+        /// <summary>
+        /// 取得或設定統一操作物件的參考。
+        /// </summary>
+		IUnitOfWork UnitOfWork { get; set; }
+		
+		/// <summary>
+		/// 取得Entity全部筆數的IQueryable。
+		/// </summary>
+		/// <returns>Entity全部筆數的IQueryable。</returns>
+		IQueryable<T> All();
+
+        /// <summary>
+        /// 取得Entity全部筆數的IQueryable<<typeparamref name="T>"></typeparamref>>的非同步版本。
+        /// </summary>
+        Task<IQueryable<T>> AllAsync();
+
+        /// <summary>
+        /// 傳回<paramref name="T"/> 的篩選結果。
+        /// </summary>
+        /// <param name="expression">代表Where查詢子句的Lamba方法</param>
+		IQueryable<T> Where(Expression<Func<T, bool>> expression);
+
+        /// <summary>
+        /// 插入一列新的資料列。
+        /// </summary>
+        /// <param name="entity">資料列實體。</param>
+        /// <returns></returns>
+		T Add(T entity);
+
+		/// <summary>
+		/// 建立多列資料的批次新增。
+		/// </summary>
+		/// <param name="entities">資料列實體。</param>
+		IList<T> BatchAdd(IEnumerable<T> entities);
+
+        /// <summary>
+        /// 從資料庫刪除實體。
+        /// </summary>
+        /// <param name="entity">資料列實體。</param>
+        void Delete(T entity);
+
+        /// <summary>
+        /// 依據傳入的主索引鍵值尋找符合的資料列並回傳。
+        /// </summary>
+        /// <param name="predicate">主索引鍵值(組)</param>
+        /// <returns>傳回符合鍵值的資料列。</returns>
+		T Get(params object[] values);
+
+        /// <summary>
+        /// 以非同步方法依據傳入的主索引鍵值尋找符合的資料列並回傳。
+        /// </summary>
+        /// <param name="values">主索引鍵值(組)</param>
+        /// <returns>傳回符合鍵值的資料列。</returns>
+        Task<T> GetAsync(params object[] values);
+
+		/// <summary>
+		/// 重新從資料庫載入實體。
+		/// </summary>
+		/// <param name="entity">資料列實體。</param>
+		T Reload(T entity);
+
+        /// <summary>
+        /// 重新從資料庫載入實體的非同步方法。
+        /// </summary>
+        /// <param name="entity">資料列實體。</param>
+		Task<T> ReloadAsync(T entity);
+	}
+<#
+	EndNamespace(code);
+}
+else
+{
+	fileManager.StartNewFile(RepositoryBase_Interface_csFileName,project.Name,RepositoryDirName);
+	this.Write(ReadOutputFile(RepositoryBase_Interface_csFilePath));	
+}
+
+string UnitOfWork_Interface_csFileName = "IUnitOfWork.cs";
+string UnitOfWork_Interface_csFilePath = Path.Combine(GetCurrentDirectory(),RepositoryDirName,UnitOfWork_Interface_csFileName);
+
+if(!DoesFileExist(UnitOfWork_Interface_csFilePath))
+{
+	fileManager.StartNewFile(UnitOfWork_Interface_csFileName,project.Name,RepositoryDirName);
+#>using System.Data.Entity;
+using System.Threading.Tasks;
+
+<#BeginNamespace(code);#>
+	public partial interface IUnitOfWork
+	{
+		DbContext Context { get; set; }
+
+        /// <summary>
+        /// 提交資料庫變更要求的非同步方法。
+        /// </summary>
+		void Commit();
+		bool LazyLoadingEnabled { get; set; }
+		bool ProxyCreationEnabled { get; set; }
+		string ConnectionString { get; set; }
+
+        /// <summary>
+        /// 提交資料庫變更要求的非同步方法。
+        /// </summary>
+        /// <returns>非同步執行結果。</returns>
+        Task CommitAsync();
+	}
+}<#
+	EndNamespace(code);
+}
+else
+{
+	fileManager.StartNewFile(UnitOfWork_Interface_csFileName,project.Name,RepositoryDirName);
+	this.Write(ReadOutputFile(UnitOfWork_Interface_csFilePath));	
+}
+
+string EFRepositoryBase_csFileName = "EFRepository.cs";
+string EFRepositoryBase_csFilePath = Path.Combine(GetCurrentDirectory(),RepositoryDirName,EFRepositoryBase_csFileName);
+if(!DoesFileExist(EFRepositoryBase_csFilePath))
+{
+	fileManager.StartNewFile(EFRepositoryBase_csFileName,project.Name,RepositoryDirName);
+	
+#>using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+
+<#BeginNamespace(code);#>
+	public partial class EFRepository<T> : IRepositoryBase<T> where T : class
+	{
+		public IUnitOfWork UnitOfWork { get; set; }
+		
+		private IDbSet<T> _objectset;
+		protected IDbSet<T> ObjectSet
+		{
+			get
+			{
+				if (_objectset == null)
+				{
+					_objectset = UnitOfWork.Context.Set<T>();
+				}
+				return _objectset;
+			}
+		}
+
+		public virtual IQueryable<T> All()
+		{
+			return ObjectSet.AsQueryable();
+		}
+
+		public virtual IQueryable<T> Where(Expression<Func<T, bool>> expression)
+		{
+			return ObjectSet.Where(expression);
+		}
+
+		public virtual T Add(T entity)
+		{
+			return ObjectSet.Add(entity);
+		}
+
+		public virtual void Delete(T entity)
+		{
+			ObjectSet.Remove(entity);
+		}
+
+		public virtual Task<IQueryable<T>> AllAsync()
+        {
+            return Task.Run(() => ObjectSet.AsQueryable());
+        }
+
+        public virtual IList<T> BatchAdd(IEnumerable<T> entities)
+        {
+            return ((DbSet<T>)ObjectSet).AddRange(entities).ToList();
+        }
+
+        public virtual T Get(params object[] values)
+        {
+            return ObjectSet.Find(values);
+        }
+
+        public virtual Task<T> GetAsync(params object[] values)
+        {
+            return Task.Run(() => ObjectSet.Find(values));
+        }
+
+        public virtual T Reload(T entity)
+        {
+            UnitOfWork.Context.Entry(entity).Reload();
+            return entity;
+        }
+
+        public virtual async Task<T> ReloadAsync(T entity)
+        {
+           await UnitOfWork.Context.Entry(entity).ReloadAsync();
+            return entity;
+        }
+		#region IDisposable Support
+        private bool disposedValue = false; // 偵測多餘的呼叫
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    UnitOfWork.Commit();
+                    UnitOfWork.Context.Dispose();
+                }
+
+                // TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。
+                // TODO: 將大型欄位設為 null。
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: 僅當上方的 Dispose(bool disposing) 具有會釋放 Unmanaged 資源的程式碼時，才覆寫完成項。
+        // ~EFRepository() {
+        //   // 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
+        //   Dispose(false);
+        // }
+
+        // 加入這個程式碼的目的在正確實作可處置的模式。
+        public void Dispose()
+        {
+            // 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
+            Dispose(true);
+            // TODO: 如果上方的完成項已被覆寫，即取消下行的註解狀態。
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
+	}
+<# EndNamespace(code);
+}
+else
+{
+	fileManager.StartNewFile(EFRepositoryBase_csFileName,project.Name,RepositoryDirName);
+	this.Write(ReadOutputFile(EFRepositoryBase_csFilePath));
+}
+//EFUnitOfWork.cs
+string EFUnitOfWork_csFileName = "EFUnitOfWork.cs";
+string EFUnitOfWork_csFilePath = Path.Combine(GetCurrentDirectory(),RepositoryDirName,EFUnitOfWork_csFileName);
+if(!DoesFileExist(EFUnitOfWork_csFilePath))
+{
+	fileManager.StartNewFile(EFUnitOfWork_csFileName,project.Name,RepositoryDirName);
+#>using System.Data.Entity;
+using System.Threading.Tasks;
+
+<#	BeginNamespace(code);#>
+	public partial class EFUnitOfWork : IUnitOfWork
+	{
+		private DbContext _context;
+		public DbContext Context { get{ return _context;} set{ _context=value;} }
+
+		public EFUnitOfWork()
+		{
+			Context = new <#=code.Escape(container)#>();
+		}
+
+		public void Commit()
+		{
+			Context.SaveChanges();
+		}
+		
+		public async Task CommitAsync()
+        {
+            await Context.SaveChangesAsync();
+        }
+
+		public bool LazyLoadingEnabled
+		{
+			get { return Context.Configuration.LazyLoadingEnabled; }
+			set { Context.Configuration.LazyLoadingEnabled = value; }
+		}
+
+		public bool ProxyCreationEnabled
+		{
+			get { return Context.Configuration.ProxyCreationEnabled; }
+			set { Context.Configuration.ProxyCreationEnabled = value; }
+		}
+		
+		public string ConnectionString
+		{
+			get { return Context.Database.Connection.ConnectionString; }
+			set { Context.Database.Connection.ConnectionString = value; }
+		}
+
+	}
+<#
+	EndNamespace(code);
+}
+else
+{
+	fileManager.StartNewFile(EFUnitOfWork_csFileName,project.Name,RepositoryDirName);
+	this.Write(ReadOutputFile(EFUnitOfWork_csFilePath));
+}
+
+string RepositoryHelper_csFileName = "RepositoryHelper.cs";
+string RepositoryHelper_csFilePath = Path.Combine(GetCurrentDirectory(),RepositoryDirName,RepositoryHelper_csFileName);
+if(!DoesFileExist(RepositoryHelper_csFilePath))
+{
+	fileManager.StartNewFile(RepositoryHelper_csFilePath,project.Name,RepositoryDirName);
+#>
+using System;
+
+<#	BeginNamespace(code);#>
+	public static class RepositoryHelper
+	{
+		public static IUnitOfWork GetUnitOfWork()
+		{
+			return new EFUnitOfWork();
+		}
+
+		public static TUnitOfWork GetUnitOfWork<TUnitOfWork>() where TUnitOfWork : IUnitOfWork
+        {
+            return Activator.CreateInstance<TUnitOfWork>();
+        }
+		
+		<# foreach (EntityType entity in typeMapper.GetItemsToGenerate<EntityType>(itemCollection).OrderBy(e => e.Name))
+{; #>
+
+		public static <#=code.Escape(entity)#>Repository Get<#=code.Escape(entity)#>Repository()
+		{
+			var repository = new <#=code.Escape(entity)#>Repository();
+			repository.UnitOfWork = GetUnitOfWork();
+			return repository;
+		}
+
+		public static <#=code.Escape(entity)#>Repository Get<#=code.Escape(entity)#>Repository(IUnitOfWork unitOfWork)
+		{
+			var repository = new <#=code.Escape(entity)#>Repository();
+			repository.UnitOfWork = unitOfWork;
+			return repository;
+		}		
+<# } #>
+	}
+<#
+	EndNamespace(code);
+}
+else
+{
+	fileManager.StartNewFile(RepositoryHelper_csFilePath,project.Name,RepositoryDirName);
+	this.Write(ReadOutputFile(RepositoryHelper_csFilePath));
+}
+//Repositories
+foreach (EntityType entity in typeMapper.GetItemsToGenerate<EntityType>(itemCollection).OrderBy(e => e.Name))
+{;
+	string Repository_csFileName = string.Format("{0}Repository.cs",entity.Name);
+	string Repository_csFilePath = Path.Combine(GetCurrentDirectory(),RepositoryDirName,Repository_csFileName);
+
+	if(!DoesFileExist(Repository_csFilePath))
+	{
+		fileManager.StartNewFile(Repository_csFileName,project.Name,RepositoryDirName);
+		#>using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+<#		BeginNamespace(code);#>
+	<#=Accessibility.ForType(entity)#> <#=code.SpaceAfter(code.AbstractOption(entity))#> partial class <#=code.Escape(entity)#>Repository : EFRepository<<#=code.Escape(entity)#>>, I<#=code.Escape(entity)#>Repository
+	{
+
+	}
+
+	<#=Accessibility.ForType(entity)#> <#=code.SpaceAfter(code.AbstractOption(entity))#> partial interface I<#=code.Escape(entity)#>Repository : IRepositoryBase<<#=code.Escape(entity)#>>
+	{
+
+	}
+<#
+		EndNamespace(code);
+	}
+	else
+	{
+		fileManager.StartNewFile(Repository_csFileName,project.Name,RepositoryDirName);
+		this.Write(ReadOutputFile(Repository_csFilePath));
+	}
+}	
+
+var modelNamespace = edmxLoader.GetModelNamespace(inputFile);
 string SubSPDirName = "StoredProcedures";
-string InParamsDir = "InputParameter";
-string OutParamsDir = "OutputParameter";
+
+string spContext_csFileName ="StoredProcedures.cs";
+string spContext_phyFilePath = Path.Combine(GetCurrentDirectory(),SubSPDirName,spContext_csFileName);
+
+if(!DoesFileExist(spContext_phyFilePath))
+{
+	fileManager.StartNewFile(spContext_csFileName,project.Name,SubSPDirName);
+#>using System;
+using System.Collections.Generic;
+<#
+	BeginNamespace(code);
+#>public partial class <#=code.Escape(container)#>
+	{
+		<#foreach (var edmFunction in container.FunctionImports)
+		{
+			string fnName = code.Escape(edmFunction);
+
+			if(string.IsNullOrEmpty(fnName))
+            {
+				continue;
+            }
+			var edmType = typeMapper.GetReturnType(edmFunction);
+			string returnTypeName = typeMapper.GetTypeName(edmType, modelNamespace);
+			
+			var queryp = edmFunction.Parameters.Where(p=>p.Mode==ParameterMode.In || p.Mode==ParameterMode.InOut);
+			var parameters_In = FunctionImportParameter.Create(queryp, code, ef);
+			int InParams_Count = parameters_In.Count();
+
+			var queryoutp = edmFunction.Parameters.Where(p=>p.Mode==ParameterMode.Out || p.Mode==ParameterMode.InOut);
+			var parameters_Out = FunctionImportParameter.Create(queryp, code, ef);
+			int OutParams_Count = parameters_In.Count();
+
+			if(string.IsNullOrEmpty(returnTypeName))
+            {
+				returnTypeName = "int";
+            }
+			
+			Type returnCLRType = Type.GetType(returnTypeName);
+			
+			if(returnCLRType!=null)
+            {
+				if(returnCLRType.IsValueType)
+                {
+					var propTypeName = returnTypeName;
+					returnTypeName = string.Format("{0}_Result",fnName);
+
+					if(Type.GetType(returnTypeName)==null)
+                    {
+						string ResultEntity_csFileName = string.Format("{0}.cs",returnTypeName);
+						string ResultEntity_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,ResultEntity_csFileName);
+						if(!DoesFileExist(ResultEntity_csFilePath))
+                        {
+							fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
+							BeginNamespace(code);
+#>
+	public partial class <#=returnTypeName#>
+	{
+		public virtual <#=propTypeName#> Column1 {get;set;} 
+	}
+<#
+							EndNamespace(code);
+                        }
+						else
+                        {
+							fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
+							this.Write(ReadOutputFile(ResultEntity_csFilePath));
+                        }
+                    }
+                }
+				else
+				{
+					if(returnCLRType.IsInterface || returnCLRType.IsAnsiClass||returnCLRType.IsClass)
+                    {
+						returnTypeName = string.Format("{0}",returnCLRType.Name);
+						if(Type.GetType(returnTypeName)==null)
+						{
+							string ResultEntity_csFileName = string.Format("{0}.cs",returnTypeName);
+							string ResultEntity_csFilePath = Path.Combine(GetCurrentDirectory(),DataEntitySubDirName,ResultEntity_csFileName);
+							if(!DoesFileExist(ResultEntity_csFilePath))
+							{
+								fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
+								BeginNamespace(code);
+#>
+	public partial class <#=returnTypeName#>
+	{
+	}
+<#
+								EndNamespace(code);
+							}
+							else
+							{
+								fileManager.StartNewFile(ResultEntity_csFileName,project.Name,DataEntitySubDirName);
+								this.Write(ReadOutputFile(ResultEntity_csFilePath));
+							}
+						}
+                    }
+                }
+            }
+			else
+            {
+				returnTypeName = "int";
+
+            }
+	
+			if(returnTypeName!="int")
+            {
+		#>public IEnumerable<<#=returnTypeName#>> <#=fnName#>(<#=fnName#>_InputParameter spParameters)
+		{
+			int returnValue;
+			<#
+			if(OutParams_Count>0)
+            {
+			 #><#=fnName#>_OutputParameter outputparameter;
+			<#}#>
+			IEnumerable<<#=returnTypeName#>> result = this.ExecuteStoredProcedure<<#=returnTypeName#>,<#=fnName#>_OutputParameter>(
+				"<#=fnName #>",
+				out outputparameter,
+				out returnValue,
+				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);
+			<#if(OutParams_Count>0)
+			{#>
+			spParameters.OutputParameter = outputparameter;
+			<#}#>
+			spParameters.ReturnValue = returnValue;
+			return result;
+		}
+        <#  }
+			else
+            {
+		#>public void <#=fnName#>(<#=fnName#>_InputParameter spParameters)
+		{
+			int returnValue = 0;
+			<#=fnName#>_OutputParameter outputparameter;
+			IEnumerable<<#=returnTypeName#>> result = this.ExecuteStoredProcedure<<#=returnTypeName#>,<#=fnName#>_OutputParameter>(
+				"<#=fnName #>",
+				out outputparameter,
+				out returnValue,
+				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);
+			spParameters.OutputParameter = outputparameter;
+			spParameters.ReturnValue = returnValue;
+		}
+        <#  }#>
+		<#
+        }#>
+
+	}
+<#	
+	EndNamespace(code);
+}
+else
+{
+	fileManager.StartNewFile(spContext_csFileName,project.Name,SubSPDirName);	
+	this.Write(ReadOutputFile(spContext_phyFilePath));	
+}
 foreach (var edmFunction in container.FunctionImports)
 {	
 	
 	string fnName = code.Escape(edmFunction);
-	string csFileName = string.Format("{0}{1}{2}InputParameter.cs",InParamsDir,Path.DirectorySeparatorChar,fnName);
+	string csFileName = string.Format("SP_{0}_Parameter.cs",fnName);
 	string phyFilePath = Path.Combine(GetCurrentDirectory(),SubSPDirName,csFileName);
 
 	if(!DoesFileExist(phyFilePath))
@@ -259,6 +830,13 @@ foreach (var edmFunction in container.FunctionImports)
 			public virtual <#=parameter.RawClrTypeName#> <#=parameter.FunctionParameterName#> { get; set; }       
 <#
         }
+
+		if(edmFunction.Parameters.Any(p => p.Mode==ParameterMode.Out || p.Mode==ParameterMode.InOut))
+        {
+		#>
+			public virtual <#=fnName#>_OutputParameter OutputParameter { get; set; }      
+		<#
+		}
 #>
 	}
 <#
@@ -269,9 +847,13 @@ foreach (var edmFunction in container.FunctionImports)
 		fileManager.StartNewFile(csFileName,project.Name,SubSPDirName);	
 		this.Write(ReadOutputFile(phyFilePath));
     }
-
-	string Out_csFileName = string.Format("{0}{1}{2}OutputParameter.cs",OutParamsDir,Path.DirectorySeparatorChar,fnName);
+}
+foreach(var edmFunction in container.FunctionImports)
+{
+	string fnName = code.Escape(edmFunction);
+	string Out_csFileName = string.Format("SP_Output_{0}_Parameter.cs",fnName);
 	string Out_phyFilePath = Path.Combine(GetCurrentDirectory(),SubSPDirName,Out_csFileName);
+	
 	if(!DoesFileExist(Out_phyFilePath))
     {
 		fileManager.StartNewFile(Out_csFileName,project.Name,SubSPDirName);
@@ -281,7 +863,7 @@ foreach (var edmFunction in container.FunctionImports)
 	{
 <#
 
-		foreach(var parameter in edmFunction.Parameters.Where(p => p.Mode==ParameterMode.In || p.Mode==ParameterMode.InOut))
+		foreach(var parameter in edmFunction.Parameters.Where(p => p.Mode==ParameterMode.Out || p.Mode==ParameterMode.InOut))
 		{
 			if(parameter!=null)
             {
@@ -301,7 +883,6 @@ foreach (var edmFunction in container.FunctionImports)
 		this.Write(ReadOutputFile(Out_phyFilePath));		
     }
 }
-	
 fileManager.Process();
 #>
 
@@ -1173,19 +1754,32 @@ public class VSHelper
 			prj = GetProject(dte, block.ProjectName);			
 		}
 		
+		IEnumerable<EnvDTE.ProjectItem> QueryResult;
+
 		if (String.IsNullOrEmpty(block.FolderName) == true && prj != null)
 		{
 			return Path.GetDirectoryName(prj.FullName);
 		}
 		else if (prj != null && String.IsNullOrEmpty(block.FolderName) == false)
 		{
-			item = GetAllProjectItemsRecursive(prj.ProjectItems).Where(i=> block.FolderName == i.Name).FirstOrDefault();
+			QueryResult = GetAllProjectItemsRecursive(prj.ProjectItems).Where(i=> block.FolderName == i.Name);
+			
+			if(QueryResult.Any())
+			{
+				item = QueryResult.First();
+            }
+
 		}
 		else if (String.IsNullOrEmpty(block.FolderName) == false)
 		{
-			item = GetAllProjectItemsRecursive(
-				dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems).
-				Where(i=>block.FolderName == i.Name).First();
+			QueryResult =GetAllProjectItemsRecursive(dte.ActiveDocument.ProjectItem.ContainingProject.ProjectItems)
+						.Where(i=>block.FolderName == i.Name);
+
+			if(QueryResult.Any())
+			{
+				item = QueryResult.First();
+            }
+
 		}
 		
 		if (item != null)
@@ -1193,13 +1787,16 @@ public class VSHelper
 			return GetProjectItemFullPath(item);
 		}
 		
+		if(!String.IsNullOrEmpty(block.FolderName))
+        {
+			return Path.Combine(defaultPath,block.FolderName);
+        }
+
 		return defaultPath;
 	}
 	public static string GetTemplatePlaceholderName(EnvDTE.ProjectItem item)
 	{
-		Random d= new Random();
-		int rndInt = d.Next(int.MaxValue);
-		return String.Format("{0}.{1}.txt4",item.Name,rndInt);
+		return String.Format("{0}.txt4",item.Name);
 	}
 	
 	public static EnvDTE.ProjectItem GetTemplateProjectItem(EnvDTE.DTE dte, OutputFile file, EnvDTE.ProjectItem defaultItem)
@@ -1587,6 +2184,11 @@ public class TypeMapper
     private readonly System.Collections.IList _errors;
     private readonly CodeGenerationTools _code;
     private readonly MetadataTools _ef;
+
+    public static string FixNamespaces(string typeName)
+    {
+        return typeName.Replace("System.Data.Spatial.", "System.Data.Entity.Spatial.");
+    }
 
     public TypeMapper(CodeGenerationTools code, MetadataTools ef, System.Collections.IList errors)
     {

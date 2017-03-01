@@ -260,20 +260,9 @@
     <Compile Include="Models\AspNetModels\aspnet_Membership.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Applications_CreateApplication_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_CheckSchemaVersion_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_FindUsersByEmailResult.cs" />
-    <Compile Include="Models\AspNetModels\aspnet_Membership_FindUsersByNameResult.cs" />
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetAllUsersResult.cs" />
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordResult.cs" />
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordWithFormatResult.cs" />
     <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordWithFormat_Result.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
@@ -285,24 +274,6 @@
     </Compile>
     <Compile Include="Models\AspNetModels\aspnet_Paths.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_ChangePasswordQuestionAndAnswer_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_CreateUser_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_FindUsersByEmail_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_FindUsersByName_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetAllUsers_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetNumberOfUsersOnline_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPasswordWithFormat_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -319,45 +290,11 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByUserId_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_ResetPassword_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_SetPassword_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_UnlockUser_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_UpdateUserInfo_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_UpdateUser_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Paths.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_PersonalizationAdministration_DeleteAllState_Result.cs" />
     <Compile Include="Models\AspNetModels\aspnet_PersonalizationAllUsers.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Paths_CreatePath_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAdministration_DeleteAllState_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAdministration_FindState_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAdministration_GetCountOfState_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAdministration_ResetSharedState_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAdministration_ResetUserState_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -368,12 +305,6 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers_GetPageSettings_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers_ResetPageSettings_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers_SetPageSettings_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
@@ -381,15 +312,6 @@
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser_GetPageSettings_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser_ResetPageSettings_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser_SetPageSettings_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Personalization_GetApplicationId_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile.Partial.cs">
@@ -410,16 +332,7 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_GetNumberOfInactiveProfiles_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_GetProfiles_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_GetProperties_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_SetProperties_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_RegisterSchemaVersion_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles.Partial.cs">
@@ -428,16 +341,7 @@
     <Compile Include="Models\AspNetModels\aspnet_SchemaVersions.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles_CreateRole_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles_DeleteRole_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles_GetAllRoles_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles_RoleExists_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_SchemaVersions.Partial.cs">
@@ -445,15 +349,6 @@
     </Compile>
     <Compile Include="Models\AspNetModels\aspnet_UserClaims.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Setup_RemoveAllRoleMembers_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Setup_RestorePermissions_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UnRegisterSchemaVersion_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserClaims.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -485,20 +380,11 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_GetUsersInRoles_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_IsUserInRole_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_RemoveUsersFromRoles_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\aspnet_VoidUsers.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Users_CreateUser_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Users_DeleteUser_Result.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_VoidUsers.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -507,9 +393,6 @@
       <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_WebEvent_Events.Partial.cs">
-      <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\aspnet_WebEvent_LogEvent_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\Menus.Partial.cs">
@@ -582,79 +465,6 @@
     </Compile>
     <Compile Include="Models\AspNetModels\Menus.cs">
       <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\AspNetDbEntities2.partialClass.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_ApplicationsRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Applications_CreateApplication_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Membership.partialClass.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_MembershipRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Membership_CreateUser_OutputParameter.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Membership_GetUserByEmail_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Membership_GetUserByName_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_PathsRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_PersonalizationAdministration_FindState_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_PersonalizationAllUsersRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_PersonalizationAllUsers_GetPageSettings_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_PersonalizationPerUserRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_PersonalizationPerUser_GetPageSettings_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_ProfileRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Profile_DeleteProfiles_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Profile_GetProfiles_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Roles.partialClass.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_RolesRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Roles_GetAllRoles_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_SchemaVersionsRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_UserClaimsRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_UserLoginRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_Users.partialClass.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_UsersInRoles_AddUsersToRoles_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_UsersInRoles_FindUsersInRole_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_UsersInRoles_GetRolesForUser_Result.cs" />
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_UsersRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_VoidUsersRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\aspnet_WebEvent_EventsRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\Edward.Repository.partialClasses.EF6.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\EFRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\EFUnitOfWork.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\IUnitOfWork.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\DataEntity\partailClasses\MenusRepository.partialClass.cs">
-      <DependentUpon>Edward.Repository.partialClasses.EF6.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_AnyDataInTables_Parameter.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -999,7 +809,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Helpers\StoredProcedureExtension.cs" />
-    <Compile Include="Models\AspNetModels\aspnet_Paths_CreatePath_Result.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\css\bootstrap.css" />
@@ -1035,10 +844,6 @@
     </EntityDeploy>
     <Content Include="Models\AspNetModels\aspnetdb.edmx.diagram">
       <DependentUpon>aspnetdb.edmx</DependentUpon>
-    </Content>
-    <Content Include="Models\AspNetModels\DataEntity\partailClasses\Edward.Repository.partialClasses.EF6.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Edward.Repository.partialClasses.EF6.cs</LastGenOutput>
     </Content>
     <Content Include="Models\AspNetModels\DataEntity\GeneratorDatabaseCodes.tt.txt4" />
     <Content Include="Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4" />

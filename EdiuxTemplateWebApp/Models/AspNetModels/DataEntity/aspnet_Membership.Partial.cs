@@ -2,12 +2,63 @@
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(aspnet_MembershipMetaData))]
     public partial class aspnet_Membership
     {
+        public object Clone()
+        {
+            Type sourceType = this.GetType();
+
+            var copy = Activator.CreateInstance(sourceType);
+
+            Type tatgetType = copy.GetType();
+
+            var props_src = sourceType.GetProperties();
+
+            foreach (var srcProp in props_src)
+            {
+                if (srcProp.PropertyType.IsGenericType)
+                {
+                    if (srcProp.PropertyType.GetGenericTypeDefinition() == typeof(ICollection<>))
+                    {
+                        var targetProp = tatgetType.GetProperty(srcProp.Name);
+                        targetProp.SetValue(copy, Activator.CreateInstance(typeof(Collection<>).MakeGenericType(srcProp.PropertyType.GenericTypeArguments)));
+                    }
+                }
+                else
+                {
+                    var targetProp = tatgetType.GetProperty(srcProp.Name);
+                    targetProp.SetValue(copy, srcProp.GetValue(this));
+                }
+            }
+
+            return copy;
+        }
+
+        public string GetEmail()
+        {
+            return Email;
+        }
+
+        public bool GetEmailConfirmed()
+        {
+            return IsApproved;
+        }
+
+        public void SetEmail(string email)
+        {
+            Email = email;
+            LoweredEmail = email.ToLowerInvariant();
+
+            //if (MembershipRepository == null)
+            //    MembershipRepository = RepositoryHelper.Getaspnet_MembershipRepository();
+
+            //MembershipRepository.UnitOfWork.Context.Entry(this).State = System.Data.Entity.EntityState.Modified;
+            //MembershipRepository.UnitOfWork.Commit();
+        }
     }
     
     public partial class aspnet_MembershipMetaData

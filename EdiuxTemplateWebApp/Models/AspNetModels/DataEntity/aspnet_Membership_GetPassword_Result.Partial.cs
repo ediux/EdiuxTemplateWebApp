@@ -6,6 +6,7 @@
     [MetadataType(typeof(aspnet_Membership_GetPassword_ResultMetaData))]
     public partial class aspnet_Membership_GetPassword_Result
     {
+
     }
     
     public partial class aspnet_Membership_GetPassword_ResultMetaData

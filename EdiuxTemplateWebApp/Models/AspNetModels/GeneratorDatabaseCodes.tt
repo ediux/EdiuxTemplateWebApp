@@ -42,6 +42,7 @@ var ef = new MetadataTools(this);
 var typeMapper = new TypeMapper(code, ef, textTransform.Errors);
 var fileManager= TemplateFileManager.Create(this);
 var edmxLoader = new EdmMetadataLoader(textTransform.Host, textTransform.Errors);
+var modelNamespace = edmxLoader.GetModelNamespace(inputFile);
 var itemCollection = edmxLoader.CreateEdmItemCollection(inputFile);
 var codeStringGenerator = new CodeStringGenerator(code, typeMapper, ef);
 var serviceProvider = (IServiceProvider)this.Host;
@@ -244,15 +245,21 @@ foreach (var edmFunction in container.FunctionImports)
 
 	if(!DoesFileExist(OtherResultEntity_csFilePath))
     {
-		fileManager.StartNewFile(OtherResultEntity_csFileName,project.Name,DataEntitySubDirName);
-		BeginNamespace(code);
+		var edmType = typeMapper.GetReturnType(edmFunction);
+		string returnTypeName = typeMapper.GetTypeName(edmType, modelNamespace);
+		
+		if(!string.IsNullOrEmpty(returnTypeName))
+        {
+			fileManager.StartNewFile(OtherResultEntity_csFileName,project.Name,DataEntitySubDirName);
+			BeginNamespace(code);
 #>
 public partial class <#=className#>
 {
 
 }
 <#
-		EndNamespace(code);
+			EndNamespace(code);
+        }
     }
 	else
     {
@@ -405,7 +412,7 @@ using System.Threading.Tasks;
         /// <returns>非同步執行結果。</returns>
         Task CommitAsync();
 	}
-}<#
+<#
 	EndNamespace(code);
 }
 else
@@ -679,7 +686,7 @@ using System.Threading.Tasks;
 	}
 }	
 
-var modelNamespace = edmxLoader.GetModelNamespace(inputFile);
+
 string SubSPDirName = "StoredProcedures";
 
 string spContext_csFileName ="StoredProcedures.cs";
@@ -691,7 +698,7 @@ if(!DoesFileExist(spContext_phyFilePath))
 #>using System;
 using System.Collections.Generic;
 <#
-	BeginNamespace(code);
+BeginNamespace(code);
 #>
 	public partial class <#=code.Escape(container)#>
 	{
@@ -711,8 +718,7 @@ using System.Collections.Generic;
 
 			if(string.IsNullOrEmpty(returnTypeName))
             {
-#>
-		public void <#=fnName#>(<#=fnName#>_InputParameter spParameters)
+#>		public void <#=fnName#>(<#=fnName#>_InputParameter spParameters)
 		{
 			int returnValue = 0;
 			<#

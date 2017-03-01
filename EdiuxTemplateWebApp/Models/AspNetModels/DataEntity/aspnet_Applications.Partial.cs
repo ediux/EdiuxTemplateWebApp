@@ -2,9 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(aspnet_ApplicationsMetaData))]
     public partial class aspnet_Applications : ICloneable
     {

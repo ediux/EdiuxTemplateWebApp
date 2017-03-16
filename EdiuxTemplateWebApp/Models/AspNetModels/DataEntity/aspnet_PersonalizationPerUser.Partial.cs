@@ -4,12 +4,16 @@
     using System.Collections.Generic;
     
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(aspnet_PersonalizationPerUserMetaData))]
-    public partial class aspnet_PersonalizationPerUser
+    public partial class aspnet_PersonalizationPerUser : ICloneable
     {
+        public object Clone()
+        {
+            throw new NotImplementedException();
+        }
     }
-    
+
     public partial class aspnet_PersonalizationPerUserMetaData
     {
         [Required]

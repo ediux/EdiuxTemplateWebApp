@@ -1,46 +1,85 @@
 ﻿using System;
+using System.Data;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class EFUnitOfWork : IUnitOfWork
     {
-        private DbContext _context;
-        public DbContext Context { get { return _context; } set { _context = value; } }
-
         public EFUnitOfWork()
         {
-            Context = new AspNetDbEntities2();
+          
+            _context = new AspNetDbEntities2();
         }
 
         public void Commit()
         {
-            Context.SaveChanges();
+            _context.SaveChanges();
+           
         }
 
         public async Task CommitAsync()
         {
-            await Context.SaveChangesAsync();
+           
+            await _context.SaveChangesAsync();
         }
 
         public bool LazyLoadingEnabled
         {
-            get { return Context.Configuration.LazyLoadingEnabled; }
-            set { Context.Configuration.LazyLoadingEnabled = value; }
+            get { return _context.Configuration.LazyLoadingEnabled; }
+            set { _context.Configuration.LazyLoadingEnabled = value; }
         }
 
         public bool ProxyCreationEnabled
         {
-            get { return Context.Configuration.ProxyCreationEnabled; }
-            set { Context.Configuration.ProxyCreationEnabled = value; }
+            get { return _context.Configuration.ProxyCreationEnabled; }
+            set { _context.Configuration.ProxyCreationEnabled = value; }
         }
 
         public string ConnectionString
         {
-            get { return Context.Database.Connection.ConnectionString; }
-            set { Context.Database.Connection.ConnectionString = value; }
+            get { return _context.Database.Connection.ConnectionString; }
+            set { _context.Database.Connection.ConnectionString = value; }
         }
+
+        public IObjectContextAdapter Context
+        {
+            get
+            {
+                return _context;
+            }
+
+            set
+            {
+                _context = (AspNetDbEntities2)value;
+            }
+        }
+
+        public IRepositoryCollection Repositories
+        {
+            get
+            {
+                return _context;
+            }
+
+            set
+            {
+                _context = (AspNetDbEntities2)value;
+            }
+        }
+
+        public IDbConnection Connection
+        {
+            get
+            {
+                return _context.Database.Connection;
+            }
+        }
+
+        private AspNetDbEntities2 _context;
+     
 
         protected virtual void WriteErrorLog(Exception ex)
         {
@@ -54,9 +93,29 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
 
-        public T GetDbContext<T>() where T : DbContext
+        public DbEntityEntry<T> Entry<T>(T entity) where T : class
         {
-            return ((T)Context);
+            return _context.Entry<T>(entity);
+        }
+
+        public DbEntityEntry Entry(object entity)
+        {
+            return _context.Entry(entity);
+        }
+
+        public DbSet Set(Type entityType)
+        {
+            return _context.Set(entityType);
+        }
+
+        public DbSet<T> Set<T>() where T : class
+        {
+            return _context.Set<T>();
+        }
+
+        public T GetTypedContext<T>() where T : IObjectContextAdapter
+        {
+            return (T)Convert.ChangeType( _context,typeof(T)) ;
         }
     }
 }

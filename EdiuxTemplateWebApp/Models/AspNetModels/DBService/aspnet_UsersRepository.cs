@@ -3,31 +3,83 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.Entity;
+using Microsoft.AspNet.Identity;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class aspnet_UsersRepository : EFRepository<aspnet_Users>, Iaspnet_UsersRepository
     {
+        public aspnet_UsersRepository() : base()
+        {
+            RegisterDependcyRepository(RepositoryHelper.Getaspnet_MembershipRepository(UnitOfWork));
+            RegisterDependcyRepository(RepositoryHelper.Getaspnet_PersonalizationPerUserRepository(UnitOfWork));
+            RegisterDependcyRepository(RepositoryHelper.Getaspnet_ProfileRepository(UnitOfWork));
+            RegisterDependcyRepository(RepositoryHelper.Getaspnet_RolesRepository(UnitOfWork));
+            RegisterDependcyRepository(RepositoryHelper.Getaspnet_UserLoginRepository(UnitOfWork));
+        }
+
+        #region 相依性
+        protected IQueryable<aspnet_Membership> Memberships
+        {
+            get
+            {
+                return (_depencyRepos["aspnet_MembershipRepository"] as Iaspnet_MembershipRepository).All();
+            }
+        }
+
+        protected IQueryable<aspnet_PersonalizationPerUser> PersonalizationPerUsers
+        {
+            get
+            {
+                return (_depencyRepos["aspnet_PersonalizationPerUserRepository"] as Iaspnet_PersonalizationPerUserRepository).All();
+            }
+        }
+
+        protected IQueryable<aspnet_Profile> Profiles
+        {
+            get
+            {
+                return (DependcyRepository["aspnet_ProfileRepository"] as Iaspnet_ProfileRepository).All();
+            }
+        }
+
+        protected IQueryable<aspnet_Roles> Roles
+        {
+            get
+            {
+                return (DependcyRepository["aspnet_RolesRepository"] as Iaspnet_RolesRepository).All();
+            }
+        }
+
+        protected IQueryable<aspnet_UserLogin> UserLogins
+        {
+            get
+            {
+                return (DependcyRepository["aspnet_UserLoginRepository"] as Iaspnet_UserLoginRepository).All();
+            }
+        }
+
+        #endregion
+
         public IQueryable<aspnet_Users> All(aspnet_Applications application)
         {
             try
             {
-                InternalDatabaseAlias.aspnet_Users.Where(w => w.ApplicationId == application.ApplicationId).Load();
-                InternalDatabaseAlias.aspnet_Membership.Where(w => w.ApplicationId == application.ApplicationId).Load();
-                InternalDatabaseAlias.aspnet_PersonalizationPerUser.Where(w => w.aspnet_Users.ApplicationId == application.ApplicationId).Load();
-                InternalDatabaseAlias.aspnet_Profile.Where(w => w.aspnet_Users.ApplicationId == application.ApplicationId).Load();
-                InternalDatabaseAlias.aspnet_Roles.Where(w => w.aspnet_Applications.ApplicationId == application.ApplicationId).Load();
-                InternalDatabaseAlias.aspnet_UserLogin.Where(w => w.aspnet_Users.ApplicationId == application.ApplicationId).Load();
 
-                return InternalDatabaseAlias.aspnet_Users
-                    .Where(w => w.ApplicationId == application.ApplicationId)
-                    .Include(p => p.aspnet_Applications)
-                    .Include(p => p.aspnet_Membership)
-                    .Include(p => p.aspnet_PersonalizationPerUser)
-                    .Include(p => p.aspnet_Profile)
-                    .Include(p => p.aspnet_Roles)
-                    .Include(p => p.aspnet_UserClaims)
-                    .Include(p => p.aspnet_UserLogin);
+                IQueryable<aspnet_Users> query =
+                    from u in ObjectSet
+                    from r in Roles
+                    from ub in r.aspnet_Users
+                    join m in Memberships on u.Id equals m.UserId
+                    join ppu in PersonalizationPerUsers on u.Id equals ppu.UserId
+                    join p in Profiles on u.Id equals p.UserId
+                    where ub.Id == u.Id && u.ApplicationId == application.ApplicationId
+                    select u;
+
+
+                query.Load();
+
+                return query;
             }
             catch (Exception ex)
             {
@@ -41,20 +93,20 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                InternalDatabaseAlias.aspnet_Membership.Load();
-                InternalDatabaseAlias.aspnet_PersonalizationPerUser.Load();
-                InternalDatabaseAlias.aspnet_Profile.Load();
-                InternalDatabaseAlias.aspnet_Roles.Load();
-                InternalDatabaseAlias.aspnet_UserLogin.Load();
+                IQueryable<aspnet_Users> query =
+                    from u in ObjectSet
+                    from r in Roles
+                    from ub in r.aspnet_Users
+                    join m in Memberships on u.Id equals m.UserId
+                    join ppu in PersonalizationPerUsers on u.Id equals ppu.UserId
+                    join p in Profiles on u.Id equals p.UserId
+                    where ub.Id == u.Id
+                    select u;
 
-                return InternalDatabaseAlias.aspnet_Users
-                    .Include(p => p.aspnet_Applications)
-                    .Include(p => p.aspnet_Membership)
-                    .Include(p => p.aspnet_PersonalizationPerUser)
-                    .Include(p => p.aspnet_Profile)
-                    .Include(p => p.aspnet_Roles)
-                    .Include(p => p.aspnet_UserClaims)
-                    .Include(p => p.aspnet_UserLogin);
+
+                query.Load();
+
+                return query;
             }
             catch (Exception ex)
             {
@@ -68,8 +120,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                int numTablesDeletedFrom;
-                InternalDatabaseAlias.aspnet_Users_DeleteUser(entity.aspnet_Applications.ApplicationName, entity.UserName, TablesToCheck.aspnet_Membership | TablesToCheck.aspnet_Profile | TablesToCheck.aspnet_Roles, out numTablesDeletedFrom);
+                aspnet_Users_DeleteUser_InputParameter inputParam = new aspnet_Users_DeleteUser_InputParameter();
+
+                inputParam.ApplicationName = entity.aspnet_Applications.ApplicationName;
+                inputParam.TablesToDeleteFrom = (int)(TablesToCheck.aspnet_Membership | TablesToCheck.aspnet_Profile | TablesToCheck.aspnet_Roles);
+                inputParam.UserName = entity.UserName;
+
+                UnitOfWork.Repositories.aspnet_Users_DeleteUser(inputParam);
             }
             catch (Exception ex)
             {
@@ -83,72 +140,33 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
             try
             {
-                var applicationIdParameter = entity != null ?
-                    new SqlParameter("@ApplicationId", entity.ApplicationId) :
-                    new SqlParameter("@ApplicationId", SqlDbType.UniqueIdentifier);
+                aspnet_Users_CreateUser_InputParameter inputParam = new AspNetModels.aspnet_Users_CreateUser_InputParameter();
 
-                var userNameParameter = entity != null ?
-                    new SqlParameter("@UserName", entity.UserName) :
-                    new SqlParameter("@UserName", SqlDbType.NVarChar, 256);
+                inputParam.applicationId = entity.ApplicationId;
+                inputParam.isUserAnonymous = entity.IsAnonymous;
+                inputParam.lastActivityDate = entity.LastActivityDate;
+                inputParam.userName = entity.UserName;
 
-                var isUserAnonymousParameter = entity != null ?
-                    new SqlParameter("@IsUserAnonymous", entity.IsAnonymous) :
-                    new SqlParameter("@IsUserAnonymous", SqlDbType.Bit);
+                UnitOfWork.Repositories.aspnet_Users_CreateUser(inputParam);
 
-
-                var lastActivityDateParameter = entity != null ?
-                   new SqlParameter("@LastActivityDate", entity.LastActivityDate) :
-                   new SqlParameter("@LastActivityDate", SqlDbType.DateTime);
-
-
-                var userIdParameter = new SqlParameter("@UserId", SqlDbType.UniqueIdentifier) { Direction = ParameterDirection.Output };
-
-                var returnCode = new SqlParameter("@return_value", SqlDbType.Int) { Direction = ParameterDirection.Output };
-
-
-                int code = 0;
-                var result = UnitOfWork.Context.Database.SqlQuery(typeof(int),
-                    "EXEC @return_value = [dbo].[aspnet_Users_CreateUser] @ApplicationId, @UserName, @IsUserAnonymous,@LastActivityDate,@UserId OUTPUT",
-                    applicationIdParameter, userNameParameter, isUserAnonymousParameter, lastActivityDateParameter, userIdParameter, returnCode);
-                // ((IObjectContextAdapter)UnitOfWork.Context).ObjectContext.ExecuteFunction("aspnet_Users_CreateUser",  applicationIdParameter, userNameParameter, RoleNameParameter,returnCode);
-                code = (int)returnCode.Value;
-                entity.Id = (Guid)userIdParameter.Value;
-                return Get(entity.Id);
-            }
-            catch (Exception ex)
-            {
-                WriteErrorLog(ex);
-                throw ex;
-            }
-
-        }
-        public aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "@abc.com", bool IsUserAnonymous = false)
-        {
-            try
-            {
-                string passwordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                PasswordHasher hasher = new PasswordHasher();
-                password = hasher.HashPassword(password + passwordSalt);
-                Guid userId = Guid.Empty;
-
-                Iaspnet_MembershipRepository membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository(UnitOfWork);
-
-                var status = membershipRepo.CreateUser(applicationObject.ApplicationName, userName, password, passwordSalt,
-                       eMail, out userId, isApproved: true);
-
-                if (status == System.Web.Security.MembershipCreateStatus.Success)
+                if (inputParam.ReturnValue == (int)System.Web.Security.MembershipCreateStatus.Success)
                 {
-                    return Get(userId);
+                    return Get(inputParam.OutputParameter.UserId);
+                }
+                else
+                {
+                    throw new Exception(string.Format("Provider Error.(ErrorCode:{0})", inputParam.ReturnValue));
                 }
 
-                return null;
             }
             catch (Exception ex)
             {
                 WriteErrorLog(ex);
                 throw ex;
             }
+
         }
+   
 
         public void AddToRole(string applicationName, string userName, string roleName)
         {
@@ -255,8 +273,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     }
 
     public partial interface Iaspnet_UsersRepository : IRepositoryBase<aspnet_Users>
-    {
-        aspnet_Users Add(string userName, string password, aspnet_Applications applicationObject, string eMail = "", bool IsUserAnonymous = false);
+    { 
         IQueryable<aspnet_Users> All(aspnet_Applications application);
         void AddToRole(string applicationName, string userName, string roleName);
         bool IsInRole(string applicationName, string userName, string roleName);

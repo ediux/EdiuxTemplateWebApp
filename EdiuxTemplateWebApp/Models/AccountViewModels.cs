@@ -149,13 +149,20 @@ namespace EdiuxTemplateWebApp.Models
         public string Email { get; set; }
     }
 
-    public class ProfileModel : INotifyPropertyChanged
+    public class ProfileModel
     {
+        private IUnitOfWork<AspNetDbEntities2> InternalUnitOfWork;
         public ProfileModel()
         {
             PropertyChanged += ProfileModel_PropertyChanged;
             userId = Guid.Empty;
         }
+
+        public ProfileModel(IUnitOfWork UnitOfwork ):this()
+        {
+            InternalUnitOfWork = UnitOfwork as IUnitOfWork<AspNetDbEntities2>;
+        }
+
         private Guid userId;
         public Guid UserId { get { return userId; } set { userId = value; RaiseChange(nameof(UserId)); } }
 
@@ -172,13 +179,6 @@ namespace EdiuxTemplateWebApp.Models
             profileRepo.UnitOfWork.Commit();
         }
 
-        private bool emailConfirmed;
-        public bool eMailConfirmed { get { return emailConfirmed; } set { emailConfirmed = value; RaiseChange(nameof(eMailConfirmed)); } }
-        private string phoneNumber = string.Empty;
-        public string PhoneNumber { get { return phoneNumber; } set { phoneNumber = value; RaiseChange(nameof(PhoneNumber)); } }
-
-        private bool phoneConfirmed;
-        public bool PhoneConfirmed { get { return phoneConfirmed; } set { phoneConfirmed = value; RaiseChange(nameof(PhoneConfirmed)); } }
         private bool twoFactorEnabled;
         public bool TwoFactorEnabled { get { return twoFactorEnabled; } set { twoFactorEnabled = value; RaiseChange(nameof(TwoFactorEnabled)); } }
 

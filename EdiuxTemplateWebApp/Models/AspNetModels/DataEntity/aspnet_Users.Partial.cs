@@ -3,8 +3,9 @@
     using Microsoft.AspNet.Identity;
     using System;
     using System.Collections.Generic;
-
+    using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
+    using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
 
@@ -39,8 +40,7 @@
         public void SetEmail(string email)
         {
             aspnet_Membership.Email = email;
-
-            Update();
+            Update(RepositoryHelper.Getaspnet_UsersRepository());
         }
 
         public IList<string> GetRoles()
@@ -48,44 +48,45 @@
             return aspnet_Roles.Select(w => w.Name).ToList() as IList<string>;
         }
 
-        public bool IsInRole(string roleName)
+        public bool IsInRole(Iaspnet_UsersRepository UserRepository, string roleName)
         {
+        
             return UserRepository.IsInRole(aspnet_Applications.ApplicationName, UserName, roleName);
             //return aspnet_Roles.Any(r => r.Name == roleName || r.LoweredRoleName == roleName);
         }
 
-        public void Update()
+        public void Update(Iaspnet_UsersRepository UserRepository)
         {
             UserRepository.UnitOfWork.Context.Entry(this).State = System.Data.Entity.EntityState.Modified;
             UserRepository.UnitOfWork.Commit();
         }
 
-        public void AddToRole(string roleName)
+        public void AddToRole(Iaspnet_UsersRepository UserRepository,string roleName)
         {
             UserRepository.AddToRole(aspnet_Applications.ApplicationName, UserName, roleName);
             aspnet_Roles = UserRepository.Get(Id).aspnet_Roles;
         }
 
-        public void RemoveFromRole(string roleName)
+        public void RemoveFromRole(Iaspnet_UsersRepository UserRepository,string roleName)
         {
             string loweredRoleName = roleName.ToLowerInvariant();
             aspnet_Roles foundRole = aspnet_Roles.SingleOrDefault(w => w.LoweredRoleName == loweredRoleName || w.Name == roleName);
             aspnet_Roles.Remove(foundRole);
             UserRepository.UnitOfWork.Context.Entry(aspnet_Roles).State = System.Data.Entity.EntityState.Modified;
-            Update();
+            Update(UserRepository);
         }
 
-        public void AddLogin(UserLoginInfo login)
+        public void AddLogin(Iaspnet_UsersRepository UserRepository,UserLoginInfo login)
         {
             aspnet_UserLogin.Add(new aspnet_UserLogin() { aspnet_Users = this, LoginProvider = login.LoginProvider, ProviderKey = login.ProviderKey, UserId = Id });
-            Update();
+            Update(UserRepository);
         }
 
-        public void RemoveLogin(UserLoginInfo login)
+        public void RemoveLogin(Iaspnet_UsersRepository UserRepository,UserLoginInfo login)
         {
             aspnet_UserLogin dblogin = this.FindLogin(login);
             aspnet_UserLogin.Remove(dblogin);
-            Update();
+            Update(UserRepository);
         }
 
         public IList<UserLoginInfo> GetLogins()

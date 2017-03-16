@@ -212,7 +212,7 @@ namespace EdiuxTemplateWebApp.Controllers
             if (ViewBag.ApplicationInfo != null)
             {
 
-                var currentLoginedUser = appInfo.FindUserByName(User.Identity.Name);
+                var currentLoginedUser = appInfo.GetUserByName(User.Identity.Name);
 
                 if (currentLoginedUser != null)
                 {

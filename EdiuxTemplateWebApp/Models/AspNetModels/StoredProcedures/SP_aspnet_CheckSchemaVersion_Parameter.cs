@@ -2,8 +2,8 @@
 {
     	public partial class aspnet_CheckSchemaVersion_InputParameter
     	{
-    		public virtual string feature { get; set; }       
-    		public virtual string compatibleSchemaVersion { get; set; }       
+    		public virtual string Feature { get; set; }       
+    		public virtual string CompatibleSchemaVersion { get; set; }       
     		public virtual int ReturnValue { get; set; }
     	}
 }

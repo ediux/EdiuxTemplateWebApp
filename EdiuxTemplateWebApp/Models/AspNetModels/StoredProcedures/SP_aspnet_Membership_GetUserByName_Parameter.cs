@@ -2,10 +2,10 @@
 {
     	public partial class aspnet_Membership_GetUserByName_InputParameter
     	{
-    		public virtual string applicationName { get; set; }       
-    		public virtual string userName { get; set; }       
-    		public virtual System.DateTime currentTimeUtc { get; set; }       
-    		public virtual bool updateLastActivity { get; set; }       
+    		public virtual string ApplicationName { get; set; }       
+    		public virtual string UserName { get; set; }       
+    		public virtual System.DateTime CurrentTimeUtc { get; set; }       
+    		public virtual bool UpdateLastActivity { get; set; }       
     		public virtual int ReturnValue { get; set; }
     	}
 }

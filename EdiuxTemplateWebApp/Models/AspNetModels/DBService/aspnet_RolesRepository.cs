@@ -11,7 +11,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             try
             {
-                InternalDatabaseAlias.aspnet_Roles_CreateRole(application.ApplicationName, Name);
+                UnitOfWork.Repositories.aspnet_Roles_CreateRole(application.ApplicationName, Name);
                 return FindByName(application.ApplicationId, Name);
             }
             catch (Exception ex)

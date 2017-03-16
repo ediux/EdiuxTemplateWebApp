@@ -4,12 +4,16 @@
     using System.Collections.Generic;
     
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(aspnet_PathsMetaData))]
-    public partial class aspnet_Paths
+    public partial class aspnet_Paths : ICloneable
     {
+        public object Clone()
+        {
+            throw new NotImplementedException();
+        }
     }
-    
+
     public partial class aspnet_PathsMetaData
     {
         [Required]

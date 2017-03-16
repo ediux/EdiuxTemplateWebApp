@@ -156,22 +156,20 @@ namespace EdiuxTemplateWebApp
             if (foundUser == null)
                 return Task.FromResult(SignInStatus.Failure);
 
-      
-
             if (foundUser.aspnet_Membership == null)
                 return Task.FromResult(SignInStatus.Failure);
 
             if (foundUser.aspnet_Membership.IsLockedOut)
                 return Task.FromResult(SignInStatus.LockedOut);
 
-            //check password is clear mode.
+            //check Password is clear mode.
             if (foundUser.aspnet_Membership.PasswordFormat == 0)
             {
                 if (string.IsNullOrEmpty(foundUser.aspnet_Membership.PasswordSalt) != true)
                 {
                     foundUser.aspnet_Membership.Password = UserManager.PasswordHasher.HashPassword(foundUser.aspnet_Membership.Password + foundUser.aspnet_Membership.PasswordSalt);
                     foundUser.aspnet_Membership.PasswordFormat = (int)System.Web.Security.MembershipPasswordFormat.Hashed;
-                    foundUser.Update();                  
+                    UserManager.UpdateAsync(foundUser);               
                 }
             }
 

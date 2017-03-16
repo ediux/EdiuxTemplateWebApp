@@ -4,12 +4,16 @@
     using System.Collections.Generic;
     
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(aspnet_VoidUsersMetaData))]
-    public partial class aspnet_VoidUsers
+    public partial class aspnet_VoidUsers : ICloneable
     {
+        public object Clone()
+        {
+            throw new NotImplementedException();
+        }
     }
-    
+
     public partial class aspnet_VoidUsersMetaData
     {
         [Required]

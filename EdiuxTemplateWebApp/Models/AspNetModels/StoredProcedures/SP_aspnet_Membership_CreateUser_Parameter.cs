@@ -2,18 +2,18 @@
 {
     public partial class aspnet_Membership_CreateUser_InputParameter
     {
-        public virtual string applicationName { get; set; }
-        public virtual string userName { get; set; }
-        public virtual string password { get; set; }
-        public virtual string passwordSalt { get; set; }
-        public virtual string email { get; set; }
-        public virtual string passwordQuestion { get; set; }
-        public virtual string passwordAnswer { get; set; }
-        public virtual bool isApproved { get; set; }
-        public virtual System.DateTime currentTimeUtc { get; set; }
-        public virtual System.DateTime createDate { get; set; }
-        public virtual int uniqueEmail { get; set; }
-        public virtual int passwordFormat { get; set; }
+        public virtual string ApplicationName { get; set; }
+        public virtual string UserName { get; set; }
+        public virtual string Password { get; set; }
+        public virtual string PasswordSalt { get; set; }
+        public virtual string Email { get; set; }
+        public virtual string PasswordQuestion { get; set; }
+        public virtual string PasswordAnswer { get; set; }
+        public virtual bool IsApproved { get; set; }
+        public virtual System.DateTime CurrentTimeUtc { get; set; }
+        public virtual System.DateTime CreateDate { get; set; }
+        public virtual int UniqueEmail { get; set; }
+        public virtual int PasswordFormat { get; set; }
         public virtual aspnet_Membership_CreateUser_OutputParameter OutputParameter { get; set; }
         public virtual int ReturnValue { get; set; }
     }

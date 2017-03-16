@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.IO;
 using System.Linq;
-using System.Web;
-using System.Threading.Tasks;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Claims;
-using EdiuxTemplateWebApp.Models.AspNetModels;
-using System.Runtime.Caching;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Security;
 
 namespace EdiuxTemplateWebApp.Models
 {
@@ -19,24 +22,28 @@ namespace EdiuxTemplateWebApp.Models
         , IQueryableUserStore<aspnet_Users, Guid>, IQueryableRoleStore<aspnet_Roles, Guid>
     {
         #region 變數宣告區
-        // private Iaspnet_ApplicationsRepository appRepo;
-        //private Iaspnet_UsersRepository userRepo;
-        //private Iaspnet_RolesRepository roleRepo;
-        //private Iaspnet_UserLoginRepository userloginRepo;
+        protected IUnitOfWork<AspNetDbEntities2> UnitOfWork;
+        private Iaspnet_ApplicationsRepository appRepo;
+        private Iaspnet_UsersRepository userRepo;
+        private Iaspnet_RolesRepository roleRepo;
+        private Iaspnet_UserLoginRepository userloginRepo;
         private aspnet_Applications applicationInfo;
 
         public EdiuxAspNetSqlUserStore(AspNetModels.IUnitOfWork dbUnitOfWork)
         {
+            UnitOfWork = dbUnitOfWork as IUnitOfWork<AspNetDbEntities2>;
 
-            applicationInfo = this.getApplicationInfo();
+            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(UnitOfWork);
+
+            applicationInfo = appRepo.FindByName(Startup.getApplicationNameFromConfiguationFile()).SingleOrDefault();
 
             if (applicationInfo == null)
             {
-                applicationInfo = aspnet_Applications.Create(Startup.getApplicationNameFromConfiguationFile());
+                throw new Exception("Application isn't existed.");
             }
-            //userRepo = RepositoryHelper.Getaspnet_UsersRepository(dbUnitOfWork);
-            //roleRepo = RepositoryHelper.Getaspnet_RolesRepository(dbUnitOfWork);
-            //userloginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(dbUnitOfWork);
+            userRepo = RepositoryHelper.Getaspnet_UsersRepository(UnitOfWork);
+            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(UnitOfWork);
+            userloginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(UnitOfWork);
         }
         #endregion
 
@@ -58,6 +65,8 @@ namespace EdiuxTemplateWebApp.Models
                 return applicationInfo.aspnet_Roles.AsQueryable();
             }
         }
+
+
         #endregion
 
         #region User Store(使用者帳號的CRUD)
@@ -65,7 +74,30 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                applicationInfo.AddUser(user.UserName, user.aspnet_Membership.Password);
+                aspnet_Membership_CreateUser_InputParameter paramObject = new aspnet_Membership_CreateUser_InputParameter();
+                paramObject.ApplicationName = applicationInfo.ApplicationName;
+
+                paramObject.CurrentTimeUtc = DateTime.UtcNow;
+                paramObject.CreateDate = paramObject.CurrentTimeUtc.Date;
+                paramObject.Email = user.aspnet_Membership.Email;
+                paramObject.IsApproved = user.aspnet_Membership.IsApproved;
+                paramObject.Password = user.aspnet_Membership.Password;
+                paramObject.PasswordAnswer = user.aspnet_Membership.PasswordAnswer;
+                paramObject.PasswordFormat = user.aspnet_Membership.PasswordFormat;
+                paramObject.PasswordQuestion = user.aspnet_Membership.PasswordQuestion;
+                paramObject.PasswordSalt = user.aspnet_Membership.PasswordSalt;
+                paramObject.UniqueEmail = Membership.Provider.RequiresUniqueEmail ? 1 : 0;
+                paramObject.UserName = user.UserName;
+
+                UnitOfWork.Repositories.aspnet_Membership_CreateUser(paramObject);
+
+                if (paramObject.ReturnValue == 0)
+                {
+                    if (paramObject.OutputParameter.CreateStatus == (int)MembershipCreateStatus.Success)
+                    {
+                        UnitOfWork.Context.Set<aspnet_Users>().Attach(userRepo.Get(paramObject.OutputParameter.UserId));
+                    }
+                }
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -81,7 +113,11 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                applicationInfo.DeleteUser(user);
+                aspnet_Users_DeleteUser_InputParameter paramObject = new aspnet_Users_DeleteUser_InputParameter();
+                paramObject.ApplicationName = applicationInfo.ApplicationName;
+                paramObject.TablesToDeleteFrom = (int)(TablesToCheck.aspnet_Membership | TablesToCheck.aspnet_PersonalizationPerUser | TablesToCheck.aspnet_Profile | TablesToCheck.aspnet_Roles);
+                paramObject.UserName = user.UserName;
+                UnitOfWork.Repositories.aspnet_Users_DeleteUser(paramObject);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -95,7 +131,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(applicationInfo.FindUserById(userId));
+                aspnet_Users _user = userRepo.Get(userId);
+                return Task.FromResult(_user);
             }
             catch (Exception ex)
             {
@@ -108,7 +145,39 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(applicationInfo.FindUserByName(userName));
+                aspnet_Membership_GetUserByName_InputParameter paramObject = new aspnet_Membership_GetUserByName_InputParameter();
+
+                paramObject.ApplicationName = applicationInfo.ApplicationName;
+                paramObject.CurrentTimeUtc = DateTime.UtcNow;
+                paramObject.UpdateLastActivity = true;
+                paramObject.UserName = userName;
+
+                var singleUser = UnitOfWork.Repositories.aspnet_Membership_GetUserByName(paramObject);
+
+                aspnet_Users _user = null;
+
+                _user = userRepo.ConvertFrom(singleUser.Single());
+
+                _user.ApplicationId = applicationInfo.ApplicationId;
+                //_user.Id = singleUser.UserId;
+                //_user.LastActivityDate = singleUser.LastActivityDate.HasValue ? singleUser.LastActivityDate.Value : default(DateTime);
+                //_user.LoweredUserName = singleUser.UserName.ToLowerInvariant();
+                //_user.UserName = singleUser.UserName;
+                //_user.aspnet_Membership = new aspnet_Membership();
+                //_user.aspnet_Membership.ApplicationId = _user.ApplicationId;
+                //_user.aspnet_Membership.Comment = singleUser.Comment;
+                //_user.aspnet_Membership.CreateDate = singleUser.CreateDate;
+                //_user.aspnet_Membership.Email = singleUser.Email;
+                //_user.aspnet_Membership.IsApproved = singleUser.IsApproved;
+                //_user.aspnet_Membership.LastActivityTime = singleUser.LastActivityDate; ;
+                //_user.aspnet_Membership.LastLockoutDate = singleUser.LastLockoutDate;
+                //_user.aspnet_Membership.LastLoginDate = singleUser.LastLoginDate;
+                //_user.aspnet_Membership.LastPasswordChangedDate = singleUser.LastPasswordChangedDate;
+                //_user.aspnet_Membership.PasswordQuestion = singleUser.PasswordQuestion;
+
+                userRepo.Attach(_user); //加入變更追蹤
+
+                return Task.FromResult(_user);
             }
             catch (Exception ex)
             {
@@ -121,7 +190,18 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.Update();
+                aspnet_Membership_UpdateUser_InputParameter paramObject = new aspnet_Membership_UpdateUser_InputParameter();
+                paramObject.applicationName = user.aspnet_Applications.ApplicationName;
+                paramObject.comment = user.aspnet_Membership.Comment;
+                paramObject.currentTimeUtc = DateTime.UtcNow;
+                paramObject.email = user.aspnet_Membership.Email;
+                paramObject.isApproved = user.aspnet_Membership.IsApproved;
+                paramObject.lastActivityDate = DateTime.Now.Date;
+                paramObject.lastLoginDate = user.aspnet_Membership.LastLoginDate;
+                paramObject.uniqueEmail = Membership.Provider.RequiresUniqueEmail ? 1 : 0;
+
+                UnitOfWork.Repositories.aspnet_Membership_UpdateUser(paramObject);
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -137,7 +217,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.AddToRole(roleName);
+                aspnet_UsersInRoles_AddUsersToRoles_InputParameter paramObject = new aspnet_UsersInRoles_AddUsersToRoles_InputParameter();
+
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.currentTimeUtc = DateTime.UtcNow;
+                paramObject.roleNames = roleName;
+                paramObject.userNames = user.UserName;
+                UnitOfWork.Repositories.aspnet_UsersInRoles_AddUsersToRoles(paramObject);
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -151,7 +238,19 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.GetRoles());
+                aspnet_UsersInRoles_GetRolesForUser_InputParameter paramObject = new aspnet_UsersInRoles_GetRolesForUser_InputParameter();
+
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.userName = user.UserName;
+
+                var result = UnitOfWork.Repositories.aspnet_UsersInRoles_GetRolesForUser(paramObject);
+
+                if (paramObject.ReturnValue == 0)
+                {
+                    return Task.FromResult(result.Select(s => s.RoleName).ToList() as IList<string>);
+                }
+
+                return Task.FromResult(new List<string>() as IList<string>);
             }
             catch (Exception ex)
             {
@@ -164,7 +263,18 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.IsInRole(roleName));
+                aspnet_UsersInRoles_IsUserInRole_InputParameter paramObject = new aspnet_UsersInRoles_IsUserInRole_InputParameter();
+
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.roleName = roleName;
+                paramObject.userName = user.UserName;
+
+                if (paramObject.ReturnValue == 1)
+                {
+                    return Task.FromResult(true);
+                }
+
+                return Task.FromResult(false);
             }
             catch (Exception ex)
             {
@@ -177,7 +287,19 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.RemoveFromRole(roleName);
+                aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter paramObject = new aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter();
+
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.roleNames = roleName;
+                paramObject.userNames = user.UserName;
+
+                UnitOfWork.Repositories.aspnet_UsersInRoles_RemoveUsersFromRoles(paramObject);
+
+                if (paramObject.ReturnValue != 0)
+                {
+                    Task.FromException(new Exception(string.Format("發生錯誤!(錯誤碼:{0})", paramObject.ReturnValue)));
+                }
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -193,7 +315,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                applicationInfo.AddRole(role.Name, role.Description);
+                aspnet_Roles_CreateRole_InputParameter paramObject = new aspnet_Roles_CreateRole_InputParameter();
+
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.roleName = role.Name;
+
+                UnitOfWork.Repositories.aspnet_Roles_CreateRole(paramObject);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -207,12 +334,22 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                role.Update();
+                aspnet_Roles existedRole = roleRepo.Get(role.Id);
+
+                existedRole.LoweredRoleName = role.LoweredRoleName;
+                existedRole.Name = role.Name;
+                existedRole.ApplicationId = role.ApplicationId;
+                existedRole.Description = role.Description;
+                existedRole.aspnet_Users = role.aspnet_Users;
+                existedRole.Menus = role.Menus;
+
+                roleRepo.UnitOfWork.Commit();
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 return Task.FromException(ex);
             }
         }
@@ -221,13 +358,19 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                aspnet_Roles_DeleteRole_InputParameter paramObject = new aspnet_Roles_DeleteRole_InputParameter();
 
-                applicationInfo.aspnet_Roles.DeleteRole(role);
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.deleteOnlyIfRoleIsEmpty = false;
+                paramObject.roleName = role.Name;
+
+                UnitOfWork.Repositories.aspnet_Roles_DeleteRole(paramObject);
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 return Task.FromException(ex);
             }
         }
@@ -236,11 +379,11 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(applicationInfo.GetRoleById(roleId));
+                return Task.FromResult(roleRepo.Get(roleId));
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 return Task.FromException<aspnet_Roles>(ex);
             }
         }
@@ -249,12 +392,11 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-
-                return Task.FromResult(applicationInfo.GetRoleByName(roleName));
+                return roleRepo.FindByNameAsync(roleName);
             }
             catch (Exception ex)
             {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                WriteErrorLog(ex);
                 return Task.FromException<aspnet_Roles>(ex);
             }
         }
@@ -265,9 +407,17 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.aspnet_Membership.Email = email;
-                aspnet_Membership.MembershipRepository.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
-                return aspnet_Membership.MembershipRepository.UnitOfWork.CommitAsync();
+
+                Iaspnet_MembershipRepository membershipRepo = userRepo.DependcyRepository["aspnet_MembershipRepository"] as Iaspnet_MembershipRepository;
+
+                aspnet_Membership membership = membershipRepo.Get(user.Id);
+
+                membership.Email = email;
+                membership.LoweredEmail = email.ToLowerInvariant();
+
+                membershipRepo.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
+
+                return membershipRepo.UnitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {
@@ -280,7 +430,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.aspnet_Membership.Email);
+                Iaspnet_MembershipRepository membershipRepo = userRepo.DependcyRepository["aspnet_MembershipRepository"] as Iaspnet_MembershipRepository;
+                aspnet_Membership membership = membershipRepo.Get(user.Id);
+                if (membership != null)
+                {
+                    return Task.FromResult(membership.Email);
+                }
+                return Task.FromResult(string.Empty);
             }
             catch (Exception ex)
             {
@@ -293,7 +449,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.aspnet_Profile.GetProfile<ProfileModel>().eMailConfirmed);
+                Iaspnet_MembershipRepository membershipRepo = userRepo.DependcyRepository["aspnet_MembershipRepository"] as Iaspnet_MembershipRepository;
+                aspnet_Membership membership = membershipRepo.Get(user.Id);
+                if (membership != null)
+                {
+                    return Task.FromResult(membership.EmailConfirmed);
+                }
+                return Task.FromException<bool>(new Exception("User not found."));
             }
             catch (Exception ex)
             {
@@ -306,9 +468,17 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.aspnet_Profile.GetProfile<ProfileModel>().eMailConfirmed = confirmed;
-                user.Update();
-                return Task.CompletedTask;
+
+                Iaspnet_MembershipRepository membershipRepo = userRepo.DependcyRepository["aspnet_MembershipRepository"] as Iaspnet_MembershipRepository;
+                aspnet_Membership membership = membershipRepo.Get(user.Id);
+                if (membership != null)
+                {
+                    membership.EmailConfirmed = confirmed;
+                    membershipRepo.UnitOfWork.Context.Entry(user.aspnet_Membership).State = System.Data.Entity.EntityState.Modified;
+
+                    return membershipRepo.UnitOfWork.CommitAsync();
+                }
+                return Task.FromException(new Exception("User not found."));
             }
             catch (Exception ex)
             {
@@ -321,7 +491,15 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(applicationInfo.FindUserByEmail(email));
+                aspnet_Membership_GetUserByEmail_InputParameter paramObject = new aspnet_Membership_GetUserByEmail_InputParameter();
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.email = email;
+                var result = UnitOfWork.Repositories.aspnet_Membership_GetUserByEmail(paramObject);
+                if (paramObject.ReturnValue == 0)
+                {
+                    return Task.FromResult(userRepo.ConvertFrom(result.SingleOrDefault()));
+                }
+                return Task.FromException<aspnet_Users>(new Exception("user not found."));
             }
             catch (Exception ex)
             {
@@ -367,8 +545,10 @@ namespace EdiuxTemplateWebApp.Models
                 user.aspnet_Membership.FailedPasswordAttemptCount += 1;
                 user.aspnet_Membership.FailedPasswordAttemptWindowStart = DateTime.UtcNow;
 
-                user.Update();
-
+                userRepo.Attach(user);
+                userRepo.UnitOfWork.Context.Entry(user).State = System.Data.Entity.EntityState.Modified;
+                userRepo.UnitOfWork.Commit();
+                user = userRepo.Reload(user);
                 return Task.FromResult(user.aspnet_Membership.FailedPasswordAttemptCount);
             }
             catch (Exception ex)
@@ -387,7 +567,10 @@ namespace EdiuxTemplateWebApp.Models
                 user.aspnet_Membership.LastLockoutDate = DateTime.Now;
                 user.aspnet_Membership.IsLockedOut = false;
 
-                user.Update();
+                userRepo.Attach(user);
+                userRepo.UnitOfWork.Context.Entry(user).State = System.Data.Entity.EntityState.Modified;
+                userRepo.UnitOfWork.Commit();
+                user = userRepo.Reload(user);
 
                 return Task.CompletedTask;
             }
@@ -428,7 +611,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.aspnet_Membership.IsLockedOut = enabled;
+                aspnet_Users _user = userRepo.Get(user.Id);
+                if (_user != null)
+                {
+                    _user.aspnet_Membership.IsLockedOut = enabled;
+                    UnitOfWork.Context.Entry(_user).State = System.Data.Entity.EntityState.Modified;
+                    UnitOfWork.Commit();
+                }
 
                 return Task.CompletedTask;
             }
@@ -445,8 +634,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-
-                user.AddLogin(login);
+                userloginRepo.Add(new aspnet_UserLogin() { LoginProvider = login.LoginProvider, ProviderKey = login.ProviderKey, UserId = user.Id });
+                userloginRepo.UnitOfWork.Commit();
                 //Iaspnet_UserLoginRepository userLoginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(applicationInfo.ApplicationRepository.UnitOfWork);
                 // userloginRepo.AddLoginAsync(user, login);
                 return Task.CompletedTask;
@@ -462,8 +651,9 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.RemoveLogin(login);
-                // userloginRepo.RemoveLoginAsync(user, login);
+                var found = userloginRepo.Get(login.LoginProvider, login.ProviderKey);
+                userloginRepo.Delete(found);
+                userloginRepo.UnitOfWork.Commit();
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -490,8 +680,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Users foundUser = applicationInfo.FindUserByLogin(login);
-                return Task.FromResult(foundUser);
+                aspnet_UserLogin _login = userloginRepo.Get(login.LoginProvider, login.ProviderKey);
+                if (_login != null)
+                {
+                    return Task.FromResult(userRepo.Get(_login.UserId));
+                }
+                return Task.FromResult<aspnet_Users>(null);
             }
             catch (Exception ex)
             {
@@ -506,11 +700,21 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                aspnet_Membership_SetPassword_InputParameter paramObject = new aspnet_Membership_SetPassword_InputParameter();
 
-                user.aspnet_Membership.Password = passwordHash;
-                user.aspnet_Membership.LastPasswordChangedDate = DateTime.UtcNow;
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.currentTimeUtc = DateTime.UtcNow;
+                paramObject.newPassword = passwordHash;
+                paramObject.passwordFormat = (int)MembershipPasswordFormat.Hashed;
+                paramObject.passwordSalt = user.aspnet_Membership.PasswordSalt;
+                paramObject.userName = user.UserName;
 
-                user.Update();
+                UnitOfWork.Repositories.aspnet_Membership_SetPassword(paramObject);
+
+                if (paramObject.ReturnValue != 0)
+                {
+                    return Task.FromException(new Exception(string.Format("Has Error.(ErrorCode:{0})", paramObject.ReturnValue)));
+                }
                 //Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user, passwordHash);
                 return Task.CompletedTask;
             }
@@ -525,8 +729,28 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                string getPasswordHash = user.aspnet_Membership.Password;
-                return Task.FromResult(getPasswordHash);
+                aspnet_Membership_GetPasswordWithFormat_InputParameter paramObject = new aspnet_Membership_GetPasswordWithFormat_InputParameter();
+
+                paramObject.applicationName = applicationInfo.ApplicationName;
+                paramObject.currentTimeUtc = DateTime.UtcNow;
+                paramObject.updateLastLoginActivityDate = true;
+                paramObject.userName = user.UserName;
+
+                var result = UnitOfWork.Repositories.aspnet_Membership_GetPasswordWithFormat(paramObject).FirstOrDefault();
+                if (paramObject.ReturnValue != 0)
+                {
+                    return Task.FromException<string>(new Exception(string.Format("Has Error.(ErrorCode:{0})", paramObject.ReturnValue)));
+                }
+                if (paramObject.OutputParameter.ReturnCode != 0)
+                {
+                    return Task.FromException<string>(new Exception(string.Format("Has Error.(ErrorCode:{0})", paramObject.OutputParameter.ReturnCode)));
+                }
+                if (result != null && result.PasswordFormat == (int)MembershipPasswordFormat.Hashed)
+                {
+                    return Task.FromResult(result.Password);
+                }
+
+                return Task.FromResult(string.Empty);
             }
             catch (Exception ex)
             {
@@ -539,15 +763,9 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                bool hasPasswordTask = false;
-
-                if (user.aspnet_Membership == null)
-                    return Task.FromResult(hasPasswordTask);
-
-                if (user.aspnet_Membership.Password.Length == 0)
-                    return Task.FromResult(hasPasswordTask);
-
-                hasPasswordTask = true;
+                bool hasPasswordTask = (user != null) &&
+                    (user?.aspnet_Membership != null) &&
+                    !string.IsNullOrEmpty(user.aspnet_Membership.Password);
 
                 return Task.FromResult(hasPasswordTask);
             }
@@ -564,14 +782,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+                user.aspnet_Membership.PhoneNumber = phoneNumber;
+                userRepo.Attach(user);
 
-                if (profile == null)
-                    return Task.FromException(new Exception("Profile is not existed."));
-
-                profile.PhoneNumber = phoneNumber;
-
-
+                UnitOfWork.Repositories.Entry(user).State = EntityState.Modified;
+                UnitOfWork.Commit();
+                user = userRepo.Reload(user);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -585,12 +801,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+                if (user.aspnet_Membership != null)
+                {
+                    return Task.FromResult(user.aspnet_Membership.PhoneNumber);
+                }
 
-                if (profile == null)
-                    return Task.FromException<string>(new Exception("Profile is not existed."));
+                return Task.FromException<string>(new Exception(string.Format("The membership of '{0}' is missing.", user.UserName)));
 
-                return Task.FromResult(profile.PhoneNumber);
             }
             catch (Exception ex)
             {
@@ -603,12 +820,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+                if (user.aspnet_Membership != null)
+                {
+                    return Task.FromResult(user.aspnet_Membership.PhoneConfirmed);
+                }
 
-                if (profile == null)
-                    return Task.FromException<bool>(new Exception("Profile is not existed."));
-
-                return Task.FromResult(profile.PhoneConfirmed);
+                return Task.FromException<bool>(new Exception(string.Format("The membership of '{0}' is missing.", user.UserName)));
             }
             catch (Exception ex)
             {
@@ -621,14 +838,18 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+                if (user.aspnet_Membership != null)
+                {
+                    userRepo.Attach(user);
+                    user.aspnet_Membership.PhoneConfirmed = confirmed;
 
-                if (profile == null)
-                    return Task.FromException(new Exception("Profile is not existed."));
+                    userRepo.UnitOfWork.Context.Entry(user).State = EntityState.Modified;
+                    user = userRepo.Reload(user);
 
-                profile.PhoneConfirmed = confirmed;
+                    return userRepo.UnitOfWork.CommitAsync();
+                }
 
-                return Task.CompletedTask;
+                return Task.FromException<bool>(new Exception(string.Format("The membership of '{0}' is missing.", user.UserName)));
             }
             catch (Exception ex)
             {
@@ -643,13 +864,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
-
-                if (profile == null)
-                    return Task.FromException(new Exception("Profile is not existed."));
-
-                profile.SecurityStamp = stamp;
-
+                user.SetProfile<ProfileModel>((s) => s.SecurityStamp = stamp);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -663,10 +878,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+                ProfileModel profile = user.GetProfile<ProfileModel>();
 
                 if (profile == null)
-                    return Task.FromException<string>(new Exception("Profile is not existed."));
+                    return Task.FromResult<string>("");
 
                 return Task.FromResult(profile.SecurityStamp);
             }
@@ -683,13 +898,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
-
-                if (profile == null)
-                    return Task.FromException(new Exception("Profile is not existed."));
-
-                profile.TwoFactorEnabled = enabled;
-
+                ProfileModel profile  = user.SetProfile<ProfileModel>((s) => s.TwoFactorEnabled = enabled);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -703,11 +912,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.aspnet_Profile.GetProfile<ProfileModel>();
+                ProfileModel profile = user.GetProfile<ProfileModel>();
 
                 if (profile == null)
                     return Task.FromException<bool>(new Exception("Profile is not existed."));
-
 
                 return Task.FromResult(profile.TwoFactorEnabled);
             }
@@ -807,8 +1015,8 @@ namespace EdiuxTemplateWebApp.Models
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-
         #endregion
+
+
     }
 }

@@ -2,10 +2,10 @@
 {
     	public partial class aspnet_Membership_FindUsersByName_InputParameter
     	{
-    		public virtual string applicationName { get; set; }       
-    		public virtual string userNameToMatch { get; set; }       
-    		public virtual int pageIndex { get; set; }       
-    		public virtual int pageSize { get; set; }       
+    		public virtual string ApplicationName { get; set; }       
+    		public virtual string UserNameToMatch { get; set; }       
+    		public virtual int PageIndex { get; set; }       
+    		public virtual int PageSize { get; set; }       
     		public virtual int ReturnValue { get; set; }
     	}
 }

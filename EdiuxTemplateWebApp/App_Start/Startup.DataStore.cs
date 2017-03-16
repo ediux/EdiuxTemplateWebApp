@@ -45,8 +45,12 @@ namespace EdiuxTemplateWebApp
             if (appRepo == null)
                 appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
             string appName = getApplicationNameFromConfiguationFile();
-            aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
-            aspnet_Users rootUser = appInfo.FindUserByName("root");
+            aspnet_Applications appInfo = appRepo.FindByName(appName).SingleOrDefault();
+
+            Iaspnet_UsersRepository usersRepo = RepositoryHelper.Getaspnet_UsersRepository(appRepo.UnitOfWork);
+
+            aspnet_Users rootUser = usersRepo.GetUserByName(appInfo.ApplicationName, "root");
+
             if (rootUser != null)
             {
                 return rootUser.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase));
@@ -64,7 +68,7 @@ namespace EdiuxTemplateWebApp
             if (appInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
                 throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
 
-            aspnet_Users rootUser = appInfo.FindUserByName("root");
+            aspnet_Users rootUser = appInfo.GetUserByName("root",appRepo);
 
             if (rootUser != null)
             {
@@ -231,7 +235,13 @@ namespace EdiuxTemplateWebApp
 
                 Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
-                appRepo.Add(aspnet_Applications.Create(applicationName));
+                aspnet_Applications newApplication = new aspnet_Applications();
+
+                newApplication.ApplicationName = applicationName;
+                newApplication.Description = applicationName;
+                newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
+
+                appRepo.Add(newApplication);
                 appRepo.UnitOfWork.Commit();
 
                 addToMemoryCache(appRepo);

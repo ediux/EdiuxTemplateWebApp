@@ -10,9 +10,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             int returnValue = 0;
             IEnumerable<aspnet_AnyDataInTables_Result> result;
             returnValue = this.ExecuteStoredProcedure(
-     "aspnet_AnyDataInTables",
-     out result,
-             spParameters.tablesToCheck);
+                "aspnet_AnyDataInTables",
+                out result,
+                spParameters.TablesToCheck);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -24,7 +24,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 "aspnet_Applications_CreateApplication",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName);
+                spParameters.ApplicationName);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -33,8 +33,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_CheckSchemaVersion",
-    spParameters.feature,
-spParameters.compatibleSchemaVersion);
+    spParameters.Feature,
+spParameters.CompatibleSchemaVersion);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_ChangePasswordQuestionAndAnswer(aspnet_Membership_ChangePasswordQuestionAndAnswer_InputParameter spParameters)
@@ -56,42 +56,48 @@ spParameters.NewPasswordAnswer);
                 "aspnet_Membership_CreateUser",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName,
-spParameters.userName,
-spParameters.password,
-spParameters.passwordSalt,
-spParameters.email,
-spParameters.passwordQuestion,
-spParameters.passwordAnswer,
-spParameters.isApproved,
-spParameters.currentTimeUtc,
-spParameters.createDate,
-spParameters.uniqueEmail,
-spParameters.passwordFormat);
+                spParameters.ApplicationName,
+spParameters.UserName,
+spParameters.Password,
+spParameters.PasswordSalt,
+spParameters.Email,
+spParameters.PasswordQuestion,
+spParameters.PasswordAnswer,
+spParameters.IsApproved,
+spParameters.CurrentTimeUtc,
+spParameters.CreateDate,
+spParameters.UniqueEmail,
+spParameters.PasswordFormat);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
-        public void aspnet_Membership_FindUsersByEmail(aspnet_Membership_FindUsersByEmail_InputParameter spParameters)
+        public IEnumerable<aspnet_Membership_FindUsersByEmail_Result> aspnet_Membership_FindUsersByEmail(aspnet_Membership_FindUsersByEmail_InputParameter spParameters)
         {
             int returnValue = 0;
-            returnValue = this.ExecuteStoredProcedure(
+            IEnumerable<aspnet_Membership_FindUsersByEmail_Result> _result = null;
+            _result = this.ExecuteStoredProcedure<aspnet_Membership_FindUsersByEmail_Result>(
     "aspnet_Membership_FindUsersByEmail",
-    spParameters.applicationName,
-spParameters.emailToMatch,
-spParameters.pageIndex,
-spParameters.pageSize);
+    out returnValue,
+    spParameters.ApplicationName,
+spParameters.EmailToMatch,
+spParameters.PageIndex,
+spParameters.PageSize);
             spParameters.ReturnValue = returnValue;
+            return _result;
         }
-        public void aspnet_Membership_FindUsersByName(aspnet_Membership_FindUsersByName_InputParameter spParameters)
+        public IEnumerable<aspnet_Membership_FindUsersByName_Result> aspnet_Membership_FindUsersByName(aspnet_Membership_FindUsersByName_InputParameter spParameters)
         {
             int returnValue = 0;
-            returnValue = this.ExecuteStoredProcedure(
-    "aspnet_Membership_FindUsersByName",
-    spParameters.applicationName,
-spParameters.userNameToMatch,
-spParameters.pageIndex,
-spParameters.pageSize);
+            IEnumerable<aspnet_Membership_FindUsersByName_Result> _result = null;
+            _result = this.ExecuteStoredProcedure<aspnet_Membership_FindUsersByName_Result>(
+     "aspnet_Membership_FindUsersByName",
+     out returnValue,
+     spParameters.ApplicationName,
+ spParameters.UserNameToMatch,
+ spParameters.PageIndex,
+ spParameters.PageSize);
             spParameters.ReturnValue = returnValue;
+            return _result;
         }
         public void aspnet_Membership_GetAllUsers(aspnet_Membership_GetAllUsers_InputParameter spParameters)
         {
@@ -101,9 +107,9 @@ spParameters.pageSize);
                 "aspnet_Membership_GetAllUsers",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName,
-spParameters.pageIndex,
-spParameters.pageSize);
+                spParameters.ApplicationName,
+spParameters.PageIndex,
+spParameters.PageSize);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -115,9 +121,9 @@ spParameters.pageSize);
                 "aspnet_Membership_GetNumberOfUsersOnline",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName,
-spParameters.minutesSinceLastInActive,
-spParameters.currentTimeUtc);
+                spParameters.ApplicationName,
+spParameters.MinutesSinceLastInActive,
+spParameters.CurrentTimeUtc);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -137,20 +143,22 @@ spParameters.passwordAnswer);
             spParameters.ReturnValue = returnValue;
             return result;
         }
-        public void aspnet_Membership_GetPasswordWithFormat(aspnet_Membership_GetPasswordWithFormat_InputParameter spParameters)
+        public IEnumerable<aspnet_Membership_GetPasswordWithFormat_Result> aspnet_Membership_GetPasswordWithFormat(aspnet_Membership_GetPasswordWithFormat_InputParameter spParameters)
         {
             int returnValue = 0;
             aspnet_Membership_GetPasswordWithFormat_OutputParameter outputparameter;
-            this.ExecuteStoredProcedure(
+            IEnumerable<aspnet_Membership_GetPasswordWithFormat_Result> _result =
+            this.ExecuteStoredProcedure<aspnet_Membership_GetPasswordWithFormat_Result, aspnet_Membership_GetPasswordWithFormat_OutputParameter>(
                 "aspnet_Membership_GetPasswordWithFormat",
                 out outputparameter,
                 out returnValue,
                 spParameters.applicationName,
-spParameters.userName,
-spParameters.updateLastLoginActivityDate,
-spParameters.currentTimeUtc);
+                spParameters.userName,
+                spParameters.updateLastLoginActivityDate,
+                spParameters.currentTimeUtc);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
+            return _result;
         }
         public IEnumerable<aspnet_Membership_GetUserByEmail_Result> aspnet_Membership_GetUserByEmail(aspnet_Membership_GetUserByEmail_InputParameter spParameters)
         {
@@ -164,16 +172,19 @@ spParameters.email);
             spParameters.ReturnValue = returnValue;
             return result;
         }
-        public void aspnet_Membership_GetUserByName(aspnet_Membership_GetUserByName_InputParameter spParameters)
+        public IEnumerable<aspnet_Membership_GetUserByName_Result> aspnet_Membership_GetUserByName(aspnet_Membership_GetUserByName_InputParameter spParameters)
         {
             int returnValue = 0;
-            returnValue = this.ExecuteStoredProcedure(
-    "aspnet_Membership_GetUserByName",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.currentTimeUtc,
-spParameters.updateLastActivity);
+            IEnumerable<aspnet_Membership_GetUserByName_Result> result = null;
+            result = this.ExecuteStoredProcedure<aspnet_Membership_GetUserByName_Result>(
+                "aspnet_Membership_GetUserByName",
+                out returnValue,
+                spParameters.ApplicationName,
+                spParameters.UserName,
+                spParameters.CurrentTimeUtc,
+                spParameters.UpdateLastActivity);
             spParameters.ReturnValue = returnValue;
+            return result;
         }
         public void aspnet_Membership_GetUserByUserId(aspnet_Membership_GetUserByUserId_InputParameter spParameters)
         {
@@ -473,15 +484,19 @@ spParameters.userNameToMatch,
 spParameters.inactiveSinceDate);
             spParameters.ReturnValue = returnValue;
         }
-        public void aspnet_Profile_GetProperties(aspnet_Profile_GetProperties_InputParameter spParameters)
+        public IEnumerable<aspnet_Profile_GetProperties_Result> aspnet_Profile_GetProperties(aspnet_Profile_GetProperties_InputParameter spParameters)
         {
             int returnValue = 0;
-            returnValue = this.ExecuteStoredProcedure(
-    "aspnet_Profile_GetProperties",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.currentTimeUtc);
+            IEnumerable<aspnet_Profile_GetProperties_Result> _result
+                = this.ExecuteStoredProcedure<aspnet_Profile_GetProperties_Result>(
+                    "aspnet_Profile_GetProperties",
+                    out returnValue,
+                    spParameters.applicationName,
+                    spParameters.userName,
+                    spParameters.currentTimeUtc);
             spParameters.ReturnValue = returnValue;
+
+            return _result;
         }
         public void aspnet_Profile_SetProperties(aspnet_Profile_SetProperties_InputParameter spParameters)
         {
@@ -595,9 +610,9 @@ spParameters.lastActivityDate);
                 "aspnet_Users_DeleteUser",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName,
-spParameters.userName,
-spParameters.tablesToDeleteFrom);
+                spParameters.ApplicationName,
+spParameters.UserName,
+spParameters.TablesToDeleteFrom);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }

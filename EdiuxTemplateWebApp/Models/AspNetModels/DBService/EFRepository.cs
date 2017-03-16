@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 
@@ -10,7 +12,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class EFRepository<T> : IRepositoryBase<T> where T : class
     {
-        public IUnitOfWork UnitOfWork { get; set; }
+        public EFRepository()
+        {
+            _unitofwork = RepositoryHelper.GetUnitOfWork();
+            _depencyRepos = new Dictionary<string, IDepencyRepositoryBase>();
+        }
+
+
 
         private IDbSet<T> _objectset;
         protected IDbSet<T> ObjectSet
@@ -19,10 +27,28 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             {
                 if (_objectset == null)
                 {
-                    _objectset = UnitOfWork.Context.Set<T>();
+                    _objectset = UnitOfWork.Context.ObjectContext.CreateObjectSet<T>() as IDbSet<T>;
                 }
                 return _objectset;
             }
+        }
+
+        protected Dictionary<string, IDepencyRepositoryBase> _depencyRepos;
+
+        public IDictionary<string, IDepencyRepositoryBase> DependcyRepository
+        {
+            get
+            {
+                return _depencyRepos;
+            }
+        }
+
+        private IUnitOfWork _unitofwork;
+        public IUnitOfWork UnitOfWork
+        {
+            get { return _unitofwork; }
+
+            set { _unitofwork = value; }
         }
 
         public virtual IQueryable<T> All()
@@ -47,7 +73,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public virtual Task<IQueryable<T>> AllAsync()
         {
-            return Task.Run(() => ObjectSet.AsQueryable());
+            return Task.FromResult(All());
         }
 
         public virtual IList<T> BatchAdd(IEnumerable<T> entities)
@@ -62,27 +88,24 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public virtual Task<T> GetAsync(params object[] values)
         {
-            return Task.Run(() => ObjectSet.Find(values));
+            return Task.FromResult(Get(values));
         }
 
         public virtual T Reload(T entity)
         {
-            UnitOfWork.Context.Entry(entity).Reload();
+            UnitOfWork.Entry(entity).Reload();
             return entity;
         }
 
         public virtual async Task<T> ReloadAsync(T entity)
         {
-            await UnitOfWork.Context.Entry(entity).ReloadAsync();
+            await UnitOfWork.Entry(entity).ReloadAsync();
             return entity;
         }
 
-        protected AspNetDbEntities2 InternalDatabaseAlias
+        public IQueryable<JR> Join<JT, TKey, JR>(IRepositoryBase<JT> joinFromRepository, Expression<Func<T, TKey>> keyselect, Expression<Func<JT, TKey>> OuterKey, Expression<Func<T, JT, JR>> ResultSelector) where JT : class
         {
-            get
-            {
-                return (AspNetDbEntities2)UnitOfWork.Context;
-            }
+            return ObjectSet.Join(joinFromRepository.All().AsEnumerable(), keyselect, OuterKey, ResultSelector);
         }
 
         protected virtual void WriteErrorLog(Exception ex)
@@ -96,6 +119,85 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
             }
         }
+
+        public void RegisterDependcyRepository(IDepencyRepositoryBase repository)
+        {
+            Type _type = repository.GetType();
+            if (!_depencyRepos.ContainsKey(_type.Name))
+            {
+                _depencyRepos.Add(_type.Name, repository);
+            }
+        }
+
+        public void UnRegisterDepencyRepository(Type repositoryType)
+        {
+            Type _type = repositoryType;
+            if (_depencyRepos.ContainsKey(_type.Name))
+            {
+                _depencyRepos.Remove(_type.Name);
+            }
+        }
+
+        public void Attach(T entity)
+        {
+            ObjectSet.Attach(entity);
+        }
+
+        public virtual T ConvertFrom<TResult>(TResult entity)
+        {
+            Type _type = typeof(TResult);
+
+            if (_type.FindInterfaces(new TypeFilter((x, y) => (Type)y == x), typeof(IConvertible)).Any())
+            {
+                return (T)Convert.ChangeType(entity, typeof(T));
+            }
+
+            Dictionary<string, PropertyInfo> props = entity.GetProperties();
+
+            if (props.Count > 0)
+            {
+                Type _targetType = typeof(T);
+                T returnValue = Activator.CreateInstance<T>();
+
+                foreach (string key in props.Keys)
+                {
+                    var value = props[key].GetValue(entity);
+                    var targetProp = _targetType.GetProperty(key);
+
+                    if (targetProp != null)
+                    {
+                        targetProp.SetValue(returnValue, targetProp);
+                    }
+
+                }
+                return returnValue;
+            }
+
+            return Activator.CreateInstance<T>();
+        }
+
+        public R CopyTo<R>(T entity)
+        {
+            Dictionary<string, PropertyInfo> props = entity.GetProperties();
+            if (props.Count > 0)
+            {
+                Type _targetType = typeof(R);
+                R targetEntity = Activator.CreateInstance<R>();
+
+                foreach (var key in props.Keys)
+                {
+                    var targetprop = _targetType.GetProperty(key);
+                    if (targetprop == null)
+                        continue;
+                    targetprop.SetValue(targetEntity, props[key].GetValue(entity));
+                }
+                return targetEntity;
+            }
+            return default(R);
+
+
+        }
+
         #region IDisposable Support
         private bool disposedValue = false; // 偵測多餘的呼叫
 
@@ -106,7 +208,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 if (disposing)
                 {
                     UnitOfWork.Commit();
-                    UnitOfWork.Context.Dispose();
+             
                 }
 
                 // TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。

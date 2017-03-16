@@ -4,12 +4,16 @@
     using System.Collections.Generic;
     
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(MenusMetaData))]
-    public partial class Menus
+    public partial class Menus : ICloneable
     {
+        public object Clone()
+        {
+            throw new NotImplementedException();
+        }
     }
-    
+
     public partial class MenusMetaData
     {
         [Required]

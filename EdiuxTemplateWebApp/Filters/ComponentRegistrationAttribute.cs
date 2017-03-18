@@ -75,14 +75,14 @@ namespace EdiuxTemplateWebApp.Filters
         {
             aspnet_Paths pathInfo;
             string loweredUrl = url.ToLowerInvariant();
-            pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
-            && w.ApplicationId == appInfo.ApplicationId).SingleOrDefault();
+            pathInfo = IRepositoryBase.Where(pathRepo, w => (w.Path == url || w.LoweredPath == loweredUrl)
+			 && w.ApplicationId == appInfo.ApplicationId).SingleOrDefault();
             return pathInfo;
         }
 
         private static bool checkPathIsRegistered(aspnet_Applications appInfo, string url, Iaspnet_PathsRepository pathRepo)
         {
-            return pathRepo.Where(w => w.Path == url && w.ApplicationId == appInfo.ApplicationId).Any();
+            return IRepositoryBase.Where(pathRepo, w => w.Path == url && w.ApplicationId == appInfo.ApplicationId).Any();
         }
 
         private static string getCurrentControllerAndActionUrl(ActionExecutingContext filterContext)

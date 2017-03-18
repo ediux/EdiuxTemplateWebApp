@@ -33,16 +33,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
 
-        protected Dictionary<string, IDepencyRepositoryBase> _depencyRepos;
-
-        public IDictionary<string, IDepencyRepositoryBase> DependcyRepository
-        {
-            get
-            {
-                return _depencyRepos;
-            }
-        }
-
         private IUnitOfWork _unitofwork;
         public IUnitOfWork UnitOfWork
         {
@@ -120,24 +110,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
 
-        public void RegisterDependcyRepository(IDepencyRepositoryBase repository)
-        {
-            Type _type = repository.GetType();
-            if (!_depencyRepos.ContainsKey(_type.Name))
-            {
-                _depencyRepos.Add(_type.Name, repository);
-            }
-        }
-
-        public void UnRegisterDepencyRepository(Type repositoryType)
-        {
-            Type _type = repositoryType;
-            if (_depencyRepos.ContainsKey(_type.Name))
-            {
-                _depencyRepos.Remove(_type.Name);
-            }
-        }
-
+     
         public void Attach(T entity)
         {
             ObjectSet.Attach(entity);
@@ -232,6 +205,11 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             // TODO: 如果上方的完成項已被覆寫，即取消下行的註解狀態。
             // GC.SuppressFinalize(this);
         }
-        #endregion
-    }
+
+		protected virtual T getPrimaryKey(Expression<Func<T, bool>> findkeys) 
+		{
+			return Where(findkeys).SingleOrDefault();
+		}
+		#endregion
+	}
 }

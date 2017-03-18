@@ -16,6 +16,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             spParameters.ReturnValue = returnValue;
             return result;
         }
+
         public void aspnet_Applications_CreateApplication(aspnet_Applications_CreateApplication_InputParameter spParameters)
         {
             int returnValue = 0;
@@ -32,9 +33,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
-    "aspnet_CheckSchemaVersion",
-    spParameters.Feature,
-spParameters.CompatibleSchemaVersion);
+				"aspnet_CheckSchemaVersion",
+				spParameters.Feature,
+				spParameters.CompatibleSchemaVersion);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_ChangePasswordQuestionAndAnswer(aspnet_Membership_ChangePasswordQuestionAndAnswer_InputParameter spParameters)

@@ -231,11 +231,14 @@ namespace EdiuxTemplateWebApp.Models
 		{
 			try
 			{
+				user.ApplicationId = applicationInfo.ApplicationId;
+				user.aspnet_Applications = applicationInfo;
+
 				var foundUser = userRepo
-					.Where(w => w.Id == user.Id 
-					       || (w.UserName == user.UserName || 
-					             w.LoweredUserName == user.LoweredUserName)
-					       && w.ApplicationId == user.ApplicationId)
+					.Where(w => w.Id == user.Id
+						   || (w.UserName == user.UserName ||
+								 w.LoweredUserName == user.LoweredUserName)
+						   && w.ApplicationId == user.ApplicationId)
 					.SingleOrDefault();
 
 				if (foundUser != null)
@@ -258,10 +261,10 @@ namespace EdiuxTemplateWebApp.Models
 		{
 			try
 			{
-				userRepo.IsInRole(user, roleName);
-			
-
-				return Task.FromResult(false);
+				user.ApplicationId = applicationInfo.ApplicationId;
+				user.aspnet_Applications = applicationInfo;
+				var isinrole = userRepo.IsInRole(user, roleName);
+				return Task.FromResult(isinrole);
 			}
 			catch (Exception ex)
 			{
@@ -274,18 +277,10 @@ namespace EdiuxTemplateWebApp.Models
 		{
 			try
 			{
-				aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter paramObject = new aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter();
+				user.ApplicationId = applicationInfo.ApplicationId;
+				user.aspnet_Applications = applicationInfo;
 
-				paramObject.applicationName = applicationInfo.ApplicationName;
-				paramObject.roleNames = roleName;
-				paramObject.userNames = user.UserName;
-
-				UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_UsersInRoles_RemoveUsersFromRoles(paramObject);
-
-				if (paramObject.ReturnValue != 0)
-				{
-					Task.FromException(new Exception(string.Format("發生錯誤!(錯誤碼:{0})", paramObject.ReturnValue)));
-				}
+				userRepo.RemoveFromRole(user, roleName);
 
 				return Task.CompletedTask;
 			}
@@ -325,6 +320,8 @@ namespace EdiuxTemplateWebApp.Models
 				existedRole.Description = role.Description;
 				existedRole.aspnet_Users = role.aspnet_Users;
 				existedRole.Menus = role.Menus;
+
+				roleRepo.UnitOfWork.Entry(existedRole).State = EntityState.Modified;
 
 				roleRepo.UnitOfWork.Commit();
 

@@ -219,6 +219,22 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			return false;
 		}
 
+		public void RemoveFromRole(aspnet_Users user, string roleName)
+		{
+			var paramObject = new aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter();
+
+			paramObject.applicationName = user?.aspnet_Applications.ApplicationName;
+			paramObject.roleNames = roleName;
+			paramObject.userNames = user.UserName;
+
+			UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_UsersInRoles_RemoveUsersFromRoles(paramObject);
+
+			if (paramObject.ReturnValue != 0)
+			{
+				throw new Exception(string.Format("發生錯誤!(錯誤碼:{0})", paramObject.ReturnValue));
+			}
+		}
+
 
 		//public void AddToRole(string applicationName, string userName, string roleName)
 		//{
@@ -408,6 +424,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="user">User.</param>
 		/// <param name="roleName">Role name.</param>
 		bool IsInRole(aspnet_Users user, string roleName);
+
+		/// <summary>
+		/// Removes from role.
+		/// </summary>
+		/// <param name="user">User.</param>
+		/// <param name="roleName">Role name.</param>
+		void RemoveFromRole(aspnet_Users user, string roleName);
 		//IQueryable<aspnet_Users> All(aspnet_Applications application);
 		//void AddToRole(string applicationName, string userName, string roleName);
 		//bool IsInRole(string applicationName, string userName, string roleName);

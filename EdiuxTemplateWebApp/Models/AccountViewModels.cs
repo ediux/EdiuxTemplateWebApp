@@ -151,7 +151,7 @@ namespace EdiuxTemplateWebApp.Models
 
     public class ProfileModel
     {
-        private IUnitOfWork<AspNetDbEntities2> InternalUnitOfWork;
+        private IUnitOfWork InternalUnitOfWork;
         public ProfileModel()
         {
             PropertyChanged += ProfileModel_PropertyChanged;
@@ -160,7 +160,7 @@ namespace EdiuxTemplateWebApp.Models
 
         public ProfileModel(IUnitOfWork UnitOfwork ):this()
         {
-            InternalUnitOfWork = UnitOfwork as IUnitOfWork<AspNetDbEntities2>;
+            InternalUnitOfWork = UnitOfwork ;
         }
 
         private Guid userId;
@@ -175,7 +175,7 @@ namespace EdiuxTemplateWebApp.Models
             profile.PropertyValuesString = JsonConvert.SerializeObject(this);
             profile.PropertyValuesBinary = System.Text.Encoding.Unicode.GetBytes(profile.PropertyValuesString);
 
-            profileRepo.UnitOfWork.Context.Entry(profile).State = System.Data.Entity.EntityState.Modified;
+            profileRepo.UnitOfWork.Entry(profile).State = System.Data.Entity.EntityState.Modified;
             profileRepo.UnitOfWork.Commit();
         }
 

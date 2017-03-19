@@ -32,18 +32,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			return base.All();
 		}
 
-		//public aspnet_Roles Add(aspnet_Applications application, string Name, string Desctiption = "")
-		//{
-		//	var _role = new aspnet_Roles();
-
-		//	_role.ApplicationId = application.ApplicationId;
-		//	_role.LoweredRoleName = Name.ToLowerInvariant();
-		//	_role.Name = Name;
-		//	_role.Description = Desctiption;
-
-		//	return Add(_role);
-		//}
-
 		public override void Delete(aspnet_Roles entity)
 		{
 			try
@@ -64,44 +52,27 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			}
 		}
 
-		public IEnumerator<aspnet_Roles> FindById(Guid applicationId, Guid roleId)
+		public IEnumerable<aspnet_Roles> FindById(Guid applicationId, Guid roleId)
 		{
-			throw new NotImplementedException();
+            var roles = Where(s => s.ApplicationId == applicationId && s.Id == roleId);
+            return roles.AsEnumerable();
 		}
 
-		public IEnumerator<aspnet_Roles> FindByName(Guid applicationId, string Name)
+		public IEnumerable<aspnet_Roles> FindByName(Guid applicationId, string Name)
 		{
-			throw new NotImplementedException();
+            var roles = Where(s => s.ApplicationId == applicationId
+                              && (s.Name == Name
+                                  || s.LoweredRoleName == Name));
+            
+            return roles.AsEnumerable();
 		}
 
-
-
-		//public aspnet_Roles FindById(Guid applicationId, Guid roleId)
-		//{
-		//	try
-		//	{
-		//		return All().SingleOrDefault(s => s.ApplicationId == applicationId && s.Id == roleId);
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		WriteErrorLog(ex);
-		//		throw ex;
-		//	}
-		//}
-		//public aspnet_Roles FindByName(Guid applicationId, string Name)
-		//{
-		//	try
-		//	{
-		//		string loweredName = Name.ToLowerInvariant();
-		//		return All().SingleOrDefault(s => s.ApplicationId == applicationId && (s.Name == Name || s.LoweredRoleName == loweredName));
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		WriteErrorLog(ex);
-		//		throw ex;
-		//	}
-		//}
-
+		public void Update(aspnet_Roles entity)
+		{
+			var foundPath = Get(entity.Id, entity.ApplicationId);
+			foundPath = CopyTo<aspnet_Roles>(entity);
+			UnitOfWork.Commit();
+		}
 
 	}
 
@@ -113,7 +84,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <returns>The by identifier.</returns>
 		/// <param name="applicationId">Application identifier.</param>
 		/// <param name="roleId">Role identifier.</param>
-		IEnumerator<aspnet_Roles> FindById(Guid applicationId, Guid roleId);
+        IEnumerable<aspnet_Roles> FindById(Guid applicationId, Guid roleId);
 
 		/// <summary>
 		/// Finds the name of the by.
@@ -121,6 +92,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <returns>The by name.</returns>
 		/// <param name="applicationId">Application identifier.</param>
 		/// <param name="Name">Name.</param>
-		IEnumerator<aspnet_Roles> FindByName(Guid applicationId, string Name);
+		IEnumerable<aspnet_Roles> FindByName(Guid applicationId, string Name);
+
+		/// <summary>
+		/// Update the specified entity.
+		/// </summary>
+		/// <returns>The update.</returns>
+		/// <param name="entity">Entity.</param>
+		void Update(aspnet_Roles entity);
 	}
 }

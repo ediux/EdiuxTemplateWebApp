@@ -87,8 +87,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                appRepo.UnitOfWork.Context.Entry(system_Applications).State = EntityState.Modified;
-                appRepo.UnitOfWork.Commit();
+                appRepo.Update(system_Applications); 
                 return RedirectToAction("Index");
             }
             return View(system_Applications);

@@ -81,17 +81,41 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 		public void Commit()
 		{
-			SaveChanges();
+			if (!transcationMode)
+				SaveChanges();
 		}
 
 		public virtual Task CommitAsync()
 		{
-			return SaveChangesAsync();
+			if (!transcationMode)
+				return SaveChangesAsync();
+			else
+				return Task.CompletedTask;
 		}
 
 		public T GetTypedContext<T>() where T : IObjectContextAdapter
 		{
 			return (T)(this as IObjectContextAdapter);
+		}
+
+		bool transcationMode = false;
+
+		/// <summary>
+		/// 取得或設定目前是否處於交易模式。
+		/// <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.aspnet_MembershipRepository"/> transcation mode.
+		/// </summary>
+		/// <value>值如果為 <c>true</c> 則處於交易模式，不會呼叫Commit()方法; 假如為 <c>false</c> 會直接呼叫 Commit()。</value>
+		public bool TranscationMode
+		{
+			get
+			{
+				return transcationMode;
+			}
+
+			set
+			{
+				transcationMode = value;
+			}
 		}
 	}
 }

@@ -66,6 +66,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 				throw;
 			}
 		}
+
+		public void Update(aspnet_Applications entity)
+		{
+			var foundApp = Get(entity.ApplicationId,entity.ApplicationName,entity.LoweredApplicationName);
+			foundApp = CopyTo<aspnet_Applications>(entity);
+			UnitOfWork.Commit();
+		}
 	}
 
 	public partial interface Iaspnet_ApplicationsRepository : IRepositoryBase<aspnet_Applications>
@@ -83,5 +90,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <returns>The by identifier.</returns>
 		/// <param name="applicationId">Application identifier.</param>
 		IEnumerable<aspnet_Applications> FindById(Guid applicationId);
+
+		/// <summary>
+		/// Update the specified entity.
+		/// </summary>
+		/// <returns>The update.</returns>
+		/// <param name="entity">Entity.</param>
+		void Update(aspnet_Applications entity);
 	}
 }

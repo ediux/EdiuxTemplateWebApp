@@ -2,41 +2,14 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Web.Security;
+using Microsoft.AspNet.Identity;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
 	public partial class aspnet_UsersRepository : EFRepository<aspnet_Users>, Iaspnet_UsersRepository
 	{
-		public IQueryable<aspnet_Users> All(aspnet_Applications application)
-		{
-			try
-			{
-
-				IQueryable<aspnet_Users> query =
-					from u in ObjectSet
-					from ub in (from r in UnitOfWork.Set<aspnet_Roles>()
-								from ruu in r.aspnet_Users
-								where r.ApplicationId == u.ApplicationId
-								select ruu).Distinct()
-					join m in UnitOfWork.Set<aspnet_Membership>() on u.Id equals m.UserId
-					join ppu in UnitOfWork.Set<aspnet_PersonalizationPerUser>() on u.Id equals ppu.UserId
-					join p in UnitOfWork.Set<aspnet_Profile>() on u.Id equals p.UserId
-					where ub.Id == u.Id && u.ApplicationId == application.ApplicationId
-					select u;
-
-
-				query.Load();
-
-				return query;
-			}
-			catch (Exception ex)
-			{
-				WriteErrorLog(ex);
-				throw ex;
-			}
-
-		}
-
 		public override IQueryable<aspnet_Users> All()
 		{
 			try
@@ -122,7 +95,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 				UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Users_CreateUser(inputParam);
 
-				if (inputParam.ReturnValue == (int)System.Web.Security.MembershipCreateStatus.Success)
+				if (inputParam.ReturnValue == (int)MembershipCreateStatus.Success)
 				{
 					return Get(inputParam.OutputParameter.UserId);
 				}
@@ -138,36 +111,99 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 		}
 
+		public IEnumerable<aspnet_Users> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize)
+		{
+			var loweredAppName = applicationName.ToLowerInvariant();
 
+			var memberships = (from m in All()
+							   where (m.aspnet_Applications.ApplicationName == applicationName ||
+									  m.aspnet_Applications.LoweredApplicationName == loweredAppName) &&
+			                   (m.UserName.Contains(userNameToMatch) || m.LoweredUserName.Contains(userNameToMatch))
+							   select m).AsQueryable();
 
-		public IEnumerable<aspnet_Membership_FindUsersByName_Result> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize)
+			return memberships.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsEnumerable();
+		}
+
+		public IEnumerable<aspnet_Users> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize)
+		{
+			var loweredAppName = applicationName.ToLowerInvariant();
+
+			var memberships = (from m in All()
+							   where (m.aspnet_Applications.ApplicationName == applicationName ||
+									  m.aspnet_Applications.LoweredApplicationName == loweredAppName) &&
+			                   (m.aspnet_Membership.Email.Contains(EmailToMatch) ||
+			                    m.aspnet_Membership.LoweredEmail.Contains(EmailToMatch))
+							   select m).AsQueryable();
+
+			return memberships.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsEnumerable();
+		}
+
+		public aspnet_Users GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity)
+		{
+			var loweredAppName = applicationName.ToLowerInvariant();
+            var loweredUserName = userName.ToLowerInvariant();
+            var user = (from u in All()
+                        where (u.aspnet_Applications.ApplicationName == applicationName || u.aspnet_Applications.LoweredApplicationName == loweredAppName)
+                        && (u.UserName == userName || u.LoweredUserName == loweredUserName)
+                        select u).SingleOrDefault();
+            
+            if (updateLastActivity)
+            {
+                user.aspnet_Membership.LastActivityTime = currentTimeUtc;
+              
+                var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
+                UnitOfWork.TranscationMode = true;
+                membershipRepo.Update(user.aspnet_Membership);
+                UnitOfWork.TranscationMode = false;
+                user = Reload(user);
+            }
+            return user;
+		}
+
+		public aspnet_Users GetUserByEmail(string applicationName, string eMail, DateTime currentTimeUtc, bool updateLastActivity)
+		{
+			 var loweredAppName = applicationName.ToLowerInvariant();
+            var loweredeMail = eMail.ToLowerInvariant();
+            var user = (from u in All()
+                        where (u.aspnet_Applications.ApplicationName == applicationName || u.aspnet_Applications.LoweredApplicationName == loweredAppName)
+                        && (u.aspnet_Membership.Email == eMail || u.aspnet_Membership.LoweredEmail == loweredeMail)
+                        select u).SingleOrDefault();
+
+            if (updateLastActivity)
+            {
+                user.aspnet_Membership.LastActivityTime = currentTimeUtc;
+
+                var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
+                UnitOfWork.TranscationMode = true;
+                membershipRepo.Update(user.aspnet_Membership);
+                UnitOfWork.TranscationMode = false;
+                user = Reload(user);
+            }
+            return user;
+		}
+
+		public IEnumerator<aspnet_Users> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IEnumerable<aspnet_Membership_FindUsersByName_Result> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize)
+		public aspnet_Users GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity)
 		{
-			throw new NotImplementedException();
-		}
+			
+            var user = (from u in All()
+                        where u.Id == userId
+                        select u).SingleOrDefault();
 
-		public aspnet_Membership_GetUserByName_Result GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity)
-		{
-			throw new NotImplementedException();
-		}
+            if (updateLastActivity)
+            {
+                user.aspnet_Membership.LastActivityTime = currentTimeUtc;
 
-		public aspnet_Membership_GetUserByEmail_Result GetUserByEmail(string applicationName, string eMail)
-		{
-			throw new NotImplementedException();
-		}
-
-		public IEnumerator<aspnet_Membership_GetAllUsers_Result> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords)
-		{
-			throw new NotImplementedException();
-		}
-
-		public aspnet_Membership_GetUserByUserId_Result GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity)
-		{
-			throw new NotImplementedException();
+                var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
+                UnitOfWork.TranscationMode = true;
+                membershipRepo.Update(user.aspnet_Membership);
+                UnitOfWork.TranscationMode = false;
+            }
+            return user;
 		}
 
 		public int getNumberOfUsersOnline(string applicationName, int minutesSinceLastInActive, DateTime currentTimeUtc)
@@ -235,108 +271,58 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			}
 		}
 
+		public aspnet_Users Update(aspnet_Users entity)
+		{
+			if (entity.ApplicationId == default(Guid))
+			{
+				throw new ArgumentNullException(nameof(entity.ApplicationId));
+			}
 
-		//public void AddToRole(string applicationName, string userName, string roleName)
-		//{
-		//	InternalDatabaseAlias.aspnet_UsersInRoles_AddUsersToRoles(applicationName, userName, roleName, DateTime.UtcNow);
-		//}
+			if (entity.aspnet_Applications == null)
+			{
+				throw new ArgumentNullException(nameof(entity.aspnet_Applications));
+			}
 
-		//public IList<string> FindUsersInRole(string applicationName, string UserNameToMatch, string roleName)
-		//{
-		//	return InternalDatabaseAlias.aspnet_UsersInRoles_FindUsersInRole(applicationName, UserNameToMatch, roleName)
-		//		.Select(s => s.UserName).ToList();
-		//}
+			if (entity.Id == default(Guid))
+			{
+				throw new ArgumentNullException(nameof(entity.Id));
+			}
 
-		//public bool IsInRole(string applicationName, string userName, string roleName)
-		//{
+			if (string.IsNullOrEmpty(entity.UserName))
+			{
+				throw new ArgumentNullException(nameof(entity.UserName));
+			}
 
-		//	try
-		//	{
-		//		var applicationNameParameter = applicationName != null ?
-		//		new SqlParameter("@ApplicationName", applicationName) :
-		//		new SqlParameter("@ApplicationName", SqlDbType.NVarChar, 256);
+			if (string.IsNullOrEmpty(entity.LoweredUserName))
+			{
+				throw new ArgumentNullException(nameof(entity.LoweredUserName));
+			}
 
-		//		var userNameParameter = userName != null ?
-		//			new SqlParameter("@UserName", userName) :
-		//			new SqlParameter("@UserName", SqlDbType.NVarChar, 256);
+			var foundUser = Where(w => w.LoweredUserName == entity.LoweredUserName &&
+								  w.ApplicationId == entity.ApplicationId &&
+								  w.aspnet_Applications.LoweredApplicationName == entity.aspnet_Applications.LoweredApplicationName &&
+								  w.Id == entity.Id).SingleOrDefault();
 
-		//		var roleNameParameter = roleName != null ?
-		//			new SqlParameter("@RoleName", roleName) :
-		//			new SqlParameter("@RoleName", SqlDbType.NVarChar, 256);
+			if (foundUser == null)
+			{
+				return entity;
+			}
 
-		//		var returnCode = new SqlParameter();
-		//		returnCode.ParameterName = "@return_value";
-		//		returnCode.SqlDbType = SqlDbType.Int;
-		//		returnCode.Direction = ParameterDirection.Output;
+			UnitOfWork.TranscationMode = true;
 
-		//		int code = 0;
+			foundUser = CopyTo<aspnet_Users>(entity);
 
-		//		var result = UnitOfWork.Context.Database.ExecuteSqlCommand("EXEC @return_value = [dbo].[aspnet_UsersInRoles_IsUserInRole] @ApplicationName, @UserName, @RoleName", applicationNameParameter, userNameParameter, roleNameParameter, returnCode);
-		//		// ((IObjectContextAdapter)UnitOfWork.Context).ObjectContext.ExecuteFunction("aspnet_UsersInRoles_IsUserInRole", applicationNameParameter, userNameParameter, roleNameParameter,returnCode);
+			var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
 
-		//		code = (int)returnCode.Value;
-		//		return (code == 1);
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		WriteErrorLog(ex);
-		//		throw ex;
-		//	}
+			membershipRepo.Update(foundUser.aspnet_Membership);
 
-		//}
+			UnitOfWork.TranscationMode = false;
+			UnitOfWork.Commit();
 
-		//public IList<string> GetRolesForUser(string applicationName, string userName)
-		//{
+			return Reload(entity);
+		}
 
-		//	try
-		//	{
-		//		return InternalDatabaseAlias.aspnet_UsersInRoles_GetRolesForUser(applicationName, userName)
-		//			.Select(s => s.RoleName).ToList();
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		WriteErrorLog(ex);
-		//		throw ex;
-		//	}
 
-		//}
-
-		//private static void updateCache(aspnet_Applications applicationObject)
-		//{
-		//	try
-		//	{
-		//		MemoryCache.Default.Set("ApplicationInfo", applicationObject, DateTime.UtcNow.AddMinutes(38400));
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		throw ex;
-		//	}
-
-		//}
-
-		//public aspnet_Users FindByName(string applicationName, string userName)
-		//{
-		//	try
-		//	{
-		//		Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(UnitOfWork);
-		//		var app = appRepo.FindByName(applicationName);
-		//		var loweredUserName = userName.ToLowerInvariant();
-		//		if (app == null)
-		//		{
-		//			return null;
-		//		}
-		//		var users = IRepositoryBase.Where(this, s => s.ApplicationId == app.ApplicationId
-		//		 && (s.UserName == userName || s.LoweredUserName == loweredUserName)).OrderByDescending(o => o.LastActivityDate);
-
-		//		return users.FirstOrDefault();
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		WriteErrorLog(ex);
-		//		throw;
-		//	}
-
-		//}
 
 
 	}
@@ -351,7 +337,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="userNameToMatch">User name to match.</param>
 		/// <param name="pageIndex">Page index.</param>
 		/// <param name="pageSize">Page size.</param>
-		IEnumerable<aspnet_Membership_FindUsersByName_Result> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize);
+		IEnumerable<aspnet_Users> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize);
 
 		/// <summary>
 		/// Finds the by email.
@@ -361,7 +347,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="EmailToMatch">Email to match.</param>
 		/// <param name="pageIndex">Page index.</param>
 		/// <param name="pageSize">Page size.</param>
-		IEnumerable<aspnet_Membership_FindUsersByName_Result> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize);
+		IEnumerable<aspnet_Users> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize);
 
 		/// <summary>
 		/// Gets the name of the user by.
@@ -371,7 +357,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="userName">User name.</param>
 		/// <param name="currentTimeUtc">Current time UTC.</param>
 		/// <param name="updateLastActivity">If set to <c>true</c> update last activity.</param>
-		aspnet_Membership_GetUserByName_Result GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity);
+		aspnet_Users GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity);
 
 		/// <summary>
 		/// Gets the user by email.
@@ -379,7 +365,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <returns>The user by email.</returns>
 		/// <param name="applicationName">Application name.</param>
 		/// <param name="eMail">E mail.</param>
-		aspnet_Membership_GetUserByEmail_Result GetUserByEmail(string applicationName, string eMail);
+        /// <param name="currentTimeUtc"></param>
+        /// <param name="updateLastActivity"></param>
+		aspnet_Users GetUserByEmail(string applicationName, string eMail, DateTime currentTimeUtc, bool updateLastActivity);
 
 
 		/// <summary>
@@ -390,7 +378,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="pageIndex">Page index.</param>
 		/// <param name="pageSize">Page size.</param>
 		/// <param name="totalRecords">Total records.</param>
-		IEnumerator<aspnet_Membership_GetAllUsers_Result> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords);
+		IEnumerator<aspnet_Users> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords);
 
 		/// <summary>
 		/// Gets the user by user identifier.
@@ -399,7 +387,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="userId">User identifier.</param>
 		/// <param name="currentTimeUtc">Current time UTC.</param>
 		/// <param name="updateLastActivity">If set to <c>true</c> update last activity.</param>
-		aspnet_Membership_GetUserByUserId_Result GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity);
+		aspnet_Users GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity);
 
 		/// <summary>
 		/// Gets the number of users online.
@@ -431,11 +419,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="user">User.</param>
 		/// <param name="roleName">Role name.</param>
 		void RemoveFromRole(aspnet_Users user, string roleName);
-		//IQueryable<aspnet_Users> All(aspnet_Applications application);
-		//void AddToRole(string applicationName, string userName, string roleName);
-		//bool IsInRole(string applicationName, string userName, string roleName);
-		//IList<string> FindUsersInRole(string applicationName, string UserNameToMatch, string roleName);
-		//IList<string> GetRolesForUser(string applicationName, string userName);
-		//aspnet_Users FindByName(string applicationName, string userName);
+
+		/// <summary>
+		/// Update the specified entity.
+		/// </summary>
+		/// <returns>The update.</returns>
+		/// <param name="entity">Entity.</param>
+		aspnet_Users Update(aspnet_Users entity);
+		
 	}
 }

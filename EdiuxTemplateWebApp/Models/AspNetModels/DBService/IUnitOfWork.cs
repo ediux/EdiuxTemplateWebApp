@@ -9,6 +9,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 	public partial interface IUnitOfWork
 	{
 		/// <summary>
+		/// Gets or sets a value indicating whether this
+		/// <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.Iaspnet_MembershipRepository"/> transcation mode.
+		/// </summary>
+		/// <value><c>true</c> if transcation mode; otherwise, <c>false</c>.</value>
+		bool TranscationMode { get; set; }
+
+		/// <summary>
 		/// 統一操作介面的資料庫連接器(EF框架使用或是其他ORM框架使用)
 		/// </summary>
 		IObjectContextAdapter Context { get; }

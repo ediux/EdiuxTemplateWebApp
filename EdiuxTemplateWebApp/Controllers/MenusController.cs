@@ -188,7 +188,7 @@ namespace EdiuxTemplateWebApp.Controllers
             menu.LastUpdateUserId = User.Identity.GetUserGuid();
             menu.LastUpdateTime = DateTime.UtcNow;
 
-            _menuRepo.UnitOfWork.Context.Entry(menu).State = EntityState.Modified;
+            _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
             _menuRepo.UnitOfWork.Commit();
 
             return RedirectToAction("Index");

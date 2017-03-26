@@ -23,7 +23,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			{
 				if (_objectset == null)
 				{
-					_objectset = UnitOfWork.Context.ObjectContext.CreateObjectSet<T>() as IDbSet<T>;
+					_objectset = UnitOfWork.GetTypedContext<AspNetDbEntities2>().Set<T>();
 				}
 				return _objectset;
 			}
@@ -159,6 +159,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 		public R CopyTo<R>(T entity)
 		{
+            if (entity == null)
+                return default(R);
 			Dictionary<string, PropertyInfo> props = entity.GetProperties();
 			if (props.Count > 0)
 			{

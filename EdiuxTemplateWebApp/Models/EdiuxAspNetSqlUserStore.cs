@@ -163,8 +163,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                var _user = 
-                    userRepo.Where(w => (w.UserName == userName 
+                var _user =
+                    userRepo.Where(w => (w.UserName == userName
                                          || w.LoweredUserName == userName)
                                    && w.ApplicationId == applicationInfo
                                    .ApplicationId)
@@ -183,8 +183,8 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 aspnet_Users _existedUser = userRepo
-                    .Where(x => x.ApplicationId == applicationInfo.ApplicationId 
-                           && (x.UserName == user.UserName 
+                    .Where(x => x.ApplicationId == applicationInfo.ApplicationId
+                           && (x.UserName == user.UserName
                                || x.LoweredUserName == user.LoweredUserName))
                     .SingleOrDefault();
 
@@ -194,7 +194,7 @@ namespace EdiuxTemplateWebApp.Models
                 _existedUser.aspnet_Membership =
                                 membershipRepo.CopyTo<aspnet_Membership>(
                                     user.aspnet_Membership);
-                
+
                 membershipRepo.Update(_existedUser.aspnet_Membership);
 
                 return Task.CompletedTask;
@@ -226,8 +226,11 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.ApplicationId = applicationInfo.ApplicationId;
-                user.aspnet_Applications = applicationInfo;
+                if (user.ApplicationId == null || user.ApplicationId == Guid.Empty)
+                {
+                    user.ApplicationId = applicationInfo.ApplicationId;
+                    user.aspnet_Applications = applicationInfo;
+                }
 
                 var foundUser = userRepo
                     .Where(w => w.Id == user.Id
@@ -272,9 +275,6 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.ApplicationId = applicationInfo.ApplicationId;
-                user.aspnet_Applications = applicationInfo;
-
                 userRepo.RemoveFromRole(user, roleName);
 
                 return Task.CompletedTask;
@@ -366,7 +366,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                var membership = membershipRepo.Get(user.Id);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 membership.Email = email;
                 membership.LoweredEmail = email.ToLowerInvariant();
@@ -386,7 +391,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                var membership = membershipRepo.Get(user.Id);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 if (membership != null)
                 {
@@ -405,8 +415,11 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-
-                var membership = membershipRepo.Get(user.Id);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
                 if (membership != null)
                 {
                     return Task.FromResult(membership.EmailConfirmed);
@@ -424,7 +437,11 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                var membership = membershipRepo.Get(user.Id);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
                 if (membership != null)
                 {
                     membership.EmailConfirmed = confirmed;
@@ -466,8 +483,16 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                var founduser = userRepo.GetUserByUserId(user.Id, DateTime.UtcNow, false);
-                return Task.FromResult(new DateTimeOffset(user.aspnet_Membership.LastLockoutDate));
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var founduser = membershipRepo.Get(user.aspnet_Membership.UserId);
+                return Task.FromResult(
+                    new DateTimeOffset(
+                        founduser.LockoutEndDate.HasValue ?
+                        founduser.LockoutEndDate.Value : new DateTime(1754, 1, 1)));
             }
             catch (Exception ex)
             {
@@ -480,7 +505,20 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.aspnet_Membership.LastLockoutDate = new DateTime(lockoutEnd.Ticks);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                if (membership != null)
+                {
+                    membership.LockoutEndDate = new DateTime(lockoutEnd.Ticks);
+                    membershipRepo.Update(membership);
+                    user.aspnet_Membership = membershipRepo.Reload(membership);
+                }
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -494,14 +532,19 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.aspnet_Membership.FailedPasswordAttemptCount += 1;
-                user.aspnet_Membership.FailedPasswordAttemptWindowStart = DateTime.UtcNow;
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
 
-                userRepo.Attach(user);
-                userRepo.UnitOfWork.Entry(user).State = EntityState.Modified;
-                userRepo.UnitOfWork.Commit();
-                user = userRepo.Reload(user);
-                return Task.FromResult(user.aspnet_Membership.FailedPasswordAttemptCount);
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                membership.AccessFailedCount += 1;
+
+                membershipRepo.Update(membership);
+                user.aspnet_Membership = membershipRepo.Reload(membership);
+
+                return Task.FromResult(membership.FailedPasswordAttemptCount);
             }
             catch (Exception ex)
             {
@@ -515,14 +558,25 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.aspnet_Membership.FailedPasswordAttemptCount = 0;
-                user.aspnet_Membership.LastLockoutDate = DateTime.Now;
-                user.aspnet_Membership.IsLockedOut = false;
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
 
-                userRepo.Attach(user);
-                userRepo.UnitOfWork.Entry(user).State = System.Data.Entity.EntityState.Modified;
-                userRepo.UnitOfWork.Commit();
-                user = userRepo.Reload(user);
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+
+
+                UnitOfWork.TranscationMode = true;
+
+                SetLockoutEnabledAsync(user, false);
+                SetLockoutEndDateAsync(user, new DateTimeOffset(DateTime.Now));
+
+                UnitOfWork.TranscationMode = false;
+                membership.AccessFailedCount = 0;
+                membershipRepo.UnitOfWork.Commit();
+
+                user.aspnet_Membership = membershipRepo.Reload(membership);
 
                 return Task.CompletedTask;
             }
@@ -537,7 +591,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.aspnet_Membership.FailedPasswordAttemptCount);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                return Task.FromResult(membership.AccessFailedCount);
             }
             catch (Exception ex)
             {
@@ -550,7 +611,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.aspnet_Membership.IsLockedOut);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                return Task.FromResult(membership.IsLockedOut);
             }
             catch (Exception ex)
             {
@@ -563,13 +631,25 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Users _user = userRepo.Get(user.Id);
-                if (_user != null)
+                if (user.aspnet_Membership == null)
                 {
-                    _user.aspnet_Membership.IsLockedOut = enabled;
-                    UnitOfWork.Entry(_user).State = System.Data.Entity.EntityState.Modified;
-                    UnitOfWork.Commit();
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                membership.IsLockedOut = enabled;
+
+                if (enabled)
+                {
+                    membership.LastLockoutDate = DateTime.Now;
+                }
+                else
+                {
+                    membership.LockoutEndDate = DateTime.Now;
+                }
+
+                membershipRepo.Update(membership);
 
                 return Task.CompletedTask;
             }
@@ -588,8 +668,7 @@ namespace EdiuxTemplateWebApp.Models
             {
                 userloginRepo.Add(new aspnet_UserLogin() { LoginProvider = login.LoginProvider, ProviderKey = login.ProviderKey, UserId = user.Id });
                 userloginRepo.UnitOfWork.Commit();
-                //Iaspnet_UserLoginRepository userLoginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(applicationInfo.ApplicationRepository.UnitOfWork);
-                // userloginRepo.AddLoginAsync(user, login);
+                user = userRepo.Reload(user);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -619,7 +698,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                return Task.FromResult(user.GetLogins());
+                var found = userloginRepo.Where(w => w.UserId == user.Id);
+                return Task.FromResult(found.ToList().ConvertAll(c => new UserLoginInfo(c.LoginProvider, c.ProviderKey)) as IList<UserLoginInfo>);
             }
             catch (Exception ex)
             {
@@ -652,6 +732,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
                 aspnet_Membership_SetPassword_InputParameter paramObject = new aspnet_Membership_SetPassword_InputParameter();
 
                 paramObject.applicationName = applicationInfo.ApplicationName;
@@ -661,13 +748,13 @@ namespace EdiuxTemplateWebApp.Models
                 paramObject.passwordSalt = user.aspnet_Membership.PasswordSalt;
                 paramObject.userName = user.UserName;
 
-                UnitOfWork.Repositories.aspnet_Membership_SetPassword(paramObject);
+                UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Membership_SetPassword(paramObject);
 
                 if (paramObject.ReturnValue != 0)
                 {
                     return Task.FromException(new Exception(string.Format("Has Error.(ErrorCode:{0})", paramObject.ReturnValue)));
                 }
-                //Task setSetPasswordTask = userRepo.SetPasswordHashAsync(user, passwordHash);
+                user = userRepo.Reload(user);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -681,28 +768,23 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                aspnet_Membership_GetPasswordWithFormat_InputParameter paramObject = new aspnet_Membership_GetPasswordWithFormat_InputParameter();
-
-                paramObject.applicationName = applicationInfo.ApplicationName;
-                paramObject.currentTimeUtc = DateTime.UtcNow;
-                paramObject.updateLastLoginActivityDate = true;
-                paramObject.userName = user.UserName;
-
-                var result = UnitOfWork.Repositories.aspnet_Membership_GetPasswordWithFormat(paramObject).FirstOrDefault();
-                if (paramObject.ReturnValue != 0)
+                if (user.aspnet_Membership == null)
                 {
-                    return Task.FromException<string>(new Exception(string.Format("Has Error.(ErrorCode:{0})", paramObject.ReturnValue)));
-                }
-                if (paramObject.OutputParameter.ReturnCode != 0)
-                {
-                    return Task.FromException<string>(new Exception(string.Format("Has Error.(ErrorCode:{0})", paramObject.OutputParameter.ReturnCode)));
-                }
-                if (result != null && result.PasswordFormat == (int)MembershipPasswordFormat.Hashed)
-                {
-                    return Task.FromResult(result.Password);
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
 
-                return Task.FromResult(string.Empty);
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                if (membership.PasswordFormat == (int)MembershipPasswordFormat.Hashed ||
+                    membership.PasswordFormat == (int)MembershipPasswordFormat.Encrypted)
+                {
+                    return Task.FromResult(membership.Password);
+                }
+                else
+                {
+                    return Task.FromResult(string.Empty);
+                }
+
             }
             catch (Exception ex)
             {
@@ -715,9 +797,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                bool hasPasswordTask = (user != null) &&
-                    (user?.aspnet_Membership != null) &&
-                    !string.IsNullOrEmpty(user.aspnet_Membership.Password);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                bool hasPasswordTask = !string.IsNullOrEmpty(membership.Password);
 
                 return Task.FromResult(hasPasswordTask);
             }
@@ -734,12 +821,30 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.aspnet_Membership.PhoneNumber = phoneNumber;
-                userRepo.Attach(user);
+                if (user.aspnet_Membership == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
 
-                UnitOfWork.Entry(user).State = EntityState.Modified;
-                UnitOfWork.Commit();
-                user = userRepo.Reload(user);
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                if (phoneNumber != membership.PhoneNumber)
+                {
+                    UnitOfWork.TranscationMode = true;
+                    membership.PhoneNumber = phoneNumber;
+                    if (GetTwoFactorEnabledAsync(user).Result)
+                    {
+                        SetPhoneNumberConfirmedAsync(user, false);
+                    }
+                    else
+                    {
+                        SetPhoneNumberConfirmedAsync(user, true);
+                    }
+                    UnitOfWork.TranscationMode = false;
+                    membershipRepo.Update(membership);
+                    user.aspnet_Membership = membershipRepo.Reload(membership);
+                }
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -753,12 +858,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                if (user.aspnet_Membership != null)
+                if (user.aspnet_Membership == null)
                 {
-                    return Task.FromResult(user.aspnet_Membership.PhoneNumber);
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
 
-                return Task.FromException<string>(new Exception(string.Format("The membership of '{0}' is missing.", user.UserName)));
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                return Task.FromResult(membership.PhoneNumber);
 
             }
             catch (Exception ex)
@@ -772,12 +879,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                if (user.aspnet_Membership != null)
+                if (user.aspnet_Membership == null)
                 {
-                    return Task.FromResult(user.aspnet_Membership.PhoneConfirmed);
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
 
-                return Task.FromException<bool>(new Exception(string.Format("The membership of '{0}' is missing.", user.UserName)));
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+                return Task.FromResult(user.aspnet_Membership.PhoneConfirmed);
             }
             catch (Exception ex)
             {
@@ -790,18 +898,18 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                if (user.aspnet_Membership != null)
+                if (user.aspnet_Membership == null)
                 {
-                    userRepo.Attach(user);
-                    user.aspnet_Membership.PhoneConfirmed = confirmed;
-
-                    userRepo.UnitOfWork.Context.Entry(user).State = EntityState.Modified;
-                    user = userRepo.Reload(user);
-
-                    return userRepo.UnitOfWork.CommitAsync();
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
 
-                return Task.FromException<bool>(new Exception(string.Format("The membership of '{0}' is missing.", user.UserName)));
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
+                membership.PhoneConfirmed = confirmed;
+                membershipRepo.Update(membership);
+                user.aspnet_Membership = membershipRepo.Reload(membership);
+
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -816,7 +924,14 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.SetProfile<ProfileModel>((s) => s.SecurityStamp = stamp);
+                //if (user.aspnet_PersonalizationPerUser == null)
+                //{
+                //    throw new Exception(string.Format("The user '{0}' has missed page setting information! ", user.UserName));
+                //}
+
+                //var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+                
+                //user.SetProfile<ProfileModel>((s) => s.SecurityStamp = stamp);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -830,12 +945,20 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                ProfileModel profile = user.GetProfile<ProfileModel>();
+                //if (user.aspnet_Membership == null)
+                //{
+                //    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                //}
 
-                if (profile == null)
-                    return Task.FromResult<string>("");
+                //var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
-                return Task.FromResult(profile.SecurityStamp);
+                //ProfileModel profile = user.GetProfile<ProfileModel>();
+
+                //if (profile == null)
+                //    return Task.FromResult<string>("");
+
+                //return Task.FromResult(profile.SecurityStamp);
+                return Task.FromResult(string.Empty);
             }
             catch (Exception ex)
             {
@@ -850,6 +973,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                if (user.aspnet_Profile == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
                 ProfileModel profile = user.SetProfile<ProfileModel>((s) => s.TwoFactorEnabled = enabled);
                 return Task.CompletedTask;
             }
@@ -864,6 +994,13 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                if (user.aspnet_Profile == null)
+                {
+                    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
+                }
+
+                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+
                 ProfileModel profile = user.GetProfile<ProfileModel>();
 
                 if (profile == null)

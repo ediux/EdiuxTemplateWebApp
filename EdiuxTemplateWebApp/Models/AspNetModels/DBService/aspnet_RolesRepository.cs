@@ -18,6 +18,10 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 				UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Roles_CreateRole(paramObject);
 
+                if (paramObject.ReturnValue == 0)
+                {
+                    
+                }
 				return Get(entity.Id);
 			}
 			catch (Exception ex)
@@ -67,7 +71,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             return roles.AsEnumerable();
 		}
 
-		public void Update(aspnet_Roles entity)
+        public bool IsExists(aspnet_Roles role)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Update(aspnet_Roles entity)
 		{
 			var foundPath = Get(entity.Id, entity.ApplicationId);
 			foundPath = CopyTo<aspnet_Roles>(entity);
@@ -93,6 +102,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <param name="applicationId">Application identifier.</param>
 		/// <param name="Name">Name.</param>
 		IEnumerable<aspnet_Roles> FindByName(Guid applicationId, string Name);
+
+        /// <summary>
+        /// 指出角色是否存在?
+        /// </summary>
+        /// <param name="role">查詢的角色</param>
+        /// <returns>True:存在 Fale:不存在</returns>
+        bool IsExists(aspnet_Roles role);
 
 		/// <summary>
 		/// Update the specified entity.

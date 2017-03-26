@@ -153,7 +153,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 menuindb.PathId = menus.PathId;
                 menuindb.Void = menus.Void;
 
-                _menuRepo.UnitOfWork.Context.Entry(menuindb).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Entry(menuindb).State = EntityState.Modified;
                 _menuRepo.UnitOfWork.Commit();
 
                 return RedirectToAction("MenuList");
@@ -239,7 +239,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 return HttpNotFound();
             }
 
-            aspnet_Users loginUser = appInfo.FindUserByName(User.Identity.Name);
+            aspnet_Users loginUser = UserManager.FindByName(User.Identity.Name);
 
             //IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(_menuRepo.UnitOfWork);
 
@@ -276,8 +276,8 @@ namespace EdiuxTemplateWebApp.Controllers
 
                 menu.aspnet_Roles.Add(role);
 
-                _menuRepo.UnitOfWork.Context.Entry(menu.aspnet_Roles).State = EntityState.Modified;
-                _menuRepo.UnitOfWork.Context.Entry(menu).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
                 _menuRepo.UnitOfWork.Commit();
             }
 
@@ -309,8 +309,8 @@ namespace EdiuxTemplateWebApp.Controllers
 
                 menu.aspnet_Roles.Add(role);
 
-                _menuRepo.UnitOfWork.Context.Entry(menu.aspnet_Roles).State = EntityState.Modified;
-                _menuRepo.UnitOfWork.Context.Entry(menu).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
+                _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
                 _menuRepo.UnitOfWork.Commit();
             }
 
@@ -339,8 +339,8 @@ namespace EdiuxTemplateWebApp.Controllers
             menu.LastUpdateTime = DateTime.UtcNow;
             menu.aspnet_Roles.Remove(role);
 
-            _menuRepo.UnitOfWork.Context.Entry(menu.aspnet_Roles).State = EntityState.Modified;
-            _menuRepo.UnitOfWork.Context.Entry(menu).State = EntityState.Modified;
+            _menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
+            _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
             _menuRepo.UnitOfWork.Commit();
 
             return RedirectToAction("Edit", new { id = id });

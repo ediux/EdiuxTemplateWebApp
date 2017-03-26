@@ -160,8 +160,8 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.UnitOfWork.Context.Entry(applicationUser).State = EntityState.Modified;
-                db.UnitOfWork.Commit();
+                UserManager.UpdateAsync(applicationUser);
+
                 return RedirectToAction("Index");
             }
             return View(applicationUser);
@@ -174,7 +174,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            aspnet_Users applicationUser = this.getApplicationInfo().FindUserById(id ?? Guid.Empty);
+            aspnet_Users applicationUser = UserManager.FindById(id ?? Guid.Empty);// this.getApplicationInfo().FindUserById(id ?? Guid.Empty);
             if (applicationUser == null)
             {
                 return HttpNotFound();
@@ -187,32 +187,32 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(Guid id)
         {
-            aspnet_Users applicationUser = appInfo.FindUserById(id);
-            appInfo.DeleteUser(applicationUser); 
+            aspnet_Users applicationUser = UserManager.FindById(id);
+            UserManager.Delete(applicationUser);
             return RedirectToAction("Index");
         }
 
         [HttpPost]
         public ActionResult AddUserToRole(Guid id, Guid RoleId)
         {
-            aspnet_Users applicationUser = appInfo.FindUserById(id);
+            aspnet_Users applicationUser = UserManager.FindById(id);
             if (applicationUser != null)
             {
-                aspnet_Roles role = appInfo.GetRoleById(RoleId);
+                aspnet_Roles role = RoleManager.FindById(RoleId);
                 applicationUser.aspnet_Roles.Add(role);
-                applicationUser.Update();
+                UserManager.Update(applicationUser);
             }
             return RedirectToAction("UserProfile", "Manage", new { id = id });
         }
 
         public ActionResult RemoveUserFromRole(Guid id, Guid roleId)
         {
-            aspnet_Users applicationUser = appInfo.FindUserById(id);
+            aspnet_Users applicationUser = UserManager.FindById(id);
             if (applicationUser != null)
             {
-                aspnet_Roles role = appInfo.aspnet_Roles.GetRoleById(roleId);
+                aspnet_Roles role = RoleManager.FindById(roleId);
                 applicationUser.aspnet_Roles.Remove(role);
-                applicationUser.Update();
+                UserManager.Update(applicationUser);
             }
             return RedirectToAction("UserProfile", "Manage", new { id = id });
         }

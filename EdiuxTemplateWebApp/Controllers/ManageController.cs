@@ -329,8 +329,8 @@ namespace EdiuxTemplateWebApp.Controllers
         public ActionResult UserProfile(Guid? id)
         {
             var userId = id ?? User.Identity.GetUserGuid();
-            var user = appInfo.FindUserById(userId);
-            UserProfileViewModel model = user.aspnet_Profile.GetProfile<UserProfileViewModel>();
+            var user = UserManager.FindById(userId);
+            UserProfileViewModel model = user.GetProfile<UserProfileViewModel>();
 
             if (user != null)
             {
@@ -389,7 +389,7 @@ namespace EdiuxTemplateWebApp.Controllers
             var user = await UserManager.FindByIdAsync(userId);
             if (user != null)
             {
-                UserProfileViewModel profileInDb = user.aspnet_Profile.GetProfile<UserProfileViewModel>();
+                UserProfileViewModel profileInDb = user.GetProfile<UserProfileViewModel>();
 
 
 

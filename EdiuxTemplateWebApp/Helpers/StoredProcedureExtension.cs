@@ -324,10 +324,6 @@ namespace EdiuxTemplateWebApp
             }
         }
 
-
-
-
-
         #region Helper functions
         private static void closeDbConnection(DbContext db)
         {

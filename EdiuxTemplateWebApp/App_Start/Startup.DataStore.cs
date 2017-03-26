@@ -2,6 +2,7 @@
 using Owin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Caching;
 using System.Web;
@@ -68,7 +69,7 @@ namespace EdiuxTemplateWebApp
             if (appInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
                 throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
 
-            aspnet_Users rootUser = appInfo.GetUserByName("root",appRepo);
+            aspnet_Users rootUser = appInfo.GetUserByName("root", appRepo);
 
             if (rootUser != null)
             {
@@ -106,10 +107,48 @@ namespace EdiuxTemplateWebApp
             string appName = getApplicationNameFromConfiguationFile();
             aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
 
-            aspnet_Users rootUser = appInfo.AddUser("root", "!QAZ2wsx");
-            rootUser.AddToRole("Admins");
+            aspnet_Users rootUser = new aspnet_Users();  // ("root", "!QAZ2wsx");
+            rootUser.ApplicationId = appInfo.ApplicationId;
+            rootUser.UserName = "root";
+            rootUser.LoweredUserName = "root";
+            rootUser.IsAnonymous = false;
+            rootUser.LastActivityDate = DateTime.Now;
+            rootUser.MobileAlias = "";
+
+            rootUser.aspnet_Membership = new aspnet_Membership();
+            rootUser.aspnet_Membership.AccessFailedCount = 0;
+            rootUser.aspnet_Membership.ApplicationId = appInfo.ApplicationId;
+            rootUser.aspnet_Membership.aspnet_Applications = appInfo;
+            rootUser.aspnet_Membership.Comment = "";
+            rootUser.aspnet_Membership.CreateDate = DateTime.Now.Date;
+            rootUser.aspnet_Membership.Email = "root@localhost.local";
+            rootUser.aspnet_Membership.EmailConfirmed = true;
+            rootUser.aspnet_Membership.FailedPasswordAnswerAttemptCount = 0;
+            rootUser.aspnet_Membership.FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.FailedPasswordAttemptCount = 0;
+            rootUser.aspnet_Membership.FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.IsApproved = true;
+            rootUser.aspnet_Membership.IsLockedOut = false;
+            rootUser.aspnet_Membership.LastLockoutDate = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.LastLoginDate = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.LastPasswordChangedDate = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.LoweredEmail = rootUser.aspnet_Membership.Email.ToLowerInvariant();
+            rootUser.aspnet_Membership.MobilePIN = "123456";
+            rootUser.aspnet_Membership.Password = "!QAZ2wsx";
+            rootUser.aspnet_Membership.PasswordAnswer = "";
+            rootUser.aspnet_Membership.PasswordFormat = (int)System.Web.Security.MembershipPasswordFormat.Hashed;
+            rootUser.aspnet_Membership.PasswordQuestion = "";
+            rootUser.aspnet_Membership.PasswordSalt = Path.GetRandomFileName();
+            rootUser.aspnet_Membership.PhoneConfirmed = true;
+            rootUser.aspnet_Membership.PhoneNumber = "0901-123-456";
+            rootUser.aspnet_Membership.ResetPasswordToken = "";
+
+            Models.EdiuxAspNetSqlUserStore store = new Models.EdiuxAspNetSqlUserStore(appRepo.UnitOfWork);
+            store.CreateAsync(rootUser);
+            store.AddToRoleAsync(rootUser, "Admins");
 
         }
+
         private bool checkCurrentAppHasRoles(Iaspnet_ApplicationsRepository appRepo = null)
         {
             if (appRepo == null)
@@ -136,46 +175,49 @@ namespace EdiuxTemplateWebApp
         private void createDefaultRoles()
         {
             Iaspnet_ApplicationsRepository appRepo = null;
+            Iaspnet_RolesRepository roleRepo = null;
             appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
 
             string appName = getApplicationNameFromConfiguationFile();
             aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
+            Dictionary<string, aspnet_Roles> roles = new Dictionary<string, aspnet_Roles>();
+            roles.Add("Admins", new aspnet_Roles()
+            {
+                Name = "Admins",
+                LoweredRoleName = "admins",
+                ApplicationId = appInfo.ApplicationId,
+                Description = "系統管理員"
+            });
+            roles.Add("CoAdmins", new aspnet_Roles()
+            {
+                Name = "CoAdmins",
+                LoweredRoleName = "coadmins",
+                ApplicationId = appInfo.ApplicationId,
+                Description = "次要管理員"
+            });
+            roles.Add("Users", new aspnet_Roles()
+            {
+                Name = "Users",
+                LoweredRoleName = "users",
+                ApplicationId = appInfo.ApplicationId,
+                Description = "使用者"
+            });
 
-            if (appInfo.GetRoleByName("Admins") == null)
+            if (!roleRepo.IsExists(roles["Admins"]))
             {
-                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
-                {
-                    ApplicationId = appInfo.ApplicationId,
-                    Description = "系統管理員",
-                    LoweredRoleName = "admins",
-                    Name = "Admins",
-                    Id = Guid.NewGuid()
-                });
-                setToMemoryCache(appRepo);
+                roles["Admins"] = roleRepo.Add(roles["Admins"]);
+                setToMemoryCache();
             }
-            if (appInfo.GetRoleByName("CoAdmins") == null)
+            if (!roleRepo.IsExists(roles["CoAdmins"]))
             {
-                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
-                {
-                    ApplicationId = appInfo.ApplicationId,
-                    Description = "次要管理員",
-                    LoweredRoleName = "coadmins",
-                    Name = "CoAdmins",
-                    Id = Guid.NewGuid()
-                });
-                setToMemoryCache(appRepo);
+                roles["CoAdmins"] = roleRepo.Add(roles["CoAdmins"]);
+                setToMemoryCache();
             }
-            if (appInfo.GetRoleByName("Users") == null)
+            if (!roleRepo.IsExists(roles["Users"]))
             {
-                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
-                {
-                    ApplicationId = appInfo.ApplicationId,
-                    Description = "使用者",
-                    LoweredRoleName = "users",
-                    Name = "Users",
-                    Id = Guid.NewGuid()
-                });
-                setToMemoryCache(appRepo);
+                roles["Users"] = roleRepo.Add(roles["Users"]);
+                setToMemoryCache();
             }
         }
 
@@ -198,7 +240,8 @@ namespace EdiuxTemplateWebApp
                 if (appRepo == null)
                     appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
                 string appName = getApplicationNameFromConfiguationFile();
-                aspnet_Applications app = appRepo.FindByName(appName).Clone() as aspnet_Applications;
+                var foundApp = appRepo.FindByName(appName).SingleOrDefault();
+                aspnet_Applications app = appRepo.CopyTo<aspnet_Applications>(foundApp) as aspnet_Applications;
                 MemoryCache.Default.Add(ApplicationInfoKey, app, new DateTimeOffset(DateTime.Now.AddMinutes(38400)));
             }
             catch (Exception ex)
@@ -216,7 +259,7 @@ namespace EdiuxTemplateWebApp
                     appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
                 string appName = getApplicationNameFromConfiguationFile();
-                aspnet_Applications app = appRepo.FindByName(appName).Clone() as aspnet_Applications;
+                aspnet_Applications app = appRepo.CopyTo<aspnet_Applications>(appRepo.FindByName(appName).Single()) as aspnet_Applications;
 
                 MemoryCache.Default.Set(ApplicationInfoKey, app, new DateTimeOffset(DateTime.Now.AddMinutes(38400)));
             }

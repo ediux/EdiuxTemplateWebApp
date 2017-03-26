@@ -8,149 +8,149 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-	public partial class aspnet_UsersRepository : EFRepository<aspnet_Users>, Iaspnet_UsersRepository
-	{
-		public override IQueryable<aspnet_Users> All()
-		{
-			try
-			{
-				UnitOfWork.LazyLoadingEnabled = false;
+    public partial class aspnet_UsersRepository : EFRepository<aspnet_Users>, Iaspnet_UsersRepository
+    {
+        public override IQueryable<aspnet_Users> All()
+        {
+            try
+            {
+                UnitOfWork.LazyLoadingEnabled = false;
 
-				var apps = UnitOfWork.Set<aspnet_Applications>();
-				var roles = UnitOfWork.Set<aspnet_Roles>();
-				var memberships = UnitOfWork.Set<aspnet_Membership>();
-				var profiles = UnitOfWork.Set<aspnet_Profile>();
-				var ppu = UnitOfWork.Set<aspnet_PersonalizationPerUser>();
-				var externLogins = UnitOfWork.Set<aspnet_UserLogin>();
-				var externClaims = UnitOfWork.Set<aspnet_UserClaims>();
+                var apps = UnitOfWork.Set<aspnet_Applications>();
+                var roles = UnitOfWork.Set<aspnet_Roles>();
+                var memberships = UnitOfWork.Set<aspnet_Membership>();
+                var profiles = UnitOfWork.Set<aspnet_Profile>();
+                var ppu = UnitOfWork.Set<aspnet_PersonalizationPerUser>();
+                var externLogins = UnitOfWork.Set<aspnet_UserLogin>();
+                var externClaims = UnitOfWork.Set<aspnet_UserClaims>();
 
-				apps.Load();
-				roles.Load();
-				memberships.Load();
-				profiles.Load();
-				ppu.Load();
-				externLogins.Load();
-				externClaims.Load();
+                apps.Load();
+                roles.Load();
+                memberships.Load();
+                profiles.Load();
+                ppu.Load();
+                externLogins.Load();
+                externClaims.Load();
 
-				var rolequery = (from r in roles
-								 from uir in r.aspnet_Users
-								 where ObjectSet.Contains(uir)
-								 select new { r.ApplicationId, RoleId = r.Id, r.Name, r.LoweredRoleName, UserId = uir.Id })
-					.Distinct();
+                var rolequery = (from r in roles
+                                 from uir in r.aspnet_Users
+                                 where ObjectSet.Contains(uir)
+                                 select new { r.ApplicationId, RoleId = r.Id, r.Name, r.LoweredRoleName, UserId = uir.Id })
+                    .Distinct();
 
-				IQueryable<aspnet_Users> query =
-					from u in ObjectSet
-					join app in apps on u.ApplicationId equals app.ApplicationId
-					join m in memberships on u.Id equals m.UserId
-					join p in profiles on u.Id equals p.UserId
-					join userpp in ppu on u.Id equals userpp.UserId
-					join ul in externLogins on u.Id equals ul.UserId
-					join uc in externClaims on u.Id equals uc.UserId
-					join r in rolequery on u.Id equals r.UserId
-					select u;
+                IQueryable<aspnet_Users> query =
+                    from u in ObjectSet
+                    join app in apps on u.ApplicationId equals app.ApplicationId
+                    join m in memberships on u.Id equals m.UserId
+                    join p in profiles on u.Id equals p.UserId
+                    join userpp in ppu on u.Id equals userpp.UserId
+                    join ul in externLogins on u.Id equals ul.UserId
+                    join uc in externClaims on u.Id equals uc.UserId
+                    join r in rolequery on u.Id equals r.UserId
+                    select u;
 
 
-				query.Load();
+                query.Load();
 
-				return query;
-			}
-			catch (Exception ex)
-			{
-				WriteErrorLog(ex);
-				throw ex;
-			}
+                return query;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
 
-		}
+        }
 
-		public override void Delete(aspnet_Users entity)
-		{
-			try
-			{
-				var inputParam = new aspnet_Users_DeleteUser_InputParameter();
+        public override void Delete(aspnet_Users entity)
+        {
+            try
+            {
+                var inputParam = new aspnet_Users_DeleteUser_InputParameter();
 
-				inputParam.ApplicationName = entity.aspnet_Applications.ApplicationName;
-				inputParam.TablesToDeleteFrom = (int)(TablesToCheck.aspnet_Membership | TablesToCheck.aspnet_Profile | TablesToCheck.aspnet_Roles);
-				inputParam.UserName = entity.UserName;
+                inputParam.ApplicationName = entity.aspnet_Applications.ApplicationName;
+                inputParam.TablesToDeleteFrom = (int)(TablesToCheck.aspnet_Membership | TablesToCheck.aspnet_Profile | TablesToCheck.aspnet_Roles);
+                inputParam.UserName = entity.UserName;
 
-				UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Users_DeleteUser(inputParam);
-			}
-			catch (Exception ex)
-			{
-				WriteErrorLog(ex);
-				throw ex;
-			}
-		}
+                UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Users_DeleteUser(inputParam);
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
+        }
 
-		public override aspnet_Users Add(aspnet_Users entity)
-		{
+        public override aspnet_Users Add(aspnet_Users entity)
+        {
 
-			try
-			{
-				var inputParam = new aspnet_Users_CreateUser_InputParameter();
+            try
+            {
+                var inputParam = new aspnet_Users_CreateUser_InputParameter();
 
-				inputParam.applicationId = entity.ApplicationId;
-				inputParam.isUserAnonymous = entity.IsAnonymous;
-				inputParam.lastActivityDate = entity.LastActivityDate;
-				inputParam.userName = entity.UserName;
+                inputParam.applicationId = entity.ApplicationId;
+                inputParam.isUserAnonymous = entity.IsAnonymous;
+                inputParam.lastActivityDate = entity.LastActivityDate;
+                inputParam.userName = entity.UserName;
 
-				UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Users_CreateUser(inputParam);
+                UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Users_CreateUser(inputParam);
 
-				if (inputParam.ReturnValue == (int)MembershipCreateStatus.Success)
-				{
-					return Get(inputParam.OutputParameter.UserId);
-				}
+                if (inputParam.ReturnValue == (int)MembershipCreateStatus.Success)
+                {
+                    return Get(inputParam.OutputParameter.UserId);
+                }
 
-				throw new Exception(string.Format("Provider Error.(ErrorCode:{0})", inputParam.ReturnValue));
+                throw new Exception(string.Format("Provider Error.(ErrorCode:{0})", inputParam.ReturnValue));
 
-			}
-			catch (Exception ex)
-			{
-				WriteErrorLog(ex);
-				throw ex;
-			}
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw ex;
+            }
 
-		}
+        }
 
-		public IEnumerable<aspnet_Users> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize)
-		{
-			var loweredAppName = applicationName.ToLowerInvariant();
+        public IEnumerable<aspnet_Users> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize)
+        {
+            var loweredAppName = applicationName.ToLowerInvariant();
 
-			var memberships = (from m in All()
-							   where (m.aspnet_Applications.ApplicationName == applicationName ||
-									  m.aspnet_Applications.LoweredApplicationName == loweredAppName) &&
-			                   (m.UserName.Contains(userNameToMatch) || m.LoweredUserName.Contains(userNameToMatch))
-							   select m).AsQueryable();
+            var memberships = (from m in All()
+                               where (m.aspnet_Applications.ApplicationName == applicationName ||
+                                      m.aspnet_Applications.LoweredApplicationName == loweredAppName) &&
+                               (m.UserName.Contains(userNameToMatch) || m.LoweredUserName.Contains(userNameToMatch))
+                               select m).AsQueryable();
 
-			return memberships.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsEnumerable();
-		}
+            return memberships.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsEnumerable();
+        }
 
-		public IEnumerable<aspnet_Users> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize)
-		{
-			var loweredAppName = applicationName.ToLowerInvariant();
+        public IEnumerable<aspnet_Users> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize)
+        {
+            var loweredAppName = applicationName.ToLowerInvariant();
 
-			var memberships = (from m in All()
-							   where (m.aspnet_Applications.ApplicationName == applicationName ||
-									  m.aspnet_Applications.LoweredApplicationName == loweredAppName) &&
-			                   (m.aspnet_Membership.Email.Contains(EmailToMatch) ||
-			                    m.aspnet_Membership.LoweredEmail.Contains(EmailToMatch))
-							   select m).AsQueryable();
+            var memberships = (from m in All()
+                               where (m.aspnet_Applications.ApplicationName == applicationName ||
+                                      m.aspnet_Applications.LoweredApplicationName == loweredAppName) &&
+                               (m.aspnet_Membership.Email.Contains(EmailToMatch) ||
+                                m.aspnet_Membership.LoweredEmail.Contains(EmailToMatch))
+                               select m).AsQueryable();
 
-			return memberships.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsEnumerable();
-		}
+            return memberships.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsEnumerable();
+        }
 
-		public aspnet_Users GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity)
-		{
-			var loweredAppName = applicationName.ToLowerInvariant();
+        public aspnet_Users GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity)
+        {
+            var loweredAppName = applicationName.ToLowerInvariant();
             var loweredUserName = userName.ToLowerInvariant();
             var user = (from u in All()
                         where (u.aspnet_Applications.ApplicationName == applicationName || u.aspnet_Applications.LoweredApplicationName == loweredAppName)
                         && (u.UserName == userName || u.LoweredUserName == loweredUserName)
                         select u).SingleOrDefault();
-            
+
             if (updateLastActivity)
             {
                 user.aspnet_Membership.LastActivityTime = currentTimeUtc;
-              
+
                 var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
                 UnitOfWork.TranscationMode = true;
                 membershipRepo.Update(user.aspnet_Membership);
@@ -158,11 +158,11 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 user = Reload(user);
             }
             return user;
-		}
+        }
 
-		public aspnet_Users GetUserByEmail(string applicationName, string eMail, DateTime currentTimeUtc, bool updateLastActivity)
-		{
-			 var loweredAppName = applicationName.ToLowerInvariant();
+        public aspnet_Users GetUserByEmail(string applicationName, string eMail, DateTime currentTimeUtc, bool updateLastActivity)
+        {
+            var loweredAppName = applicationName.ToLowerInvariant();
             var loweredeMail = eMail.ToLowerInvariant();
             var user = (from u in All()
                         where (u.aspnet_Applications.ApplicationName == applicationName || u.aspnet_Applications.LoweredApplicationName == loweredAppName)
@@ -180,16 +180,30 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 user = Reload(user);
             }
             return user;
-		}
+        }
 
-		public IEnumerator<aspnet_Users> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords)
-		{
-			throw new NotImplementedException();
-		}
+        public IEnumerable<aspnet_Users> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords)
+        {
+            var loweredAppName = applicationName.ToLowerInvariant();
 
-		public aspnet_Users GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity)
-		{
-			
+            var users = (from u in All()
+                         where (u.aspnet_Applications.ApplicationName == applicationName
+                         || u.aspnet_Applications.LoweredApplicationName == loweredAppName)
+                         select u);
+
+            if (users.Any())
+            {
+                totalRecords = users.Count();
+                return users.Skip(pageIndex * pageSize).Take(pageSize).AsEnumerable();
+            }
+
+            totalRecords = 0;
+            return users.AsEnumerable();
+        }
+
+        public aspnet_Users GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity)
+        {
+
             var user = (from u in All()
                         where u.Id == userId
                         select u).SingleOrDefault();
@@ -204,228 +218,288 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 UnitOfWork.TranscationMode = false;
             }
             return user;
-		}
+        }
 
-		public int getNumberOfUsersOnline(string applicationName, int minutesSinceLastInActive, DateTime currentTimeUtc)
-		{
-			throw new NotImplementedException();
-		}
+        public int getNumberOfUsersOnline(string applicationName, int minutesSinceLastInActive, DateTime currentTimeUtc)
+        {
+            aspnet_Membership_GetNumberOfUsersOnline_InputParameter paramObject = new aspnet_Membership_GetNumberOfUsersOnline_InputParameter();
 
-		public void AddToRole(aspnet_Users user, string roleName)
-		{
-			var roleRepo = UnitOfWork.Repositories.GetRepository<Iaspnet_RolesRepository>();
-			var loweredRoleName = roleName.ToLowerInvariant();
+            paramObject.ApplicationName = applicationName;
+            paramObject.CurrentTimeUtc = currentTimeUtc;
+            paramObject.MinutesSinceLastInActive = minutesSinceLastInActive;
 
-			var roles = roleRepo
-				.Where(s => s.ApplicationId == user.ApplicationId &&
-					   (s.Name == roleName
-						|| s.LoweredRoleName == loweredRoleName));
+            UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Membership_GetNumberOfUsersOnline(paramObject);
 
-			if (!roles.SelectMany(s => s.aspnet_Users).Where(w => w.Id == user.Id).Any())
-			{
-				var existedUser = Get(user.Id);
-				var loweredUserName = user.UserName.ToLowerInvariant();
+            if (paramObject.ReturnValue == 0)
+            {
+                return paramObject.OutputParameter.NumOnline;
+            }
 
-				var foundrole = roleRepo.Where(w => w.ApplicationId == user.ApplicationId
-											   && (w.Name == roleName
-												   || w.LoweredRoleName == loweredRoleName))
-										.SingleOrDefault();
+            return 0;
+        }
 
-				if (foundrole != null)
-				{
-					existedUser.aspnet_Roles.Add(foundrole);
-					UnitOfWork.Commit();
-				}
-			}
-		}
+        public void AddToRole(aspnet_Users user, string roleName)
+        {
+            if (user.ApplicationId == Guid.Empty || user.ApplicationId == null) {
+                throw new ArgumentException("ApplicationId can't been null or empty.", nameof(user.ApplicationId));
+            }
 
-		public bool IsInRole(aspnet_Users user, string roleName)
-		{
-			var paramObject = new aspnet_UsersInRoles_IsUserInRole_InputParameter();
+            if (string.IsNullOrEmpty(user.UserName))
+            {
+                if (string.IsNullOrEmpty(user.LoweredUserName))
+                {
+                    throw new ArgumentException("ApplicationId can't been null or empty.", nameof(user.ApplicationId));
+                }
+            }
 
-			paramObject.applicationName = user.aspnet_Applications.ApplicationName;
-			paramObject.roleName = roleName;
-			paramObject.userName = user.UserName;
+            var roleRepo = UnitOfWork.Repositories.GetRepository<Iaspnet_RolesRepository>();
+            var loweredRoleName = roleName.ToLowerInvariant();
 
-			if (paramObject.ReturnValue == 1)
-			{
-				return true;
-			}
+            var roles = roleRepo
+                .Where(s => s.ApplicationId == user.ApplicationId &&
+                       (s.Name == roleName
+                        || s.LoweredRoleName == loweredRoleName));
 
-			return false;
-		}
+            if (!roles.SelectMany(s => s.aspnet_Users).Any(w => w.Id == user.Id))
+            {
+                if (!roleRepo.IsExists(new aspnet_Roles()
+                {
+                    Name = roleName,
+                    LoweredRoleName = roleName.ToLowerInvariant(),
+                    ApplicationId = user.ApplicationId,
+                    aspnet_Applications = user.aspnet_Applications
+                }))
+                {
+                    throw new Exception(string.Format("The Role '{0}' not found.", roleName));
+                }
 
-		public void RemoveFromRole(aspnet_Users user, string roleName)
-		{
-			var paramObject = new aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter();
+                var existedUser = Get(user.Id);
 
-			paramObject.applicationName = user?.aspnet_Applications.ApplicationName;
-			paramObject.roleNames = roleName;
-			paramObject.userNames = user.UserName;
+                if (existedUser == null)
+                {
+                    throw new Exception(string.Format("The User '{0}' not found.", user.UserName));
+                }
 
-			UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_UsersInRoles_RemoveUsersFromRoles(paramObject);
+                var loweredUserName = user.UserName.ToLowerInvariant();
 
-			if (paramObject.ReturnValue != 0)
-			{
-				throw new Exception(string.Format("發生錯誤!(錯誤碼:{0})", paramObject.ReturnValue));
-			}
-		}
+                var foundrole = roles.SingleOrDefault();
 
-		public aspnet_Users Update(aspnet_Users entity)
-		{
-			if (entity.ApplicationId == default(Guid))
-			{
-				throw new ArgumentNullException(nameof(entity.ApplicationId));
-			}
+                if (foundrole != null)
+                {
+                    existedUser.aspnet_Roles.Add(foundrole);
+                    UnitOfWork.Commit();
+                }
+            }
+        }
 
-			if (entity.aspnet_Applications == null)
-			{
-				throw new ArgumentNullException(nameof(entity.aspnet_Applications));
-			}
+        public bool IsInRole(aspnet_Users user, string roleName)
+        {
+            var paramObject = new aspnet_UsersInRoles_IsUserInRole_InputParameter();
 
-			if (entity.Id == default(Guid))
-			{
-				throw new ArgumentNullException(nameof(entity.Id));
-			}
+            paramObject.applicationName = user.aspnet_Applications.ApplicationName;
+            paramObject.roleName = roleName;
+            paramObject.userName = user.UserName;
 
-			if (string.IsNullOrEmpty(entity.UserName))
-			{
-				throw new ArgumentNullException(nameof(entity.UserName));
-			}
+            if (paramObject.ReturnValue == 1)
+            {
+                return true;
+            }
 
-			if (string.IsNullOrEmpty(entity.LoweredUserName))
-			{
-				throw new ArgumentNullException(nameof(entity.LoweredUserName));
-			}
+            return false;
+        }
 
-			var foundUser = Where(w => w.LoweredUserName == entity.LoweredUserName &&
-								  w.ApplicationId == entity.ApplicationId &&
-								  w.aspnet_Applications.LoweredApplicationName == entity.aspnet_Applications.LoweredApplicationName &&
-								  w.Id == entity.Id).SingleOrDefault();
+        public void RemoveFromRole(aspnet_Users user, string roleName)
+        {
+            var paramObject = new aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter();
 
-			if (foundUser == null)
-			{
-				return entity;
-			}
+            paramObject.applicationName = user?.aspnet_Applications.ApplicationName;
+            paramObject.roleNames = roleName;
+            paramObject.userNames = user.UserName;
 
-			UnitOfWork.TranscationMode = true;
+            UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_UsersInRoles_RemoveUsersFromRoles(paramObject);
 
-			foundUser = CopyTo<aspnet_Users>(entity);
+            if (paramObject.ReturnValue != 0)
+            {
+                throw new Exception(string.Format("發生錯誤!(錯誤碼:{0})", paramObject.ReturnValue));
+            }
+        }
 
-			var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
+        public aspnet_Users Update(aspnet_Users entity)
+        {
+            var appId = Guid.Empty;
+            var appName = string.Empty;
 
-			membershipRepo.Update(foundUser.aspnet_Membership);
+            if (entity.ApplicationId == default(Guid))
+            {
+                if (entity.aspnet_Applications == null)
+                {
+                    throw new ArgumentNullException(nameof(entity.aspnet_Applications));
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(entity.aspnet_Applications.ApplicationName))
+                    {
+                        if (string.IsNullOrEmpty(entity.aspnet_Applications.LoweredApplicationName))
+                        {
+                            throw new ArgumentNullException(nameof(entity.ApplicationId));
+                        }
+                        else
+                        {
+                            appName = entity.LoweredUserName;
+                        }
+                    }
+                    else
+                    {
+                        appName = entity.aspnet_Applications.ApplicationName;
+                    }
+                }
+            }
 
-			UnitOfWork.TranscationMode = false;
-			UnitOfWork.Commit();
+            var userId = Guid.Empty;
+            var userName = string.Empty;
 
-			return Reload(entity);
-		}
+            if (entity.Id == default(Guid))
+            {
+                if (string.IsNullOrEmpty(entity.LoweredUserName))
+                {
+                    if (string.IsNullOrEmpty(entity.UserName))
+                    {
+                        throw new ArgumentNullException(nameof(entity.UserName));
+                    }
+                    else
+                    {
+                        userName = entity.UserName;
+                    }
+                }
+                else
+                {
+                    userName = entity.LoweredUserName;
+                }
+            }
 
+            var foundUser = Where(w => (w.Id == userId || w.LoweredUserName == userName || w.UserName == userName) &&
+                                  (w.ApplicationId == appId && (
+                                  w.aspnet_Applications.LoweredApplicationName == appName || w.aspnet_Applications.ApplicationName == appName))).SingleOrDefault();
 
+            if (foundUser == null)
+            {
+                return foundUser;
+            }
 
+            UnitOfWork.TranscationMode = true;
 
-	}
+            foundUser = CopyTo<aspnet_Users>(entity);
 
-	public partial interface Iaspnet_UsersRepository : IRepositoryBase<aspnet_Users>
-	{
-		/// <summary>
-		/// Finds the name of the by.
-		/// </summary>
-		/// <returns>The by name.</returns>
-		/// <param name="applicationName">Application name.</param>
-		/// <param name="userNameToMatch">User name to match.</param>
-		/// <param name="pageIndex">Page index.</param>
-		/// <param name="pageSize">Page size.</param>
-		IEnumerable<aspnet_Users> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize);
+            var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
 
-		/// <summary>
-		/// Finds the by email.
-		/// </summary>
-		/// <returns>The by email.</returns>
-		/// <param name="applicationName">Application name.</param>
-		/// <param name="EmailToMatch">Email to match.</param>
-		/// <param name="pageIndex">Page index.</param>
-		/// <param name="pageSize">Page size.</param>
-		IEnumerable<aspnet_Users> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize);
+            membershipRepo.Update(foundUser.aspnet_Membership);
 
-		/// <summary>
-		/// Gets the name of the user by.
-		/// </summary>
-		/// <returns>The user by name.</returns>
-		/// <param name="applicationName">Application name.</param>
-		/// <param name="userName">User name.</param>
-		/// <param name="currentTimeUtc">Current time UTC.</param>
-		/// <param name="updateLastActivity">If set to <c>true</c> update last activity.</param>
-		aspnet_Users GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity);
+            UnitOfWork.TranscationMode = false;
+            UnitOfWork.Commit();
 
-		/// <summary>
-		/// Gets the user by email.
-		/// </summary>
-		/// <returns>The user by email.</returns>
-		/// <param name="applicationName">Application name.</param>
-		/// <param name="eMail">E mail.</param>
+            return Reload(entity);
+        }
+    }
+
+    public partial interface Iaspnet_UsersRepository : IRepositoryBase<aspnet_Users>
+    {
+        /// <summary>
+        /// Finds the name of the by.
+        /// </summary>
+        /// <returns>The by name.</returns>
+        /// <param name="applicationName">Application name.</param>
+        /// <param name="userNameToMatch">User name to match.</param>
+        /// <param name="pageIndex">Page index.</param>
+        /// <param name="pageSize">Page size.</param>
+        IEnumerable<aspnet_Users> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize);
+
+        /// <summary>
+        /// Finds the by email.
+        /// </summary>
+        /// <returns>The by email.</returns>
+        /// <param name="applicationName">Application name.</param>
+        /// <param name="EmailToMatch">Email to match.</param>
+        /// <param name="pageIndex">Page index.</param>
+        /// <param name="pageSize">Page size.</param>
+        IEnumerable<aspnet_Users> FindByEmail(string applicationName, string EmailToMatch, int pageIndex, int pageSize);
+
+        /// <summary>
+        /// Gets the name of the user by.
+        /// </summary>
+        /// <returns>The user by name.</returns>
+        /// <param name="applicationName">Application name.</param>
+        /// <param name="userName">User name.</param>
+        /// <param name="currentTimeUtc">Current time UTC.</param>
+        /// <param name="updateLastActivity">If set to <c>true</c> update last activity.</param>
+        aspnet_Users GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity);
+
+        /// <summary>
+        /// Gets the user by email.
+        /// </summary>
+        /// <returns>The user by email.</returns>
+        /// <param name="applicationName">Application name.</param>
+        /// <param name="eMail">E mail.</param>
         /// <param name="currentTimeUtc"></param>
         /// <param name="updateLastActivity"></param>
-		aspnet_Users GetUserByEmail(string applicationName, string eMail, DateTime currentTimeUtc, bool updateLastActivity);
+        aspnet_Users GetUserByEmail(string applicationName, string eMail, DateTime currentTimeUtc, bool updateLastActivity);
 
 
-		/// <summary>
-		/// Gets all users.
-		/// </summary>
-		/// <returns>The all users.</returns>
-		/// <param name="applicationName">Application name.</param>
-		/// <param name="pageIndex">Page index.</param>
-		/// <param name="pageSize">Page size.</param>
-		/// <param name="totalRecords">Total records.</param>
-		IEnumerator<aspnet_Users> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords);
+        /// <summary>
+        /// Gets all users.
+        /// </summary>
+        /// <returns>The all users.</returns>
+        /// <param name="applicationName">Application name.</param>
+        /// <param name="pageIndex">Page index.</param>
+        /// <param name="pageSize">Page size.</param>
+        /// <param name="totalRecords">Total records.</param>
+        IEnumerable<aspnet_Users> GetAllUsers(string applicationName, int pageIndex, int pageSize, out int totalRecords);
 
-		/// <summary>
-		/// Gets the user by user identifier.
-		/// </summary>
-		/// <returns>The user by user identifier.</returns>
-		/// <param name="userId">User identifier.</param>
-		/// <param name="currentTimeUtc">Current time UTC.</param>
-		/// <param name="updateLastActivity">If set to <c>true</c> update last activity.</param>
-		aspnet_Users GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity);
+        /// <summary>
+        /// Gets the user by user identifier.
+        /// </summary>
+        /// <returns>The user by user identifier.</returns>
+        /// <param name="userId">User identifier.</param>
+        /// <param name="currentTimeUtc">Current time UTC.</param>
+        /// <param name="updateLastActivity">If set to <c>true</c> update last activity.</param>
+        aspnet_Users GetUserByUserId(Guid userId, DateTime currentTimeUtc, bool updateLastActivity);
 
-		/// <summary>
-		/// Gets the number of users online.
-		/// </summary>
-		/// <returns>The number of users online.</returns>
-		/// <param name="applicationName">Application name.</param>
-		/// <param name="minutesSinceLastInActive">Minutes since last in active.</param>
-		/// <param name="currentTimeUtc">Current time UTC.</param>
-		int getNumberOfUsersOnline(string applicationName, int minutesSinceLastInActive, DateTime currentTimeUtc);
+        /// <summary>
+        /// Gets the number of users online.
+        /// </summary>
+        /// <returns>The number of users online.</returns>
+        /// <param name="applicationName">Application name.</param>
+        /// <param name="minutesSinceLastInActive">Minutes since last in active.</param>
+        /// <param name="currentTimeUtc">Current time UTC.</param>
+        int getNumberOfUsersOnline(string applicationName, int minutesSinceLastInActive, DateTime currentTimeUtc);
 
-		/// <summary>
-		/// Adds to role.
-		/// </summary>
-		/// <param name="user">User.</param>
-		/// <param name="roleName">Role name.</param>
-		void AddToRole(aspnet_Users user, string roleName);
+        /// <summary>
+        /// Adds to role.
+        /// </summary>
+        /// <param name="user">User.</param>
+        /// <param name="roleName">Role name.</param>
+        void AddToRole(aspnet_Users user, string roleName);
 
-		/// <summary>
-		/// Ises the in role.
-		/// </summary>
-		/// <returns><c>true</c>, if in role was ised, <c>false</c> otherwise.</returns>
-		/// <param name="user">User.</param>
-		/// <param name="roleName">Role name.</param>
-		bool IsInRole(aspnet_Users user, string roleName);
+        /// <summary>
+        /// Ises the in role.
+        /// </summary>
+        /// <returns><c>true</c>, if in role was ised, <c>false</c> otherwise.</returns>
+        /// <param name="user">User.</param>
+        /// <param name="roleName">Role name.</param>
+        bool IsInRole(aspnet_Users user, string roleName);
 
-		/// <summary>
-		/// Removes from role.
-		/// </summary>
-		/// <param name="user">User.</param>
-		/// <param name="roleName">Role name.</param>
-		void RemoveFromRole(aspnet_Users user, string roleName);
+        /// <summary>
+        /// Removes from role.
+        /// </summary>
+        /// <param name="user">User.</param>
+        /// <param name="roleName">Role name.</param>
+        void RemoveFromRole(aspnet_Users user, string roleName);
 
-		/// <summary>
-		/// Update the specified entity.
-		/// </summary>
-		/// <returns>The update.</returns>
-		/// <param name="entity">Entity.</param>
-		aspnet_Users Update(aspnet_Users entity);
-		
-	}
+        /// <summary>
+        /// Update the specified entity.
+        /// </summary>
+        /// <returns>The update.</returns>
+        /// <param name="entity">Entity.</param>
+        aspnet_Users Update(aspnet_Users entity);
+
+    }
 }

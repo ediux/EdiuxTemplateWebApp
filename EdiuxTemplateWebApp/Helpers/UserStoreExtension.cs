@@ -15,14 +15,29 @@ namespace EdiuxTemplateWebApp
 {
     public static class UserStoreExtension
     {
+        public static T Deserialize<T>(this byte[] stream) where T : class
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream buffer = new MemoryStream(stream, false);
+            T value = (T)bf.Deserialize(buffer);
+            return value;
+        }
+
+        public static byte[] Serialize<T>(this T obj) where T : class
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream buffer = new MemoryStream();
+            bf.Serialize(buffer, obj);
+            return buffer.ToArray();
+        }
 
         #region Profile
-        /// <summary>
-        /// 取得反序列化後的個人化資訊
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="profileObject"></param>
-        /// <returns></returns>
+            /// <summary>
+            /// 取得反序列化後的個人化資訊
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="profileObject"></param>
+            /// <returns></returns>
         public static T GetProfile<T>(this aspnet_Users profileObject) where T : class
         {
             Iaspnet_ProfileRepository profileRepo = RepositoryHelper.Getaspnet_ProfileRepository();
@@ -58,7 +73,7 @@ namespace EdiuxTemplateWebApp
                 _profileData.PropertyValuesBinary = buffer.ToArray();
                 buffer.Close();
 
-                profileRepo.UnitOfWork.Context.Entry(_profileData).State = System.Data.Entity.EntityState.Modified;
+                profileRepo.UnitOfWork.Entry(_profileData).State = System.Data.Entity.EntityState.Modified;
                 profileRepo.UnitOfWork.Commit();
 
                 _profileData = profileRepo.Reload(_profileData);

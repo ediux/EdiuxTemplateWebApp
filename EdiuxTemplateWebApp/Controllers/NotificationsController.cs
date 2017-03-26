@@ -107,7 +107,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.UnitOfWork.Context.Entry(system_Notifications).State = EntityState.Modified;
+                db.UnitOfWork.Entry(system_Notifications).State = EntityState.Modified;
                 db.UnitOfWork.Commit();
                 return RedirectToAction("Index");
             }

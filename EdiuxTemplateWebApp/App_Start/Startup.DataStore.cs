@@ -1,4 +1,5 @@
-﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+﻿using EdiuxTemplateWebApp.Helpers;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using Owin;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ namespace EdiuxTemplateWebApp
     partial class Startup
     {
         public const string ApplicationInfoKey = "ApplicationInfo";
+        internal const string ApplicationName = "ApplicationName";
         public void ConfigureDataStore(IAppBuilder app)
         {
             //檢查Application是否已經註冊?
@@ -39,6 +41,31 @@ namespace EdiuxTemplateWebApp
                 addRootUserToAdminsRole();
             }
 
+        }
+
+        private void registerApplication()
+        {
+            try
+            {
+                string applicationName = getApplicationNameFromConfiguationFile();
+
+                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+                aspnet_Applications newApplication = new aspnet_Applications();
+
+                newApplication.ApplicationName = applicationName;
+                newApplication.Description = applicationName;
+                newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
+
+                appRepo.Add(newApplication);
+                appRepo.UnitOfWork.Commit();
+
+                addToMemoryCache(appRepo);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         private bool checkRootUserHasAdminsRole(Iaspnet_ApplicationsRepository appRepo = null)
@@ -163,6 +190,7 @@ namespace EdiuxTemplateWebApp
                     return false;
                 }
 
+
                 return appInfo.aspnet_Roles.Any(s =>
                 s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase) ||
                 s.Name.Equals("CoAdmins", StringComparison.InvariantCultureIgnoreCase) ||
@@ -181,33 +209,46 @@ namespace EdiuxTemplateWebApp
 
             string appName = getApplicationNameFromConfiguationFile();
             aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
-            Dictionary<string, aspnet_Roles> roles = new Dictionary<string, aspnet_Roles>();
-            roles.Add("Admins", new aspnet_Roles()
-            {
-                Name = "Admins",
-                LoweredRoleName = "admins",
-                ApplicationId = appInfo.ApplicationId,
-                Description = "系統管理員"
-            });
-            roles.Add("CoAdmins", new aspnet_Roles()
-            {
-                Name = "CoAdmins",
-                LoweredRoleName = "coadmins",
-                ApplicationId = appInfo.ApplicationId,
-                Description = "次要管理員"
-            });
-            roles.Add("Users", new aspnet_Roles()
-            {
-                Name = "Users",
-                LoweredRoleName = "users",
-                ApplicationId = appInfo.ApplicationId,
-                Description = "使用者"
-            });
 
-            if (!roleRepo.IsExists(roles["Admins"]))
+            aspnet_Roles[] defaultRoles = new aspnet_Roles[] {
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        Description = "系統管理員",
+                        LoweredRoleName = "admins",
+                        Name = "Admins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        Description = "次要管理員",
+                        LoweredRoleName = "coadmins",
+                        Name = "CoAdmins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        Description = "使用者",
+                        LoweredRoleName = "users",
+                        Name = "Users",
+                        Id = Guid.NewGuid()
+                    }
+                };
+            
+            if (roleRepo.(w=>w appInfo.GetRoleByName("Admins") == null)
             {
-                roles["Admins"] = roleRepo.Add(roles["Admins"]);
-                setToMemoryCache();
+                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
+                {
+
+                });
+                setToMemoryCache(appRepo);
+            }
+            if (appInfo.GetRoleByName("CoAdmins") == null)
+            {
+                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
+                {
+
+                });
+                setToMemoryCache(appRepo);
             }
             if (!roleRepo.IsExists(roles["CoAdmins"]))
             {
@@ -223,14 +264,15 @@ namespace EdiuxTemplateWebApp
 
         private static aspnet_Applications getApplicationInformationFromCache(string appName, Iaspnet_ApplicationsRepository appRepo = null)
         {
-            if (appRepo == null)
-                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            var appInfo = appName.getApplicationGlobalVariable<aspnet_Applications>(ApplicationInfoKey);
 
-            return MemoryCache.Default.AddOrGetExisting(
-                ApplicationInfoKey,
-                appRepo.FindByName(appName),
-                new DateTimeOffset(DateTime.Now.AddMinutes(38400))
-                ) as aspnet_Applications;
+            if (appInfo == null)
+            {
+                appInfo = appRepo.FindByName(ConfigHelper.GetConfig(ApplicationName)).SingleOrDefault();
+                WebHelper.setApplicationGlobalVariable(appName, appName, appInfo);
+            }
+
+            return appInfo;
         }
 
         private void addToMemoryCache(Iaspnet_ApplicationsRepository appRepo = null)
@@ -239,6 +281,7 @@ namespace EdiuxTemplateWebApp
             {
                 if (appRepo == null)
                     appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
                 string appName = getApplicationNameFromConfiguationFile();
                 var foundApp = appRepo.FindByName(appName).SingleOrDefault();
                 aspnet_Applications app = appRepo.CopyTo<aspnet_Applications>(foundApp) as aspnet_Applications;
@@ -270,30 +313,7 @@ namespace EdiuxTemplateWebApp
             }
         }
 
-        private void registerApplication()
-        {
-            try
-            {
-                string applicationName = getApplicationNameFromConfiguationFile();
 
-                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
-
-                aspnet_Applications newApplication = new aspnet_Applications();
-
-                newApplication.ApplicationName = applicationName;
-                newApplication.Description = applicationName;
-                newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
-
-                appRepo.Add(newApplication);
-                appRepo.UnitOfWork.Commit();
-
-                addToMemoryCache(appRepo);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
 
         private bool checkCurrentAppIsRegistered()
         {
@@ -303,7 +323,7 @@ namespace EdiuxTemplateWebApp
 
                 string appName = getApplicationNameFromConfiguationFile();
 
-                if (appRepo.FindByName(appName) == null)
+                if (!appRepo.FindByName(appName).Any())
                 {
                     return false;
                 }
@@ -320,16 +340,7 @@ namespace EdiuxTemplateWebApp
 
         internal static string getApplicationNameFromConfiguationFile()
         {
-            string appName;
-            if (System.Web.Configuration.WebConfigurationManager.AppSettings.AllKeys.Contains("ApplicationName"))
-            {
-                appName = System.Web.Configuration.WebConfigurationManager.AppSettings["ApplicationName"];
-            }
-            else
-            {
-                appName = typeof(MvcApplication).Namespace;
-            }
-
+            string appName = ConfigHelper.GetConfig(ApplicationName);
             return appName;
         }
     }

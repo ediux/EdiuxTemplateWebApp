@@ -36,7 +36,7 @@ namespace EdiuxTemplateWebApp.Models
 
             appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(UnitOfWork);
 
-            applicationInfo = appRepo.FindByName(Startup.getApplicationNameFromConfiguationFile()).SingleOrDefault();
+            applicationInfo = this.getApplicationInfo();
 
             if (applicationInfo == null)
             {

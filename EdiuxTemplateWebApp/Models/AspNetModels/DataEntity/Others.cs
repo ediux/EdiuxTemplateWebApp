@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Linq.Expressions;
 /// =========================================
 /// 產生額外資料庫回應物件
@@ -11,7 +12,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     public partial class AspNetDbEntities2 : IRepositoryCollection
     {
         ICollection<IRepositoryBase> internalRepository = new Collection<IRepositoryBase>();
-        
+
         public int Count
         {
             get
@@ -56,19 +57,17 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public T GetRepository<T>() where T : IRepositoryBase
         {
-            T repository = default(T);
-            var items = internalRepository.GetEnumerator();
-            do
-            {
-                
-                if (items.Current.GetType() == typeof(T))
-                {
-                    repository = (T)items.Current;
-                    break;
-                }
+            Type t = typeof(RepositoryHelper);
 
-            } while (internalRepository.GetEnumerator().MoveNext());
-            return repository;
+            var foundMethod = t.GetMethods().Where(s => s.Name.EndsWith(t.Name));
+
+            if (foundMethod.Any())
+            {
+                return (T)foundMethod.Single().Invoke(null, new object[] { });
+            }
+         
+
+            return default(T);
         }
 
         public bool Remove(IRepositoryBase item)
@@ -100,24 +99,24 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
     }
 
-	/// <summary>
-	/// Aspnet membership get all users result.
-	/// </summary>
-	public partial class aspnet_Membership_GetAllUsers_Result
-	{
-		public string UserName { get; set; }
-		public string Email { get; set; }
-		public string PasswordQuestion { get; set; }
-		public string Comment { get; set; }
-		public bool IsApproved { get; set; }
-		public DateTime CreateDate { get; set; }
-		public DateTime LastLoginDate { get; set; }
-		public DateTime LastActivityDate { get; set; }
-		public DateTime LastPasswordChangedDate { get; set; }
-		public Guid UserId { get; set; }
-		public bool IsLockedOut { get; set;}
-		public DateTime LastLockoutDate { get; set; }
-	}
+    /// <summary>
+    /// Aspnet membership get all users result.
+    /// </summary>
+    public partial class aspnet_Membership_GetAllUsers_Result
+    {
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public string PasswordQuestion { get; set; }
+        public string Comment { get; set; }
+        public bool IsApproved { get; set; }
+        public DateTime CreateDate { get; set; }
+        public DateTime LastLoginDate { get; set; }
+        public DateTime LastActivityDate { get; set; }
+        public DateTime LastPasswordChangedDate { get; set; }
+        public Guid UserId { get; set; }
+        public bool IsLockedOut { get; set; }
+        public DateTime LastLockoutDate { get; set; }
+    }
 
 
 }

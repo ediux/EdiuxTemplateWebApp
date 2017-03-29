@@ -52,7 +52,7 @@ namespace EdiuxTemplateWebApp
         //}
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {
-            var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<Models.AspNetModels.IUnitOfWork>()));
+            var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<IUnitOfWork>()));
 
             // 設定使用者名稱的驗證邏輯
             manager.UserValidator = new UserValidator<aspnet_Users, Guid>(manager)

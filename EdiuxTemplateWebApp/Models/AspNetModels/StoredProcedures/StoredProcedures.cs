@@ -12,7 +12,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             returnValue = this.ExecuteStoredProcedure(
                 "aspnet_AnyDataInTables",
                 out result,
-                spParameters.TablesToCheck);
+                spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -25,7 +25,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 "aspnet_Applications_CreateApplication",
                 out outputparameter,
                 out returnValue,
-                spParameters.ApplicationName);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -34,8 +34,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
 				"aspnet_CheckSchemaVersion",
-				spParameters.Feature,
-				spParameters.CompatibleSchemaVersion);
+				spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_ChangePasswordQuestionAndAnswer(aspnet_Membership_ChangePasswordQuestionAndAnswer_InputParameter spParameters)
@@ -43,10 +42,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Membership_ChangePasswordQuestionAndAnswer",
-    spParameters.ApplicationName,
-spParameters.UserName,
-spParameters.NewPasswordQuestion,
-spParameters.NewPasswordAnswer);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_CreateUser(aspnet_Membership_CreateUser_InputParameter spParameters)
@@ -57,18 +53,7 @@ spParameters.NewPasswordAnswer);
                 "aspnet_Membership_CreateUser",
                 out outputparameter,
                 out returnValue,
-                spParameters.ApplicationName,
-spParameters.UserName,
-spParameters.Password,
-spParameters.PasswordSalt,
-spParameters.Email,
-spParameters.PasswordQuestion,
-spParameters.PasswordAnswer,
-spParameters.IsApproved,
-spParameters.CurrentTimeUtc,
-spParameters.CreateDate,
-spParameters.UniqueEmail,
-spParameters.PasswordFormat);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -79,10 +64,7 @@ spParameters.PasswordFormat);
             _result = this.ExecuteStoredProcedure<aspnet_Membership_FindUsersByEmail_Result>(
     "aspnet_Membership_FindUsersByEmail",
     out returnValue,
-    spParameters.ApplicationName,
-spParameters.EmailToMatch,
-spParameters.PageIndex,
-spParameters.PageSize);
+    spParameters);
             spParameters.ReturnValue = returnValue;
             return _result;
         }
@@ -93,10 +75,7 @@ spParameters.PageSize);
             _result = this.ExecuteStoredProcedure<aspnet_Membership_FindUsersByName_Result>(
      "aspnet_Membership_FindUsersByName",
      out returnValue,
-     spParameters.ApplicationName,
- spParameters.UserNameToMatch,
- spParameters.PageIndex,
- spParameters.PageSize);
+     spParameters);
             spParameters.ReturnValue = returnValue;
             return _result;
         }
@@ -108,9 +87,7 @@ spParameters.PageSize);
                 "aspnet_Membership_GetAllUsers",
                 out outputparameter,
                 out returnValue,
-                spParameters.ApplicationName,
-spParameters.PageIndex,
-spParameters.PageSize);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -122,9 +99,7 @@ spParameters.PageSize);
                 "aspnet_Membership_GetNumberOfUsersOnline",
                 out outputparameter,
                 out returnValue,
-                spParameters.ApplicationName,
-spParameters.MinutesSinceLastInActive,
-spParameters.CurrentTimeUtc);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -135,12 +110,7 @@ spParameters.CurrentTimeUtc);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_Membership_GetPassword",
      out result,
-             spParameters.applicationName,
-spParameters.userName,
-spParameters.maxInvalidPasswordAttempts,
-spParameters.passwordAttemptWindow,
-spParameters.currentTimeUtc,
-spParameters.passwordAnswer);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -153,10 +123,7 @@ spParameters.passwordAnswer);
                 "aspnet_Membership_GetPasswordWithFormat",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName,
-                spParameters.userName,
-                spParameters.updateLastLoginActivityDate,
-                spParameters.currentTimeUtc);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
             return _result;
@@ -168,8 +135,7 @@ spParameters.passwordAnswer);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_Membership_GetUserByEmail",
      out result,
-             spParameters.applicationName,
-spParameters.email);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -180,10 +146,7 @@ spParameters.email);
             result = this.ExecuteStoredProcedure<aspnet_Membership_GetUserByName_Result>(
                 "aspnet_Membership_GetUserByName",
                 out returnValue,
-                spParameters.ApplicationName,
-                spParameters.UserName,
-                spParameters.CurrentTimeUtc,
-                spParameters.UpdateLastActivity);
+                spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -192,9 +155,7 @@ spParameters.email);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Membership_GetUserByUserId",
-    spParameters.userId,
-spParameters.currentTimeUtc,
-spParameters.updateLastActivity);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_ResetPassword(aspnet_Membership_ResetPassword_InputParameter spParameters)
@@ -202,15 +163,7 @@ spParameters.updateLastActivity);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Membership_ResetPassword",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.newPassword,
-spParameters.maxInvalidPasswordAttempts,
-spParameters.passwordAttemptWindow,
-spParameters.passwordSalt,
-spParameters.currentTimeUtc,
-spParameters.passwordFormat,
-spParameters.passwordAnswer);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_SetPassword(aspnet_Membership_SetPassword_InputParameter spParameters)
@@ -218,12 +171,7 @@ spParameters.passwordAnswer);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Membership_SetPassword",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.newPassword,
-spParameters.passwordSalt,
-spParameters.currentTimeUtc,
-spParameters.passwordFormat);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_UnlockUser(aspnet_Membership_UnlockUser_InputParameter spParameters)
@@ -231,8 +179,7 @@ spParameters.passwordFormat);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Membership_UnlockUser",
-    spParameters.applicationName,
-spParameters.userName);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_UpdateUser(aspnet_Membership_UpdateUser_InputParameter spParameters)
@@ -240,15 +187,7 @@ spParameters.userName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Membership_UpdateUser",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.email,
-spParameters.comment,
-spParameters.isApproved,
-spParameters.lastLoginDate,
-spParameters.lastActivityDate,
-spParameters.uniqueEmail,
-spParameters.currentTimeUtc);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Membership_UpdateUserInfo(aspnet_Membership_UpdateUserInfo_InputParameter spParameters)
@@ -256,15 +195,7 @@ spParameters.currentTimeUtc);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Membership_UpdateUserInfo",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.isPasswordCorrect,
-spParameters.updateLastLoginActivityDate,
-spParameters.maxInvalidPasswordAttempts,
-spParameters.passwordAttemptWindow,
-spParameters.currentTimeUtc,
-spParameters.lastLoginDate,
-spParameters.lastActivityDate);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Paths_CreatePath(aspnet_Paths_CreatePath_InputParameter spParameters)
@@ -275,8 +206,7 @@ spParameters.lastActivityDate);
                 "aspnet_Paths_CreatePath",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationId,
-spParameters.path);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -288,7 +218,7 @@ spParameters.path);
                 "aspnet_Personalization_GetApplicationId",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -300,8 +230,7 @@ spParameters.path);
                 "aspnet_PersonalizationAdministration_DeleteAllState",
                 out outputparameter,
                 out returnValue,
-                spParameters.allUsersScope,
-spParameters.applicationName);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -310,13 +239,7 @@ spParameters.applicationName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_PersonalizationAdministration_FindState",
-    spParameters.allUsersScope,
-spParameters.applicationName,
-spParameters.pageIndex,
-spParameters.pageSize,
-spParameters.path,
-spParameters.userName,
-spParameters.inactiveSinceDate);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_PersonalizationAdministration_GetCountOfState(aspnet_PersonalizationAdministration_GetCountOfState_InputParameter spParameters)
@@ -327,11 +250,7 @@ spParameters.inactiveSinceDate);
                 "aspnet_PersonalizationAdministration_GetCountOfState",
                 out outputparameter,
                 out returnValue,
-                spParameters.allUsersScope,
-spParameters.applicationName,
-spParameters.path,
-spParameters.userName,
-spParameters.inactiveSinceDate);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -343,8 +262,7 @@ spParameters.inactiveSinceDate);
                 "aspnet_PersonalizationAdministration_ResetSharedState",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName,
-spParameters.path);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -356,10 +274,7 @@ spParameters.path);
                 "aspnet_PersonalizationAdministration_ResetUserState",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationName,
-spParameters.inactiveSinceDate,
-spParameters.userName,
-spParameters.path);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -370,8 +285,7 @@ spParameters.path);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_PersonalizationAllUsers_GetPageSettings",
      out result,
-             spParameters.applicationName,
-spParameters.path);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -380,8 +294,7 @@ spParameters.path);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_PersonalizationAllUsers_ResetPageSettings",
-    spParameters.applicationName,
-spParameters.path);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_PersonalizationAllUsers_SetPageSettings(aspnet_PersonalizationAllUsers_SetPageSettings_InputParameter spParameters)
@@ -389,10 +302,7 @@ spParameters.path);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_PersonalizationAllUsers_SetPageSettings",
-    spParameters.applicationName,
-spParameters.path,
-spParameters.pageSettings,
-spParameters.currentTimeUtc);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public IEnumerable<aspnet_PersonalizationPerUser_GetPageSettings_Result> aspnet_PersonalizationPerUser_GetPageSettings(aspnet_PersonalizationPerUser_GetPageSettings_InputParameter spParameters)
@@ -402,10 +312,7 @@ spParameters.currentTimeUtc);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_PersonalizationPerUser_GetPageSettings",
      out result,
-             spParameters.applicationName,
-spParameters.userName,
-spParameters.path,
-spParameters.currentTimeUtc);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -414,10 +321,7 @@ spParameters.currentTimeUtc);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_PersonalizationPerUser_ResetPageSettings",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.path,
-spParameters.currentTimeUtc);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_PersonalizationPerUser_SetPageSettings(aspnet_PersonalizationPerUser_SetPageSettings_InputParameter spParameters)
@@ -425,11 +329,7 @@ spParameters.currentTimeUtc);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_PersonalizationPerUser_SetPageSettings",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.path,
-spParameters.pageSettings,
-spParameters.currentTimeUtc);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public IEnumerable<aspnet_Profile_DeleteInactiveProfiles_Result> aspnet_Profile_DeleteInactiveProfiles(aspnet_Profile_DeleteInactiveProfiles_InputParameter spParameters)
@@ -439,9 +339,7 @@ spParameters.currentTimeUtc);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_Profile_DeleteInactiveProfiles",
      out result,
-             spParameters.applicationName,
-spParameters.profileAuthOptions,
-spParameters.inactiveSinceDate);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -453,8 +351,7 @@ spParameters.inactiveSinceDate);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_Profile_DeleteProfiles",
      out result,
-             spParameters.applicationName,
-spParameters.userNames);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -466,9 +363,7 @@ spParameters.userNames);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_Profile_GetNumberOfInactiveProfiles",
      out result,
-             spParameters.applicationName,
-spParameters.profileAuthOptions,
-spParameters.inactiveSinceDate);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -477,12 +372,7 @@ spParameters.inactiveSinceDate);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Profile_GetProfiles",
-    spParameters.applicationName,
-spParameters.profileAuthOptions,
-spParameters.pageIndex,
-spParameters.pageSize,
-spParameters.userNameToMatch,
-spParameters.inactiveSinceDate);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public IEnumerable<aspnet_Profile_GetProperties_Result> aspnet_Profile_GetProperties(aspnet_Profile_GetProperties_InputParameter spParameters)
@@ -492,9 +382,7 @@ spParameters.inactiveSinceDate);
                 = this.ExecuteStoredProcedure<aspnet_Profile_GetProperties_Result>(
                     "aspnet_Profile_GetProperties",
                     out returnValue,
-                    spParameters.applicationName,
-                    spParameters.userName,
-                    spParameters.currentTimeUtc);
+                    spParameters);
             spParameters.ReturnValue = returnValue;
 
             return _result;
@@ -504,13 +392,7 @@ spParameters.inactiveSinceDate);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Profile_SetProperties",
-    spParameters.applicationName,
-spParameters.propertyNames,
-spParameters.propertyValuesString,
-spParameters.propertyValuesBinary,
-spParameters.userName,
-spParameters.isUserAnonymous,
-spParameters.currentTimeUtc);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_RegisterSchemaVersion(aspnet_RegisterSchemaVersion_InputParameter spParameters)
@@ -518,10 +400,7 @@ spParameters.currentTimeUtc);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_RegisterSchemaVersion",
-    spParameters.feature,
-spParameters.compatibleSchemaVersion,
-spParameters.isCurrentVersion,
-spParameters.removeIncompatibleSchema);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Roles_CreateRole(aspnet_Roles_CreateRole_InputParameter spParameters)
@@ -529,8 +408,7 @@ spParameters.removeIncompatibleSchema);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Roles_CreateRole",
-    spParameters.applicationName,
-spParameters.roleName);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Roles_DeleteRole(aspnet_Roles_DeleteRole_InputParameter spParameters)
@@ -538,9 +416,7 @@ spParameters.roleName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Roles_DeleteRole",
-    spParameters.applicationName,
-spParameters.roleName,
-spParameters.deleteOnlyIfRoleIsEmpty);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public IEnumerable<aspnet_Roles_GetAllRoles_Result> aspnet_Roles_GetAllRoles(aspnet_Roles_GetAllRoles_InputParameter spParameters)
@@ -550,7 +426,7 @@ spParameters.deleteOnlyIfRoleIsEmpty);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_Roles_GetAllRoles",
      out result,
-             spParameters.applicationName);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -559,8 +435,7 @@ spParameters.deleteOnlyIfRoleIsEmpty);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Roles_RoleExists",
-    spParameters.applicationName,
-spParameters.roleName);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Setup_RemoveAllRoleMembers(aspnet_Setup_RemoveAllRoleMembers_InputParameter spParameters)
@@ -568,7 +443,7 @@ spParameters.roleName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Setup_RemoveAllRoleMembers",
-    spParameters.name);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Setup_RestorePermissions(aspnet_Setup_RestorePermissions_InputParameter spParameters)
@@ -576,7 +451,7 @@ spParameters.roleName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_Setup_RestorePermissions",
-    spParameters.name);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_UnRegisterSchemaVersion(aspnet_UnRegisterSchemaVersion_InputParameter spParameters)
@@ -584,8 +459,7 @@ spParameters.roleName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_UnRegisterSchemaVersion",
-    spParameters.feature,
-spParameters.compatibleSchemaVersion);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_Users_CreateUser(aspnet_Users_CreateUser_InputParameter spParameters)
@@ -596,10 +470,7 @@ spParameters.compatibleSchemaVersion);
                 "aspnet_Users_CreateUser",
                 out outputparameter,
                 out returnValue,
-                spParameters.applicationId,
-spParameters.userName,
-spParameters.isUserAnonymous,
-spParameters.lastActivityDate);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -611,9 +482,7 @@ spParameters.lastActivityDate);
                 "aspnet_Users_DeleteUser",
                 out outputparameter,
                 out returnValue,
-                spParameters.ApplicationName,
-spParameters.UserName,
-spParameters.TablesToDeleteFrom);
+                spParameters);
             spParameters.OutputParameter = outputparameter;
             spParameters.ReturnValue = returnValue;
         }
@@ -624,10 +493,7 @@ spParameters.TablesToDeleteFrom);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_UsersInRoles_AddUsersToRoles",
      out result,
-             spParameters.applicationName,
-spParameters.userNames,
-spParameters.roleNames,
-spParameters.currentTimeUtc);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -639,9 +505,7 @@ spParameters.currentTimeUtc);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_UsersInRoles_FindUsersInRole",
      out result,
-             spParameters.applicationName,
-spParameters.roleName,
-spParameters.userNameToMatch);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -653,8 +517,7 @@ spParameters.userNameToMatch);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_UsersInRoles_GetRolesForUser",
      out result,
-             spParameters.applicationName,
-spParameters.userName);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -666,8 +529,7 @@ spParameters.userName);
             returnValue = this.ExecuteStoredProcedure(
      "aspnet_UsersInRoles_GetUsersInRoles",
      out result,
-             spParameters.applicationName,
-spParameters.roleName);
+             spParameters);
             spParameters.ReturnValue = returnValue;
             return result;
         }
@@ -676,9 +538,7 @@ spParameters.roleName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_UsersInRoles_IsUserInRole",
-    spParameters.applicationName,
-spParameters.userName,
-spParameters.roleName);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_UsersInRoles_RemoveUsersFromRoles(aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter spParameters)
@@ -686,9 +546,7 @@ spParameters.roleName);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_UsersInRoles_RemoveUsersFromRoles",
-    spParameters.applicationName,
-spParameters.userNames,
-spParameters.roleNames);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
         public void aspnet_WebEvent_LogEvent(aspnet_WebEvent_LogEvent_InputParameter spParameters)
@@ -696,21 +554,7 @@ spParameters.roleNames);
             int returnValue = 0;
             returnValue = this.ExecuteStoredProcedure(
     "aspnet_WebEvent_LogEvent",
-    spParameters.eventId,
-spParameters.eventTimeUtc,
-spParameters.eventTime,
-spParameters.eventType,
-spParameters.eventSequence,
-spParameters.eventOccurrence,
-spParameters.eventCode,
-spParameters.eventDetailCode,
-spParameters.message,
-spParameters.applicationPath,
-spParameters.applicationVirtualPath,
-spParameters.machineName,
-spParameters.requestUrl,
-spParameters.exceptionType,
-spParameters.details);
+    spParameters);
             spParameters.ReturnValue = returnValue;
         }
     }

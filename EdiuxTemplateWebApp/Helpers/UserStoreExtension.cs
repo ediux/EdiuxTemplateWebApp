@@ -122,7 +122,7 @@ namespace EdiuxTemplateWebApp
         {
             if (ctr.ViewBag.ApplicationInfo == null)
             {
-                aspnet_Applications appInfo = MemoryCache.Default.Get(Startup.ApplicationInfoKey) as aspnet_Applications;
+                aspnet_Applications appInfo = Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(ctr, Startup.ApplicationInfoKey);
 
                 if (appInfo == null)
                 {
@@ -137,7 +137,7 @@ namespace EdiuxTemplateWebApp
 
         public static aspnet_Applications getApplicationInfo(this object obj)
         {
-            return MemoryCache.Default.Get(Startup.ApplicationInfoKey) as aspnet_Applications;
+            return Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(obj, Startup.ApplicationInfoKey);
         }
 
         public static aspnet_Applications addApplicationInfotoServer(this object obj)
@@ -150,6 +150,8 @@ namespace EdiuxTemplateWebApp
                 appInfo.LoweredApplicationName = appInfo.ApplicationName.ToLowerInvariant();
                 appInfo.Description = appInfo.ApplicationName;
                 appInfo = appRepo.Add(appInfo);
+
+                appRepo.UnitOfWork.Commit();
                 return appInfo;
             }
             catch (Exception ex)

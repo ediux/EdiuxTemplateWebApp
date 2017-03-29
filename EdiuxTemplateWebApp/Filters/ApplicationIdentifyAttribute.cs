@@ -1,4 +1,5 @@
-﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+﻿using EdiuxTemplateWebApp.Helpers;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace EdiuxTemplateWebApp.Filters
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            aspnet_Applications fromCache = MemoryCache.Default.Get(Startup.ApplicationInfoKey) as aspnet_Applications;
+            aspnet_Applications fromCache = this.getApplicationGlobalVariable<aspnet_Applications>(Startup.ApplicationInfoKey);
 
             if (fromCache == null)
             {

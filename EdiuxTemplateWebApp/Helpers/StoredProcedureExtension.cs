@@ -438,12 +438,23 @@ namespace EdiuxTemplateWebApp
                 {
                     Type type = paramters[i].GetType();
 
-                    if (type.IsClass)
+                    if (type.IsClass && type != typeof(string))
                     {
+
                         Dictionary<string, PropertyInfo> props = paramters[i].GetProperties();
 
                         foreach (string k in props.Keys)
                         {
+                            if (k.ToLowerInvariant() == "returnvalue")
+                            {
+                                continue;
+                            }
+
+                            if(k.ToLowerInvariant()== "outputparameter")
+                            {
+                                continue;
+                            }
+
                             DbParameter parameterObject = cmd.CreateParameter();
 
                             parameterObject.ParameterName = string.Format(parameterFormat, props[k].Name);
@@ -458,7 +469,7 @@ namespace EdiuxTemplateWebApp
                     {
                         DbParameter parameterObject = cmd.CreateParameter();
 
-                        parameterObject.ParameterName = string.Format(parameterFormat, paramters[i]);
+                        parameterObject.ParameterName = string.Format(parameterFormat, type.Name);
                         parameterObject.Direction = ParameterDirection.Input;
                         parameterObject.Value = paramters[i];
                         cmd.Parameters.Add(parameterObject);

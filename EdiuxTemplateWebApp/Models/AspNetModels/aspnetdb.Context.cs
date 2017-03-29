@@ -20,7 +20,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public AspNetDbEntities2()
             : base("name=AspNetDbEntities2")
         {
-            //Add(RepositoryHelper.Getaspnet_ApplicationsRepository());
         }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

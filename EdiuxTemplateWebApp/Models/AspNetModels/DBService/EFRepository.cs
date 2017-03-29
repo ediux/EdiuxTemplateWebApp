@@ -12,7 +12,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 	{
 		public EFRepository()
 		{
-			_unitofwork = RepositoryHelper.GetUnitOfWork();
+            UnitOfWork = RepositoryHelper.GetUnitOfWork();
+          //  _objectset =  _unitofwork.GetTypedContext<AspNetDbEntities2>().Set<T>();
 		}	
 
 		IDbSet<T> _objectset;
@@ -21,20 +22,19 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		{
 			get
 			{
-				if (_objectset == null)
-				{
-					_objectset = UnitOfWork.GetTypedContext<AspNetDbEntities2>().Set<T>();
-				}
-				return _objectset;
+                if (_objectset == null)
+                {
+                    _objectset = UnitOfWork.Set<T>();
+                }
+
+                return _objectset;
 			}
 		}
 
-		IUnitOfWork _unitofwork;
 		public IUnitOfWork UnitOfWork
 		{
-			get { return _unitofwork; }
-
-			set { _unitofwork = value; }
+            get;
+            set;
 		}
 
 		public virtual IQueryable<T> All()
@@ -92,7 +92,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 		public virtual T Reload(T entity)
 		{
-			UnitOfWork.Entry(entity).Reload();
+            UnitOfWork.Entry<T>(entity).Reload();
 			return entity;
 		}
 
@@ -142,12 +142,17 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 				foreach (string key in props.Keys)
 				{
-					var value = props[key].GetValue(entity);
+                    var prop = props[key];
+                    if (prop == null)
+                    {
+                        continue;
+                    }
+                    var value = prop.GetValue(entity);
 					var targetProp = _targetType.GetProperty(key);
 
 					if (targetProp != null)
 					{
-						targetProp.SetValue(returnValue, targetProp);
+						targetProp.SetValue(returnValue, value);
 					}
 
 				}

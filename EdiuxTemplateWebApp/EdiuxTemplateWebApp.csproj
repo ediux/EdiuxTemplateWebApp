@@ -224,6 +224,7 @@
     <Compile Include="Helpers\ConfigHelper.cs" />
     <Compile Include="Helpers\IdentityFrameworkExtensions.cs" />
     <Compile Include="Helpers\SecurityHelper.cs" />
+    <Compile Include="Helpers\StoredProcedureExtension.cs" />
     <Compile Include="Helpers\UserStoreExtension.cs" />
     <Compile Include="Helpers\WebHelper.cs" />
     <Compile Include="Interfaces\ICacheProvider.cs" />

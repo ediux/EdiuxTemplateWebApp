@@ -12,7 +12,7 @@
     [MetadataType(typeof(aspnet_UsersMetaData))]
     public partial class aspnet_Users : IUser<Guid>
     {
-        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<aspnet_Users, System.Guid> manager)
+        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<aspnet_Users, Guid> manager)
         {
             // 注意 authenticationType 必須符合 CookieAuthenticationOptions.AuthenticationType 中定義的項目
             var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);

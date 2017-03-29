@@ -1,18 +1,28 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-	public partial class EFUnitOfWork : AspNetDbEntities2, IUnitOfWork, IRepositoryCollection
+	public partial class EFUnitOfWork : IUnitOfWork, IRepositoryCollection
 	{
+        private AspNetDbEntities2 _databaseObject;
+
+        public EFUnitOfWork()
+        {
+            _databaseObject = new AspNetDbEntities2();
+
+        }
 
 		public IDbConnection Connection
 		{
 			get
 			{
-				return Database.Connection;
+				return _databaseObject.Database.Connection;
 			}
 		}
 
@@ -20,12 +30,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		{
 			get
 			{
-				return Database.Connection.ConnectionString;
+				return _databaseObject.Database.Connection.ConnectionString;
 			}
 
 			set
 			{
-				Database.Connection.ConnectionString = value;
+                _databaseObject.Database.Connection.ConnectionString = value;
 			}
 		}
 
@@ -33,7 +43,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		{
 			get
 			{
-				return this;
+				return _databaseObject;
 			}
 
 		}
@@ -42,12 +52,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		{
 			get
 			{
-				return Configuration.LazyLoadingEnabled;
+				return _databaseObject.Configuration.LazyLoadingEnabled;
 			}
 
 			set
 			{
-				Configuration.LazyLoadingEnabled = value;
+                _databaseObject.Configuration.LazyLoadingEnabled = value;
 			}
 		}
 
@@ -55,12 +65,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		{
 			get
 			{
-				return Configuration.ProxyCreationEnabled;
+				return _databaseObject.Configuration.ProxyCreationEnabled;
 			}
 
 			set
 			{
-				Configuration.ProxyCreationEnabled = value;
+                _databaseObject.Configuration.ProxyCreationEnabled = value;
 			}
 		}
 
@@ -82,23 +92,88 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		public void Commit()
 		{
 			if (!transcationMode)
-				SaveChanges();
+                _databaseObject.SaveChanges();
 		}
 
 		public virtual Task CommitAsync()
 		{
 			if (!transcationMode)
-				return SaveChangesAsync();
+				return _databaseObject.SaveChangesAsync();
 			else
 				return Task.CompletedTask;
 		}
 
 		public T GetTypedContext<T>() where T : IObjectContextAdapter
 		{
-			return (T)(this as IObjectContextAdapter);
+			return (T)Context;
 		}
 
-		bool transcationMode = false;
+        public DbEntityEntry Entry(object entity)
+        {
+            return _databaseObject.Entry(entity);
+        }
+
+        public DbEntityEntry<T> Entry<T>(T entity) where T : class
+        {
+           return _databaseObject.Entry<T>(entity);
+        }
+
+        public DbSet Set(Type entityType)
+        {
+            return _databaseObject.Set(entityType);
+        }
+
+        public DbSet<T> Set<T>() where T : class
+        {
+            return _databaseObject.Set<T>();
+        }
+
+        public T GetRepository<T>() where T : IRepositoryBase
+        {
+            return _databaseObject.GetRepository<T>();
+        }
+
+        public void Add(IRepositoryBase item)
+        {
+            _databaseObject.Add(item);
+        }
+
+        public void Clear()
+        {
+            _databaseObject.Clear();
+        }
+
+        public bool Contains(IRepositoryBase item)
+        {
+            return _databaseObject.Contains(item);
+        }
+
+        public void CopyTo(IRepositoryBase[] array, int arrayIndex)
+        {
+            _databaseObject.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(IRepositoryBase item)
+        {
+            return _databaseObject.Remove(item);
+        }
+
+        public IEnumerator<IRepositoryBase> GetEnumerator()
+        {
+            return _databaseObject.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public void Dispose()
+        {
+            _databaseObject.Dispose();
+        }
+
+        bool transcationMode = false;
 
 		/// <summary>
 		/// 取得或設定目前是否處於交易模式。
@@ -117,5 +192,21 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 				transcationMode = value;
 			}
 		}
-	}
+
+        public int Count
+        {
+            get
+            {
+                return _databaseObject.Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return _databaseObject.IsReadOnly;
+            }
+        }
+    }
 }

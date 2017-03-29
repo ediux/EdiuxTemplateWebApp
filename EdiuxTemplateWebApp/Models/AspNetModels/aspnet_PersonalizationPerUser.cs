@@ -12,7 +12,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     using System;
     using System.Collections.Generic;
     
-    public partial class aspnet_PersonalizationPerUser 
+    public partial class aspnet_PersonalizationPerUser
     {
         public System.Guid Id { get; set; }
         public Nullable<System.Guid> PathId { get; set; }

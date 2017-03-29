@@ -10,58 +10,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class aspnet_UsersRepository : EFRepository<aspnet_Users>, Iaspnet_UsersRepository
     {
-        public override IQueryable<aspnet_Users> All()
-        {
-            try
-            {
-                UnitOfWork.LazyLoadingEnabled = false;
-
-                var apps = UnitOfWork.Set<aspnet_Applications>();
-                var roles = UnitOfWork.Set<aspnet_Roles>();
-                var memberships = UnitOfWork.Set<aspnet_Membership>();
-                var profiles = UnitOfWork.Set<aspnet_Profile>();
-                var ppu = UnitOfWork.Set<aspnet_PersonalizationPerUser>();
-                var externLogins = UnitOfWork.Set<aspnet_UserLogin>();
-                var externClaims = UnitOfWork.Set<aspnet_UserClaims>();
-
-                apps.Load();
-                roles.Load();
-                memberships.Load();
-                profiles.Load();
-                ppu.Load();
-                externLogins.Load();
-                externClaims.Load();
-
-                var rolequery = (from r in roles
-                                 from uir in r.aspnet_Users
-                                 where ObjectSet.Contains(uir)
-                                 select new { r.ApplicationId, RoleId = r.Id, r.Name, r.LoweredRoleName, UserId = uir.Id })
-                    .Distinct();
-
-                IQueryable<aspnet_Users> query =
-                    from u in ObjectSet
-                    join app in apps on u.ApplicationId equals app.ApplicationId
-                    join m in memberships on u.Id equals m.UserId
-                    join p in profiles on u.Id equals p.UserId
-                    join userpp in ppu on u.Id equals userpp.UserId
-                    join ul in externLogins on u.Id equals ul.UserId
-                    join uc in externClaims on u.Id equals uc.UserId
-                    join r in rolequery on u.Id equals r.UserId
-                    select u;
-
-
-                query.Load();
-
-                return query;
-            }
-            catch (Exception ex)
-            {
-                WriteErrorLog(ex);
-                throw ex;
-            }
-
-        }
-
+     
         public override void Delete(aspnet_Users entity)
         {
             try
@@ -147,16 +96,20 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                         && (u.UserName == userName || u.LoweredUserName == loweredUserName)
                         select u).SingleOrDefault();
 
-            if (updateLastActivity)
+            if (user != null)
             {
-                user.aspnet_Membership.LastActivityTime = currentTimeUtc;
+                if (updateLastActivity)
+                {
+                    user.aspnet_Membership.LastActivityTime = currentTimeUtc;
 
-                var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
-                UnitOfWork.TranscationMode = true;
-                membershipRepo.Update(user.aspnet_Membership);
-                UnitOfWork.TranscationMode = false;
-                user = Reload(user);
+                    var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
+                    UnitOfWork.TranscationMode = true;
+                    membershipRepo.Update(user.aspnet_Membership);
+                    UnitOfWork.TranscationMode = false;
+                    user = Reload(user);
+                }
             }
+
             return user;
         }
 
@@ -326,8 +279,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public aspnet_Users Update(aspnet_Users entity)
         {
-            var appId = Guid.Empty;
-            var appName = string.Empty;
+            var appId = entity.ApplicationId;
+            var appName = entity?.aspnet_Applications.ApplicationName;
 
             if (entity.ApplicationId == default(Guid))
             {
@@ -355,8 +308,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 }
             }
 
-            var userId = Guid.Empty;
-            var userName = string.Empty;
+            var userId = entity.Id;
+            var userName = entity.UserName;
 
             if (entity.Id == default(Guid))
             {
@@ -389,10 +342,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             UnitOfWork.TranscationMode = true;
 
             foundUser = CopyTo<aspnet_Users>(entity);
-
-            var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
-
-            membershipRepo.Update(foundUser.aspnet_Membership);
 
             UnitOfWork.TranscationMode = false;
             UnitOfWork.Commit();
@@ -500,6 +449,5 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         /// <returns>The update.</returns>
         /// <param name="entity">Entity.</param>
         aspnet_Users Update(aspnet_Users entity);
-
     }
 }

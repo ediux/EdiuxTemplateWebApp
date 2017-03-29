@@ -7,28 +7,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 	public class aspnet_ApplicationsRepository : EFRepository<aspnet_Applications>, Iaspnet_ApplicationsRepository
 	{
-
-		/// <summary>
-		/// All this instance.
-		/// </summary>
-		/// <returns>The all.</returns>
-		public override IQueryable<aspnet_Applications> All()
-		{
-			UnitOfWork.LazyLoadingEnabled = false;
-
-			IQueryable<aspnet_Applications> loadAllQueryable = (from a in ObjectSet
-																join m in UnitOfWork.Set<aspnet_Membership>() on a.ApplicationId equals m.ApplicationId
-																join u in UnitOfWork.Set<aspnet_Users>() on a.ApplicationId equals u.ApplicationId
-																join r in UnitOfWork.Set<aspnet_Roles>() on a.ApplicationId equals r.ApplicationId
-																join p in UnitOfWork.Set<aspnet_Paths>() on a.ApplicationId equals p.ApplicationId
-																join v in UnitOfWork.Set<aspnet_VoidUsers>() on a.ApplicationId equals v.ApplicationId
-																join menu in UnitOfWork.Set<Menus>() on a.ApplicationId equals menu.ApplicationId
-																select a).AsQueryable();
-
-			return loadAllQueryable;
-
-		}
-
 		/// <summary>
 		/// Finds the by identifier.
 		/// </summary>

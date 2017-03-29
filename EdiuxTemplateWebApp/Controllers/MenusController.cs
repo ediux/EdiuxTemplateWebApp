@@ -16,7 +16,7 @@ namespace EdiuxTemplateWebApp.Controllers
 {
     public class MenusController : BaseController
     {
-        private IMenusRepository _menuRepo;
+        private IMenusRepository menuRepo;
         private Iaspnet_ApplicationsRepository appRepo;
         private Iaspnet_PathsRepository pathRepo;
 
@@ -25,14 +25,15 @@ namespace EdiuxTemplateWebApp.Controllers
         public MenusController()
         {
             appInfo = this.getApplicationInfo();
-            _menuRepo = RepositoryHelper.GetMenusRepository();
-            pathRepo = RepositoryHelper.Getaspnet_PathsRepository();
+            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            menuRepo = RepositoryHelper.GetMenusRepository(appRepo.UnitOfWork);
+            pathRepo = RepositoryHelper.Getaspnet_PathsRepository(appRepo.UnitOfWork);
         }
 
         public MenusController(ApplicationUserManager userManager) : this()
         {
             UserManager = userManager;
-            _menuRepo = RepositoryHelper.GetMenusRepository();
+            menuRepo = RepositoryHelper.GetMenusRepository();
         }
 
         public ApplicationUserManager UserManager
@@ -50,7 +51,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // GET: Menus
         public ActionResult Index()
         {
-            var menus = _menuRepo.All();
+            var menus = menuRepo.All();
             return View(menus.ToList());
         }
 
@@ -61,7 +62,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Menus menus = _menuRepo.Get(id);
+            Menus menus = menuRepo.Get(id);
             if (menus == null)
             {
                 return HttpNotFound();
@@ -96,8 +97,8 @@ namespace EdiuxTemplateWebApp.Controllers
                 menus.LastUpdateTime = menus.CreateTime = DateTime.Now;
                 menus.Void = false;
 
-                _menuRepo.Add(menus);
-                _menuRepo.UnitOfWork.Commit();
+                menuRepo.Add(menus);
+                menuRepo.UnitOfWork.Commit();
                 return RedirectToAction("Index");
             }
             return View(menus);
@@ -113,7 +114,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Menus menu = _menuRepo.Get(id);
+            Menus menu = menuRepo.Get(id);
 
             if (menu == null)
             {
@@ -135,7 +136,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 this.ApplyXSSProtected(menus);
 
-                Menus menuindb = _menuRepo.Get(menus.Id);
+                Menus menuindb = menuRepo.Get(menus.Id);
 
                 menuindb.AfterBreak = menus.AfterBreak;
                 menuindb.AllowAnonymous = menus.AllowAnonymous;
@@ -153,8 +154,8 @@ namespace EdiuxTemplateWebApp.Controllers
                 menuindb.PathId = menus.PathId;
                 menuindb.Void = menus.Void;
 
-                _menuRepo.UnitOfWork.Entry(menuindb).State = EntityState.Modified;
-                _menuRepo.UnitOfWork.Commit();
+                menuRepo.UnitOfWork.Entry(menuindb).State = EntityState.Modified;
+                menuRepo.UnitOfWork.Commit();
 
                 return RedirectToAction("MenuList");
             }
@@ -169,7 +170,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Menus menus = _menuRepo.Get(id);
+            Menus menus = menuRepo.Get(id);
             if (menus == null)
             {
                 return HttpNotFound();
@@ -182,14 +183,14 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Menus menu = _menuRepo.Get(id);
+            Menus menu = menuRepo.Get(id);
 
             menu.Void = true;
             menu.LastUpdateUserId = User.Identity.GetUserGuid();
             menu.LastUpdateTime = DateTime.UtcNow;
 
-            _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
-            _menuRepo.UnitOfWork.Commit();
+            menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
+            menuRepo.UnitOfWork.Commit();
 
             return RedirectToAction("Index");
         }
@@ -211,8 +212,9 @@ namespace EdiuxTemplateWebApp.Controllers
 
             if (ViewBag.ApplicationInfo != null)
             {
+                Iaspnet_UsersRepository userRepo = RepositoryHelper.Getaspnet_UsersRepository(appRepo.UnitOfWork);
 
-                var currentLoginedUser = appInfo.GetUserByName(User.Identity.Name);
+                var currentLoginedUser = userRepo.GetUserByName(appInfo.ApplicationName, User.Identity.GetUserName(), DateTime.UtcNow, true);
 
                 if (currentLoginedUser != null)
                 {
@@ -241,9 +243,9 @@ namespace EdiuxTemplateWebApp.Controllers
 
             aspnet_Users loginUser = UserManager.FindByName(User.Identity.Name);
 
-            //IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(_menuRepo.UnitOfWork);
+            //IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(menuRepo.UnitOfWork);
 
-            //Menus menu = _menuRepo.Get(id);
+            //Menus menu = menuRepo.Get(id);
             //var roles = roleRepo.getUnSelectedRoles(menu.ApplicationRole);
 
             ViewBag.RoleId = new SelectList(foundMenu.aspnet_Roles.Select(s => new { Id = s.Id, Name = s.Name }), "Id", "Name");
@@ -261,7 +263,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Menus menu = _menuRepo.Get(id);
+            Menus menu = menuRepo.Get(id);
 
             if (string.IsNullOrEmpty(collection["RoleId"]) == false)
             {
@@ -276,9 +278,9 @@ namespace EdiuxTemplateWebApp.Controllers
 
                 menu.aspnet_Roles.Add(role);
 
-                _menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
-                _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
-                _menuRepo.UnitOfWork.Commit();
+                menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
+                menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
+                menuRepo.UnitOfWork.Commit();
             }
 
             return RedirectToAction("ListMenuInRoles", new { id = id });
@@ -293,7 +295,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Menus menu = _menuRepo.Get(id);
+            Menus menu = menuRepo.Get(id);
 
             if (string.IsNullOrEmpty(collection["RoleId"]) == false)
             {
@@ -303,15 +305,15 @@ namespace EdiuxTemplateWebApp.Controllers
                 {
                     return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                 }
-                Iaspnet_RolesRepository roleRepo = RepositoryHelper.Getaspnet_RolesRepository(_menuRepo.UnitOfWork);
+                Iaspnet_RolesRepository roleRepo = RepositoryHelper.Getaspnet_RolesRepository(menuRepo.UnitOfWork);
 
                 aspnet_Roles role = roleRepo.Get(RoleId);
 
                 menu.aspnet_Roles.Add(role);
 
-                _menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
-                _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
-                _menuRepo.UnitOfWork.Commit();
+                menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
+                menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
+                menuRepo.UnitOfWork.Commit();
             }
 
             return RedirectToAction("Edit", new { id = id });
@@ -329,7 +331,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Menus menu = _menuRepo.Get(id);
+            Menus menu = menuRepo.Get(id);
 
 
 
@@ -339,9 +341,9 @@ namespace EdiuxTemplateWebApp.Controllers
             menu.LastUpdateTime = DateTime.UtcNow;
             menu.aspnet_Roles.Remove(role);
 
-            _menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
-            _menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
-            _menuRepo.UnitOfWork.Commit();
+            menuRepo.UnitOfWork.Entry(menu.aspnet_Roles).State = EntityState.Modified;
+            menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
+            menuRepo.UnitOfWork.Commit();
 
             return RedirectToAction("Edit", new { id = id });
         }
@@ -350,7 +352,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (disposing)
             {
-                //_menuRepo.Dispose();
+                //menuRepo.Dispose();
             }
             base.Dispose(disposing);
         }

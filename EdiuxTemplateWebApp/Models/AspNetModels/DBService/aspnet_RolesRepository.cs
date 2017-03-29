@@ -31,11 +31,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			}
 		}
 
-		public override IQueryable<aspnet_Roles> All()
-		{
-			return base.All();
-		}
-
 		public override void Delete(aspnet_Roles entity)
 		{
 			try
@@ -73,7 +68,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public bool IsExists(aspnet_Roles role)
         {
-            throw new NotImplementedException();
+            return All().Where(w => w.ApplicationId == role.ApplicationId && (
+             w.Name == role.Name || w.LoweredRoleName == role.LoweredRoleName)
+            ).Any();
         }
 
         public void Update(aspnet_Roles entity)

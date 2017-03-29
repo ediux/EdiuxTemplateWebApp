@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-	public partial interface IUnitOfWork
-	{
+	public partial interface IUnitOfWork: IDisposable
+    {
 		/// <summary>
 		/// Gets or sets a value indicating whether this
 		/// <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.Iaspnet_MembershipRepository"/> transcation mode.

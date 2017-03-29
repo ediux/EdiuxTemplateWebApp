@@ -16,56 +16,57 @@ namespace EdiuxTemplateWebApp
         internal const string ApplicationName = "ApplicationName";
         public void ConfigureDataStore(IAppBuilder app)
         {
-            //檢查Application是否已經註冊?
+            try
+            {
+                //檢查Application是否已經註冊?
 
-            if (checkCurrentAppIsRegistered() == false)
-            {
-                registerApplication();
-            }
-            else
-            {
-                addToMemoryCache();
-            }
+                if (checkCurrentAppIsRegistered() == false)
+                {
+                    registerApplication();
+                }
+                else
+                {
+                    addToMemoryCache();
+                }
 
-            if (checkCurrentAppHasRoles() == false)
-            {
-                createDefaultRoles();
-            }
+                if (checkCurrentAppHasRoles() == false)
+                {
+                    createDefaultRoles();
+                }
 
-            if (checkCurrentAppHasRootUser() == false)
-            {
-                createRootUser();
+                if (checkCurrentAppHasRootUser() == false)
+                {
+                    createRootUser();
+                }
+                if (checkRootUserHasAdminsRole() == false)
+                {
+                    addRootUserToAdminsRole();
+                }
             }
-            if (checkRootUserHasAdminsRole() == false)
+            catch (Exception)
             {
-                addRootUserToAdminsRole();
-            }
 
+                throw;
+            }
         }
 
         private void registerApplication()
         {
-            try
-            {
-                string applicationName = getApplicationNameFromConfiguationFile();
 
-                Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            string applicationName = getApplicationNameFromConfiguationFile();
 
-                aspnet_Applications newApplication = new aspnet_Applications();
+            Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
-                newApplication.ApplicationName = applicationName;
-                newApplication.Description = applicationName;
-                newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
+            aspnet_Applications newApplication = new aspnet_Applications();
 
-                appRepo.Add(newApplication);
-                appRepo.UnitOfWork.Commit();
+            newApplication.ApplicationName = applicationName;
+            newApplication.Description = applicationName;
+            newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
 
-                addToMemoryCache(appRepo);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            appRepo.Add(newApplication);
+            appRepo.UnitOfWork.Commit();
+
+            addToMemoryCache(appRepo);
         }
 
         private bool checkRootUserHasAdminsRole(Iaspnet_ApplicationsRepository appRepo = null)
@@ -77,7 +78,7 @@ namespace EdiuxTemplateWebApp
 
             Iaspnet_UsersRepository usersRepo = RepositoryHelper.Getaspnet_UsersRepository(appRepo.UnitOfWork);
 
-            aspnet_Users rootUser = usersRepo.GetUserByName(appInfo.ApplicationName, "root");
+            aspnet_Users rootUser = usersRepo.GetUserByName(appInfo.ApplicationName, "root", DateTime.UtcNow, false);
 
             if (rootUser != null)
             {
@@ -90,19 +91,22 @@ namespace EdiuxTemplateWebApp
         {
             if (appRepo == null)
                 appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+            Iaspnet_UsersRepository usersRepo = RepositoryHelper.Getaspnet_UsersRepository(appRepo.UnitOfWork);
+            Iaspnet_RolesRepository roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
+
             string appName = getApplicationNameFromConfiguationFile();
             aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
 
             if (appInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
                 throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
 
-            aspnet_Users rootUser = appInfo.GetUserByName("root", appRepo);
+            aspnet_Users rootUser = usersRepo.GetUserByName(appInfo.ApplicationName, "root", DateTime.UtcNow,false);
 
             if (rootUser != null)
             {
-                if (rootUser.IsInRole("Admins") == false)
-                    rootUser.AddToRole("Admins");
-
+                if (usersRepo.IsInRole(rootUser, "Admins") == false)
+                    usersRepo.AddToRole(rootUser, "Admins");
                 return;
             }
             throw new NullReferenceException(string.Format("The username , '{0}', is not found.", "root"));
@@ -180,6 +184,9 @@ namespace EdiuxTemplateWebApp
         {
             if (appRepo == null)
                 appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+            Iaspnet_RolesRepository roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
+
             string appName = getApplicationNameFromConfiguationFile();
             aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
 
@@ -190,11 +197,44 @@ namespace EdiuxTemplateWebApp
                     return false;
                 }
 
+                aspnet_Roles[] defaultRoles = new aspnet_Roles[] {
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                         aspnet_Applications = appInfo,
+                        Description = "系統管理員",
+                        LoweredRoleName = "admins",
+                        Name = "Admins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        aspnet_Applications = appInfo,
+                        Description = "次要管理員",
+                        LoweredRoleName = "coadmins",
+                        Name = "CoAdmins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        aspnet_Applications = appInfo,
+                        Description = "使用者",
+                        LoweredRoleName = "users",
+                        Name = "Users",
+                        Id = Guid.NewGuid()
+                    }
+                };
 
-                return appInfo.aspnet_Roles.Any(s =>
-                s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase) ||
-                s.Name.Equals("CoAdmins", StringComparison.InvariantCultureIgnoreCase) ||
-                s.Name.Equals("Users", StringComparison.InvariantCultureIgnoreCase));
+                bool roleexisted = true;
+
+                foreach (var checkRole in defaultRoles)
+                {
+                    if (!roleRepo.IsExists(checkRole))
+                    {
+                        roleexisted = false;
+                        break;
+                    }
+                }
+                return roleexisted;
             }
 
             return false;
@@ -202,10 +242,8 @@ namespace EdiuxTemplateWebApp
 
         private void createDefaultRoles()
         {
-            Iaspnet_ApplicationsRepository appRepo = null;
-            Iaspnet_RolesRepository roleRepo = null;
-            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
-            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
+            Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            Iaspnet_RolesRepository roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
 
             string appName = getApplicationNameFromConfiguationFile();
             aspnet_Applications appInfo = getApplicationInformationFromCache(appName, appRepo);
@@ -233,33 +271,20 @@ namespace EdiuxTemplateWebApp
                         Id = Guid.NewGuid()
                     }
                 };
-            
-            if (roleRepo.(w=>w appInfo.GetRoleByName("Admins") == null)
-            {
-                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
-                {
 
-                });
-                setToMemoryCache(appRepo);
-            }
-            if (appInfo.GetRoleByName("CoAdmins") == null)
-            {
-                appInfo.aspnet_Roles.AddRole(new aspnet_Roles
-                {
+            roleRepo.UnitOfWork.TranscationMode = true;
 
-                });
-                setToMemoryCache(appRepo);
-            }
-            if (!roleRepo.IsExists(roles["CoAdmins"]))
+            foreach (var checkRole in defaultRoles)
             {
-                roles["CoAdmins"] = roleRepo.Add(roles["CoAdmins"]);
-                setToMemoryCache();
+                if (!roleRepo.IsExists(checkRole))
+                {
+                    roleRepo.Add(checkRole);
+                }
             }
-            if (!roleRepo.IsExists(roles["Users"]))
-            {
-                roles["Users"] = roleRepo.Add(roles["Users"]);
-                setToMemoryCache();
-            }
+
+            roleRepo.UnitOfWork.TranscationMode = false;
+            roleRepo.UnitOfWork.Commit();
+
         }
 
         private static aspnet_Applications getApplicationInformationFromCache(string appName, Iaspnet_ApplicationsRepository appRepo = null)
@@ -277,40 +302,25 @@ namespace EdiuxTemplateWebApp
 
         private void addToMemoryCache(Iaspnet_ApplicationsRepository appRepo = null)
         {
-            try
-            {
-                if (appRepo == null)
-                    appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
-                string appName = getApplicationNameFromConfiguationFile();
-                var foundApp = appRepo.FindByName(appName).SingleOrDefault();
-                aspnet_Applications app = appRepo.CopyTo<aspnet_Applications>(foundApp) as aspnet_Applications;
-                MemoryCache.Default.Add(ApplicationInfoKey, app, new DateTimeOffset(DateTime.Now.AddMinutes(38400)));
-            }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
+            string appName = getApplicationNameFromConfiguationFile();
+            var foundApp = appRepo.FindByName(appName).SingleOrDefault();
+            this.setApplicationGlobalVariable(ApplicationInfoKey, foundApp);
         }
 
         private void setToMemoryCache(Iaspnet_ApplicationsRepository appRepo = null)
         {
-            try
-            {
-                if (appRepo == null)
-                    appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
-                string appName = getApplicationNameFromConfiguationFile();
-                aspnet_Applications app = appRepo.CopyTo<aspnet_Applications>(appRepo.FindByName(appName).Single()) as aspnet_Applications;
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
-                MemoryCache.Default.Set(ApplicationInfoKey, app, new DateTimeOffset(DateTime.Now.AddMinutes(38400)));
-            }
-            catch (Exception ex)
-            {
+            string appName = getApplicationNameFromConfiguationFile();
+            aspnet_Applications app = appRepo.CopyTo<aspnet_Applications>(appRepo.FindByName(appName).Single()) as aspnet_Applications;
 
-                throw ex;
-            }
+            this.setApplicationGlobalVariable(ApplicationInfoKey, app);
+
         }
 
 

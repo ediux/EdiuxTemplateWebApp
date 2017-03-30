@@ -102,7 +102,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
                 {
                     user.aspnet_Membership.LastActivityTime = currentTimeUtc;
 
-                    var membershipRepo = UnitOfWork.Repositories.GetRepository<aspnet_MembershipRepository>();
+                    var membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository(UnitOfWork);
                     UnitOfWork.TranscationMode = true;
                     membershipRepo.Update(user.aspnet_Membership);
                     UnitOfWork.TranscationMode = false;

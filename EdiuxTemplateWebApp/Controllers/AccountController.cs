@@ -1,16 +1,14 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+﻿using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
-using EdiuxTemplateWebApp.Models;
-using EdiuxTemplateWebApp.Models.AspNetModels;
+using System;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
@@ -170,7 +168,7 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 var user = new aspnet_Users { ApplicationId = appInfo.ApplicationId, UserName = model.UserName };
                 user.aspnet_Applications = appInfo;
-                user.aspnet_Membership = new Models.AspNetModels.aspnet_Membership()
+                user.aspnet_Membership = new aspnet_Membership()
                 {
                     ApplicationId = appInfo.ApplicationId,
                     aspnet_Applications = appInfo,
@@ -395,7 +393,7 @@ namespace EdiuxTemplateWebApp.Controllers
                     return View("ExternalLoginFailure");
                 }
                 var user = new aspnet_Users { UserName = info.DefaultUserName };
-                
+
                 var result = await UserManager.CreateAsync(user);
                 if (result.Succeeded)
                 {

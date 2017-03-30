@@ -18,8 +18,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			var foundMembership = Get(aspnet_Membership.UserId);
 
 			foundMembership = CopyTo<aspnet_Membership>(aspnet_Membership);
-
-			UnitOfWork.Entry(foundMembership).State = EntityState.Modified;
 			UnitOfWork.Commit();
 		}
 	}

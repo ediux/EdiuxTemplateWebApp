@@ -1,13 +1,13 @@
-﻿@model int?
+﻿@model Guid?
 @{ 
-    int userId = Model ?? -1;
-    if (userId == -1)
+    Guid userId = Model ?? Guid.Empty;
+    if (userId == Guid.Empty)
     {
         @Html.Raw("訪客")
     }
     else
     {
-        @Html.GetUserName((int)Model)
+        @Html.GetUserName(userId);
     }
 
 

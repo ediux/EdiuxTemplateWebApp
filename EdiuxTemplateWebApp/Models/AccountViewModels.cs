@@ -185,6 +185,7 @@ namespace EdiuxTemplateWebApp.Models
         private string securityStamp = string.Empty;
         public string SecurityStamp { get { return securityStamp; } set { securityStamp = value; RaiseChange(nameof(SecurityStamp)); } }
 
+        
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void RaiseChange(string name)

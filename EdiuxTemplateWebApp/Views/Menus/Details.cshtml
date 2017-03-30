@@ -1,4 +1,4 @@
-﻿@model EdiuxTemplateWebApp.Models.Menus
+﻿@model EdiuxTemplateWebApp.Models.AspNetModels.Menus
 
 @{
     ViewBag.Title = "選單詳細資料";
@@ -37,11 +37,11 @@
                     @if (Model.IsExternalLinks)
                     {
                         <dt>
-                            @Html.DisplayNameFor(model => model.ExternalURL)
+                            @Html.DisplayNameFor(model => model.aspnet_Paths.Path)
                         </dt>
 
                         <dd>
-                            @Html.DisplayFor(model => model.ExternalURL)
+                            @Html.DisplayFor(model => model.aspnet_Paths.Path)
                         </dd>
                     }
 
@@ -59,14 +59,6 @@
 
                     <dd>
                         @Html.DisplayFor(model => model.ParentMenu.Name)
-                    </dd>
-
-                    <dt>
-                        @Html.DisplayNameFor(model => model.System_ControllerActions)
-                    </dt>
-
-                    <dd>
-                        @Html.DisplayFor(model => model.System_ControllerActions.Name) (@Html.DisplayFor(model => model.System_ControllerActions.System_Controllers.Name))
                     </dd>
                     <dt>
                         @Html.DisplayNameFor(model => model.CreateUserId)

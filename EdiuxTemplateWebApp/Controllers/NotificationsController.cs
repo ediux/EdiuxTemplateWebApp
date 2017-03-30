@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using EdiuxTemplateWebApp.Models;
 using Microsoft.AspNet.Identity;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Helpers;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
@@ -27,7 +28,7 @@ namespace EdiuxTemplateWebApp.Controllers
         [ChildActionOnly]
         public ActionResult NotificationsBar()
         {
-            int currentUserId = User.Identity.GetUserId<int>();
+            Guid currentUserId = User.Identity.GetUserGuid();
             var system_Notifications = db.All()
                 .OrderByDescending(o => o.EventId);
 

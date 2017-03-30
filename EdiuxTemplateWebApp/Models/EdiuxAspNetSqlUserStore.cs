@@ -924,6 +924,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                user.GetProfile<ProfileModel>().SecurityStamp = stamp;
+
                 //if (user.aspnet_PersonalizationPerUser == null)
                 //{
                 //    throw new Exception(string.Format("The user '{0}' has missed page setting information! ", user.UserName));

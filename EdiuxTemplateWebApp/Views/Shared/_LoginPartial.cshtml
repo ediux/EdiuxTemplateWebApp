@@ -62,7 +62,7 @@
             <li class="dropdown user  hidden-xs">
                 <a data-toggle="dropdown" class="dropdown-toggle" href="#"> <i class="icon-male"></i> <span class="username">@User.Identity.GetUserName()</span> <i class="icon-caret-down small"></i> </a>
                 <ul class="dropdown-menu">
-                    <li><a href="@Url.Action("UserProfile","Manage",new { id=User.Identity.GetUserId<int>() })"><i class="icon-user"></i> My Profile</a></li>
+                    <li><a href="@Url.Action("UserProfile","Manage",new { id=User.Identity.GetUserGuid() })"><i class="icon-user"></i> My Profile</a></li>
                     <li><a href="/Html/fullCalendar.html"><i class="icon-calendar"></i> My Calendar</a></li>
                     <li><a href="#"><i class="icon-tasks"></i> My Tasks</a></li>
                     @if (User.IsInRole("Admins") || User.Identity.GetUserName() == "root")

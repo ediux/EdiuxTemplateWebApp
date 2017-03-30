@@ -53,7 +53,7 @@ namespace EdiuxTemplateWebApp
             return  new HtmlString( string.Concat(cookieToken, ":", formToken));
         }
 
-        public static string GetUserName(this HtmlHelper helper,int id)
+        public static string GetUserName(this HtmlHelper helper,Guid id)
         {
         
             var userrepo = RepositoryHelper.Getaspnet_UsersRepository();
@@ -69,11 +69,11 @@ namespace EdiuxTemplateWebApp
             return "";
         }
 
-        public static string GetRoleName(this HtmlHelper helper,int RoleId)
+        public static string GetRoleName(this HtmlHelper helper,Guid RoleId)
         {
             var rolerepo = RepositoryHelper.Getaspnet_RolesRepository();
 
-            if (RoleId > 0)
+            if (RoleId != Guid.Empty)
             {
                 return rolerepo.Get(RoleId).Name;
             }

@@ -1,4 +1,4 @@
-﻿@model EdiuxTemplateWebApp.Models.Menus
+﻿@model EdiuxTemplateWebApp.Models.AspNetModels.Menus
 
 @{
     ViewBag.Title = "建立選單";
@@ -82,12 +82,12 @@
                         </div>
                         <div class="control-group">
                             <div class="col-md-3">
-                                @Html.LabelFor(model => model.ExternalURL, htmlAttributes: new { @for = Html.IdFor(model => model.ExternalURL), @class = "control-label" })
+                                @Html.LabelFor(model => model.aspnet_Paths.Path, htmlAttributes: new { @for = Html.IdFor(model => model.aspnet_Paths.Path), @class = "control-label" })
                             </div>
                             <div class="col-md-9">
                                 <div class="form-group">
-                                    @Html.EditorFor(model => model.ExternalURL, new { htmlAttributes = new { @class = "form-control ", @disabled = "" } })
-                                    @Html.ValidationMessageFor(model => model.ExternalURL, "", new { @class = "text-danger" })
+                                    @Html.EditorFor(model => model.aspnet_Paths.Path, new { htmlAttributes = new { @class = "form-control ", @disabled = "" } })
+                                    @Html.ValidationMessageFor(model => model.aspnet_Paths.Path, "", new { @class = "text-danger" })
                                 </div>
                             </div>
                         </div>
@@ -112,18 +112,7 @@
                                     @Html.ValidationMessageFor(model => model.ParentMenuId, "", new { @class = "text-danger" })
                                 </div>
                             </div>
-                        </div>
-                        <div class="control-group">
-                            <div class="col-md-3">
-                                @Html.LabelFor(model => model.System_ControllerActions, htmlAttributes: new { @for = Html.IdFor(model => model.System_ControllerActions), @class = "control-label" })
-                            </div>
-                            <div class="col-md-9">
-                                <div class="form-group">
-                                    @Html.DropDownList("System_ControllerActionsId", null, "請選擇...", htmlAttributes: new { @class = "form-control" })
-                                    @Html.ValidationMessageFor(model => model.System_ControllerActionsId, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
-                        </div>                       
+                        </div>                  
                         <div class="control-group">
                             <div class="text-right">
                                 <input type="submit" value="建立" class="btn btn-success" />
@@ -145,10 +134,10 @@
             $('#@Html.IdFor(model=>model.IsExternalLinks)').on('change', function () {
 
                 if ($('#@Html.IdFor(model=>model.IsExternalLinks)').prop('checked')) {
-                    $('#@Html.IdFor(model => model.ExternalURL)').removeProp('disabled');
+                    $('#@Html.IdFor(model => model.aspnet_Paths.Path)').removeProp('disabled');
                 } else {
-                    $('#@Html.IdFor(model => model.ExternalURL)').val('');
-                    $('#@Html.IdFor(model => model.ExternalURL)').prop('disabled', true);
+                    $('#@Html.IdFor(model => model.aspnet_Paths.Path)').val('');
+                    $('#@Html.IdFor(model => model.aspnet_Paths.Path)').prop('disabled', true);
                 }
             });
             $('#@Html.IdFor(model => model.IconCSS)').on('input propertychange paste', function () {

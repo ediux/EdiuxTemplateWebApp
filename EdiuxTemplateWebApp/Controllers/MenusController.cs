@@ -90,7 +90,7 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,Name,IconCSS,IsExternalLinks,ExternalURL,Void,ParentMenuId,CreateUserId,CreateTime,LastUpdateUserId,LastUpdateTime,AllowAnonymous,System_ControllerActionsId,Order,ApplicationId")] Menus menus)
         {
-            
+
             if (ModelState.IsValid)
             {
                 menus.LastUpdateUserId = menus.CreateUserId = User.Identity.GetUserGuid();
@@ -213,12 +213,14 @@ namespace EdiuxTemplateWebApp.Controllers
             if (ViewBag.ApplicationInfo != null)
             {
                 Iaspnet_UsersRepository userRepo = RepositoryHelper.Getaspnet_UsersRepository(appRepo.UnitOfWork);
+                IMenusRepository menuRepo = RepositoryHelper.GetMenusRepository(appRepo.UnitOfWork);
 
                 var currentLoginedUser = userRepo.GetUserByName(appInfo.ApplicationName, User.Identity.GetUserName(), DateTime.UtcNow, true);
 
                 if (currentLoginedUser != null)
                 {
-                    return View("_MenuBarPartial", currentLoginedUser);
+                    return View("_MenuBarPartial", menuRepo
+                        .Where(w => w.ApplicationId == appInfo.ApplicationId && w.ParentMenu == null).ToList());
                 }
             }
 

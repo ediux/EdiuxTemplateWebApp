@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Web;
+﻿using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
-using EdiuxTemplateWebApp.Models.AspNetModels;
-using EdiuxTemplateWebApp.Models;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp
 {
@@ -44,12 +40,14 @@ namespace EdiuxTemplateWebApp
         {
 
         }
+  
 
+        public override Task<IdentityResult> AccessFailedAsync(Guid userId)
+        {
+           
+        }
 
-        //public Models.AspNetModels.IUnitOfWork UnitOfWork
-        //{
-        //    get { return ((Models.EdiuxAspNetSqlUserStore)Store).UnitOfWork; }
-        //}
+       
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {
             var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<IUnitOfWork>()));
@@ -141,14 +139,14 @@ namespace EdiuxTemplateWebApp
 
         public override Task<ClaimsIdentity> CreateUserIdentityAsync(aspnet_Users user)
         {
-            return user.GenerateUserIdentityAsync((ApplicationUserManager)UserManager);
+            return UserManager.CreateIdentityAsync(user, AuthenticationType);
         }
 
         public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options, IOwinContext context)
         {
             return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
         }
-
+        
         public override Task<SignInStatus> PasswordSignInAsync(string userName, string password, bool isPersistent, bool shouldLockout)
         {
             aspnet_Users foundUser = UserManager.FindByName(userName);
@@ -176,6 +174,8 @@ namespace EdiuxTemplateWebApp
             if (UserManager.PasswordHasher.VerifyHashedPassword(foundUser.aspnet_Membership.Password, password + foundUser.aspnet_Membership.PasswordSalt) == PasswordVerificationResult.Failed)
                 return Task.FromResult(SignInStatus.Failure);
 
+            SignInAsync(foundUser, isPersistent, true);
+          
             return Task.FromResult(SignInStatus.Success);
         }
     }

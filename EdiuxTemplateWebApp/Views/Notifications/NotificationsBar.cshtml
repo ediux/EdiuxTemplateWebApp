@@ -1,4 +1,4 @@
-﻿@model IEnumerable<EdiuxTemplateWebApp.Models.System_Notifications>
+﻿@model IEnumerable<EdiuxTemplateWebApp.Models.AspNetModels.aspnet_WebEvent_Events>
 @{
     Layout = "";
 }
@@ -17,7 +17,7 @@
             @foreach (var notifiymsg in Model)
             {
                 var duringmsg = "";
-                TimeSpan Diff = ((TimeSpan)(DateTime.Now - notifiymsg.CreateTime));
+                TimeSpan Diff = ((TimeSpan)(DateTime.Now - notifiymsg.EventTime));
                 if (Diff.Days > 0)
                 {
                     duringmsg = string.Format("於{0}天前", Diff.Days);
@@ -34,7 +34,7 @@
                 {
                     duringmsg = string.Format("於{0}秒前", Diff.Seconds);
                 }
-                <li> <a href="@Url.Action("Details",new { id = notifiymsg.Id })"> <span class="label label-info"><i class="icon-plus"></i></span> <span class="message">@notifiymsg.Message</span> <span class="time">@duringmsg</span> </a> </li>
+                <li> <a href="@Url.Action("Details",new { id = notifiymsg.EventId })"> <span class="label label-info"><i class="icon-plus"></i></span> <span class="message">@notifiymsg.Message</span> <span class="time">@duringmsg</span> </a> </li>
             }
             <li class="footer"> <a href="@Url.Action("Index")">查看所有通知</a> </li>
         </ul>

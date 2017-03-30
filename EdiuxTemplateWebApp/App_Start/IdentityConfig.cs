@@ -40,13 +40,6 @@ namespace EdiuxTemplateWebApp
         {
 
         }
-  
-
-        public override Task<IdentityResult> AccessFailedAsync(Guid userId)
-        {
-           
-        }
-
        
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {

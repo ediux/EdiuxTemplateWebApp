@@ -67,7 +67,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 : "";
             ViewBag.AccountTotalCount = UserManager.Users.Count();
             ViewBag.NewRegisterCount = UserManager.Users.Where(w => w.aspnet_Membership.CreateDate >= DateTime.Now.AddMinutes(-30)).Count();
-            var userId = User.Identity.GetUserGuid();
+            var userId = User.Identity.GetUserId();
             var model = new IndexViewModel
             {
                 HasPassword = HasPassword(),
@@ -86,10 +86,10 @@ namespace EdiuxTemplateWebApp.Controllers
         public async Task<ActionResult> RemoveLogin(string loginProvider, string providerKey)
         {
             ManageMessageId? message;
-            var result = await UserManager.RemoveLoginAsync(User.Identity.GetUserGuid(), new UserLoginInfo(loginProvider, providerKey));
+            var result = await UserManager.RemoveLoginAsync(User.Identity.GetUserId(), new UserLoginInfo(loginProvider, providerKey));
             if (result.Succeeded)
             {
-                var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+                var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
                 {
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
@@ -121,7 +121,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 return View(model);
             }
             // 產生並傳送 Token
-            var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserGuid(), model.Number);
+            var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserId(), model.Number);
             if (UserManager.SmsService != null)
             {
                 var message = new IdentityMessage
@@ -140,8 +140,8 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> EnableTwoFactorAuthentication()
         {
-            await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserGuid(), true);
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+            await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), true);
+            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
             if (user != null)
             {
                 await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
@@ -155,8 +155,8 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DisableTwoFactorAuthentication()
         {
-            await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserGuid(), false);
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+            await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), false);
+            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
             if (user != null)
             {
                 await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
@@ -168,7 +168,7 @@ namespace EdiuxTemplateWebApp.Controllers
         // GET: /Manage/VerifyPhoneNumber
         public async Task<ActionResult> VerifyPhoneNumber(string phoneNumber)
         {
-            var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserGuid(), phoneNumber);
+            var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserId(), phoneNumber);
             // 透過 SMS 提供者傳送 SMS，以驗證電話號碼
             return phoneNumber == null ? View("Error") : View(new VerifyPhoneNumberViewModel { PhoneNumber = phoneNumber });
         }
@@ -183,10 +183,10 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return View(model);
             }
-            var result = await UserManager.ChangePhoneNumberAsync(User.Identity.GetUserGuid(), model.PhoneNumber, model.Code);
+            var result = await UserManager.ChangePhoneNumberAsync(User.Identity.GetUserId(), model.PhoneNumber, model.Code);
             if (result.Succeeded)
             {
-                var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+                var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
                 {
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
@@ -204,12 +204,12 @@ namespace EdiuxTemplateWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> RemovePhoneNumber()
         {
-            var result = await UserManager.SetPhoneNumberAsync(User.Identity.GetUserGuid(), null);
+            var result = await UserManager.SetPhoneNumberAsync(User.Identity.GetUserId(), null);
             if (!result.Succeeded)
             {
                 return RedirectToAction("Index", new { Message = ManageMessageId.Error });
             }
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
             if (user != null)
             {
                 await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
@@ -234,10 +234,10 @@ namespace EdiuxTemplateWebApp.Controllers
             {
                 return View(model);
             }
-            var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserGuid(), model.OldPassword, model.NewPassword);
+            var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
-                var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+                var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
                 {
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
@@ -263,10 +263,10 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await UserManager.AddPasswordAsync(User.Identity.GetUserGuid(), model.NewPassword);
+                var result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
                 if (result.Succeeded)
                 {
-                    var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+                    var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                     if (user != null)
                     {
                         await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
@@ -288,12 +288,12 @@ namespace EdiuxTemplateWebApp.Controllers
                 message == ManageMessageId.RemoveLoginSuccess ? "已移除外部登入。"
                 : message == ManageMessageId.Error ? "發生錯誤。"
                 : "";
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserGuid());
+            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
             if (user == null)
             {
                 return View("Error");
             }
-            var userLogins = await UserManager.GetLoginsAsync(User.Identity.GetUserGuid());
+            var userLogins = await UserManager.GetLoginsAsync(User.Identity.GetUserId());
             var otherLogins = AuthenticationManager.GetExternalAuthenticationTypes().Where(auth => userLogins.All(ul => auth.AuthenticationType != ul.LoginProvider)).ToList();
             ViewBag.ShowRemoveButton = user.aspnet_Membership.Password != null || userLogins.Count > 1;
             return View(new ManageLoginsViewModel
@@ -310,25 +310,25 @@ namespace EdiuxTemplateWebApp.Controllers
         public ActionResult LinkLogin(string provider)
         {
             // 要求重新導向至外部登入提供者，以連結目前使用者的登入
-            return new AccountController.ChallengeResult(provider, Url.Action("LinkLoginCallback", "Manage"), User.Identity.GetUserGuid().ToString("N"));
+            return new AccountController.ChallengeResult(provider, Url.Action("LinkLoginCallback", "Manage"), User.Identity.GetUserId().ToString("N"));
         }
 
         //
         // GET: /Manage/LinkLoginCallback
         public async Task<ActionResult> LinkLoginCallback()
         {
-            var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserGuid().ToString("N"));
+            var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId().ToString("N"));
             if (loginInfo == null)
             {
                 return RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
             }
-            var result = await UserManager.AddLoginAsync(User.Identity.GetUserGuid(), loginInfo.Login);
+            var result = await UserManager.AddLoginAsync(User.Identity.GetUserId(), loginInfo.Login);
             return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
         }
         #region User Profile Manage
         public ActionResult UserProfile(Guid? id)
         {
-            var userId = id ?? User.Identity.GetUserGuid();
+            var userId = id ?? User.Identity.GetUserId();
             var user = UserManager.FindById(userId);
             UserProfileViewModel model = user.GetProfile<UserProfileViewModel>();
 
@@ -433,7 +433,7 @@ namespace EdiuxTemplateWebApp.Controllers
 
         private bool HasPassword()
         {
-            var user = UserManager.FindById(User.Identity.GetUserGuid());
+            var user = UserManager.FindById(User.Identity.GetUserId());
             if (user != null)
             {
                 return (user.aspnet_Membership.Password != null) && (user.aspnet_Membership.Password.Length > 0);
@@ -443,7 +443,7 @@ namespace EdiuxTemplateWebApp.Controllers
 
         private bool HasPhoneNumber()
         {
-            var user = UserManager.FindById(User.Identity.GetUserGuid());
+            var user = UserManager.FindById(User.Identity.GetUserId());
             if (user != null)
             {
                 return (user.aspnet_Membership.PhoneNumber != null) && (user.aspnet_Membership.PhoneNumber.Length > 0);

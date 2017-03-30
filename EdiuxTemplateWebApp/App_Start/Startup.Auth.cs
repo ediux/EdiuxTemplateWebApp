@@ -33,7 +33,7 @@ namespace EdiuxTemplateWebApp
                     OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, aspnet_Users, Guid>(
                         TimeSpan.FromMinutes(30)
                          , (manager, user) => user.GenerateUserIdentityAsync(manager)
-                        , (x) => x.GetUserGuid())
+                        , (x) => x.GetUserId())
                 }
             });            
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);

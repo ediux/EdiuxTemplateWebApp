@@ -1,4 +1,5 @@
-﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+﻿using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using Microsoft.AspNet.Identity;
 using Newtonsoft.Json;
 using System;
@@ -32,89 +33,21 @@ namespace EdiuxTemplateWebApp
         }
 
         #region Profile
-            /// <summary>
-            /// 取得反序列化後的個人化資訊
-            /// </summary>
-            /// <typeparam name="T"></typeparam>
-            /// <param name="profileObject"></param>
-            /// <returns></returns>
-        public static T GetProfile<T>(this aspnet_Users profileObject) where T : class
+        /// <summary>
+        /// 取得反序列化後的個人化資訊
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="profileObject"></param>
+        /// <returns></returns>
+        public static UserProfileViewModel GetProfile(this aspnet_Users profileObject)
         {
-            Iaspnet_ProfileRepository profileRepo = RepositoryHelper.Getaspnet_ProfileRepository();
-
-            aspnet_Profile _profileData = profileRepo.Get(profileObject.Id);
-
-            if (_profileData != null)
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                MemoryStream buffer = new MemoryStream(_profileData.PropertyValuesBinary, true);
-                T value = (T)bf.Deserialize(buffer);
-                return value;
-            }
-
-            return default(T);
+            return UserProfileViewModel.Get(profileObject.Id);
         }
 
-        public static T SetProfile<T>(this aspnet_Users user, Action<T> prop) where T : class
+        public static void SetProfile(this aspnet_Users user, UserProfileViewModel prop) 
         {
-            Iaspnet_ProfileRepository profileRepo = RepositoryHelper.Getaspnet_ProfileRepository();
-
-            aspnet_Profile _profileData = profileRepo.Get(user.Id);
-
-            if (_profileData != null)
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                MemoryStream buffer = new MemoryStream(_profileData.PropertyValuesBinary, true);
-                T value = (T)bf.Deserialize(buffer);
-                Dictionary<string, PropertyInfo> props = value.GetProperties<T>();
-                _profileData.PropertyNames = string.Join(";", props.Select(s => s.Key).ToArray());
-                prop.Invoke(value);
-                bf.Serialize(buffer, value);
-                _profileData.PropertyValuesBinary = buffer.ToArray();
-                buffer.Close();
-
-                profileRepo.UnitOfWork.Entry(_profileData).State = System.Data.Entity.EntityState.Modified;
-                profileRepo.UnitOfWork.Commit();
-
-                _profileData = profileRepo.Reload(_profileData);
-                buffer = new MemoryStream(_profileData.PropertyValuesBinary, true);
-                value = (T)bf.Deserialize(buffer);
-                return value;
-            }
-            else
-            {
-                _profileData = new aspnet_Profile();
-                _profileData.UserId = user.Id;
-                T value = Activator.CreateInstance<T>();
-
-                Dictionary<string, PropertyInfo> props = value.GetProperties<T>();
-                _profileData.PropertyNames = string.Join(";", props.Select(s => s.Key).ToArray());
-                _profileData.PropertyValuesString = "";
-
-                prop.Invoke(value);
-
-                BinaryFormatter bf = new BinaryFormatter();
-                MemoryStream buffer = new MemoryStream(_profileData.PropertyValuesBinary, true);
-
-                bf.Serialize(buffer, value);
-
-                _profileData.PropertyValuesBinary = buffer.ToArray();
-                buffer.Close();
-
-                profileRepo.Add(_profileData);
-                profileRepo.UnitOfWork.Commit();
-
-                _profileData = profileRepo.Reload(_profileData);
-                buffer = new MemoryStream(_profileData.PropertyValuesBinary, true);
-                value = (T)bf.Deserialize(buffer);
-                return value;
-            }
-
-
+            UserProfileViewModel.Set(prop, user.Id);
         }
-
-
-
         #endregion
 
         #region Application Information

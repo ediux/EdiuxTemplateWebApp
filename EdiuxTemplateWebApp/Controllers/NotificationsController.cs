@@ -28,7 +28,7 @@ namespace EdiuxTemplateWebApp.Controllers
         [ChildActionOnly]
         public ActionResult NotificationsBar()
         {
-            Guid currentUserId = User.Identity.GetUserGuid();
+            Guid currentUserId = User.Identity.GetUserId();
             var system_Notifications = db.All()
                 .OrderByDescending(o => o.EventId);
 

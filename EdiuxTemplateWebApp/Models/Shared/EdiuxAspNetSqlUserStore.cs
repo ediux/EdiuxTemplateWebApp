@@ -924,15 +924,16 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.GetProfile<ProfileModel>().SecurityStamp = stamp;
-
+                var profile = user.GetProfile();
+                profile.SecurityStamp = stamp;
+                user.SetProfile(profile);
                 //if (user.aspnet_PersonalizationPerUser == null)
                 //{
                 //    throw new Exception(string.Format("The user '{0}' has missed page setting information! ", user.UserName));
                 //}
 
                 //var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
-                
+
                 //user.SetProfile<ProfileModel>((s) => s.SecurityStamp = stamp);
                 return Task.CompletedTask;
             }
@@ -947,20 +948,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                //if (user.aspnet_Membership == null)
-                //{
-                //    throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
-                //}
-
-                //var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
-
-                //ProfileModel profile = user.GetProfile<ProfileModel>();
-
-                //if (profile == null)
-                //    return Task.FromResult<string>("");
-
-                //return Task.FromResult(profile.SecurityStamp);
-                return Task.FromResult(string.Empty);
+                var profile = user.GetProfile();
+                return Task.FromResult(profile.SecurityStamp);
             }
             catch (Exception ex)
             {
@@ -980,9 +969,9 @@ namespace EdiuxTemplateWebApp.Models
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
 
-                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
-
-                ProfileModel profile = user.SetProfile<ProfileModel>((s) => s.TwoFactorEnabled = enabled);
+                var userprofile = user.GetProfile();
+                userprofile.TwoFactorEnabled = enabled;
+                user.SetProfile(userprofile);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -1003,7 +992,7 @@ namespace EdiuxTemplateWebApp.Models
 
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
-                ProfileModel profile = user.GetProfile<ProfileModel>();
+                UserProfileViewModel profile = user.GetProfile();
 
                 if (profile == null)
                     return Task.FromException<bool>(new Exception("Profile is not existed."));

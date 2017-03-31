@@ -65,10 +65,10 @@ namespace EdiuxTemplateWebApp.Filters
                     WriteErrorLog(customerException);
                     return;
                 }
-
+                filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
                 if (appInfo.aspnet_Paths.Any(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path))
                 {
-
+                    
                 }
                 //if (appInfo.isActionInApplication(filterContext.ActionDescriptor))
                 //{

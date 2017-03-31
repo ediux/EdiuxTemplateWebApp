@@ -330,7 +330,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             var userId = id ?? User.Identity.GetUserId();
             var user = UserManager.FindById(userId);
-            UserProfileViewModel model = user.GetProfile<UserProfileViewModel>();
+            UserProfileViewModel model = user.GetProfile();
 
             if (user != null)
             {
@@ -362,14 +362,9 @@ namespace EdiuxTemplateWebApp.Controllers
                     }
                 }
             }
-            model.UserAccountManage = new IndexViewModel
-            {
-                HasPassword = HasPassword(),
-                PhoneNumber = user.aspnet_Membership.PhoneNumber,
-                TwoFactor = false,
-                Logins = user.aspnet_UserLogin.ToList().ConvertAll(s => new UserLoginInfo(s.LoginProvider, s.ProviderKey)),
-                BrowserRemembered = false
-            };
+            model.TwoFactorEnabled = false;
+            model.BrowserRemembered = false;
+          
             //  IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UserManager.UnitOfWork);
             var roleList = user.aspnet_Roles.AsEnumerable();
             var options = appInfo.aspnet_Roles.AsEnumerable();
@@ -389,7 +384,7 @@ namespace EdiuxTemplateWebApp.Controllers
             var user = await UserManager.FindByIdAsync(userId);
             if (user != null)
             {
-                UserProfileViewModel profileInDb = user.GetProfile<UserProfileViewModel>();
+                UserProfileViewModel profileInDb = user.GetProfile();
 
 
 
@@ -397,7 +392,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 await UserManager.UpdateAsync(user);
             }
 
-            return RedirectToAction("UserProfile", new { Id = userProfile.UserId });
+            return RedirectToAction("UserProfile", new { Id = id });
         }
         #endregion
         protected override void Dispose(bool disposing)

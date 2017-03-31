@@ -21,9 +21,10 @@ namespace EdiuxTemplateWebApp.Controllers
    
                 return;
             }
-#endif
+#else
             base.OnException(filterContext);
-           
+#endif
+
         }
 
         protected override void HandleUnknownAction(string actionName)

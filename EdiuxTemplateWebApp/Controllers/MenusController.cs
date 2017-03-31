@@ -93,7 +93,7 @@ namespace EdiuxTemplateWebApp.Controllers
 
             if (ModelState.IsValid)
             {
-                menus.LastUpdateUserId = menus.CreateUserId = User.Identity.GetUserGuid();
+                menus.LastUpdateUserId = menus.CreateUserId = User.Identity.GetUserId();
                 menus.LastUpdateTime = menus.CreateTime = DateTime.Now;
                 menus.Void = false;
 
@@ -147,7 +147,7 @@ namespace EdiuxTemplateWebApp.Controllers
                 menuindb.IsNoActionPage = menus.IsNoActionPage;
                 menuindb.IsRightAligned = menus.IsRightAligned;
                 menuindb.LastUpdateTime = DateTime.UtcNow;
-                menuindb.LastUpdateUserId = User.Identity.GetUserGuid();
+                menuindb.LastUpdateUserId = User.Identity.GetUserId();
                 menuindb.Name = menus.Name;
                 menuindb.Order = menus.Order;
                 menuindb.ParentMenuId = menus.ParentMenuId;
@@ -186,7 +186,7 @@ namespace EdiuxTemplateWebApp.Controllers
             Menus menu = menuRepo.Get(id);
 
             menu.Void = true;
-            menu.LastUpdateUserId = User.Identity.GetUserGuid();
+            menu.LastUpdateUserId = User.Identity.GetUserId();
             menu.LastUpdateTime = DateTime.UtcNow;
 
             menuRepo.UnitOfWork.Entry(menu).State = EntityState.Modified;
@@ -339,7 +339,7 @@ namespace EdiuxTemplateWebApp.Controllers
 
             aspnet_Roles role = menu.aspnet_Roles.SingleOrDefault(s => s.Id == RoleId);
 
-            menu.LastUpdateUserId = User.Identity.GetUserGuid();
+            menu.LastUpdateUserId = User.Identity.GetUserId();
             menu.LastUpdateTime = DateTime.UtcNow;
             menu.aspnet_Roles.Remove(role);
 

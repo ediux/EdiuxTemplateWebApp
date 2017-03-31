@@ -149,48 +149,5 @@ namespace EdiuxTemplateWebApp.Models
         public string Email { get; set; }
     }
 
-    public class ProfileModel
-    {
-        private IUnitOfWork InternalUnitOfWork;
-        public ProfileModel()
-        {
-            PropertyChanged += ProfileModel_PropertyChanged;
-            userId = Guid.Empty;
-        }
-
-        public ProfileModel(IUnitOfWork UnitOfwork ):this()
-        {
-            InternalUnitOfWork = UnitOfwork ;
-        }
-
-        private Guid userId;
-        public Guid UserId { get { return userId; } set { userId = value; RaiseChange(nameof(UserId)); } }
-
-        private void ProfileModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            Iaspnet_ProfileRepository profileRepo = RepositoryHelper.Getaspnet_ProfileRepository();
-
-            aspnet_Profile profile = profileRepo.Get(userId);
-
-            profile.PropertyValuesString = JsonConvert.SerializeObject(this);
-            profile.PropertyValuesBinary = System.Text.Encoding.Unicode.GetBytes(profile.PropertyValuesString);
-
-            profileRepo.UnitOfWork.Entry(profile).State = System.Data.Entity.EntityState.Modified;
-            profileRepo.UnitOfWork.Commit();
-        }
-
-        private bool twoFactorEnabled;
-        public bool TwoFactorEnabled { get { return twoFactorEnabled; } set { twoFactorEnabled = value; RaiseChange(nameof(TwoFactorEnabled)); } }
-
-        private string securityStamp = string.Empty;
-        public string SecurityStamp { get { return securityStamp; } set { securityStamp = value; RaiseChange(nameof(SecurityStamp)); } }
-
-        
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void RaiseChange(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-    }
+   
 }

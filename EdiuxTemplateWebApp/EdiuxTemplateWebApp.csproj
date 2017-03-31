@@ -229,7 +229,7 @@
     <Compile Include="Helpers\WebHelper.cs" />
     <Compile Include="Interfaces\ICacheProvider.cs" />
     <Compile Include="Interfaces\IDataRepository.cs" />
-    <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\Identity\AccountViewModels.cs" />
     <Compile Include="Models\AspNetModels\aspnetdb.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -800,12 +800,13 @@
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\TablesToCheck.cs" />
-    <Compile Include="Models\EdiuxAspNetSqlUserStore.cs" />
+    <Compile Include="Models\Identity\PageSettingsBaseModel.cs" />
+    <Compile Include="Models\Shared\EdiuxAspNetSqlUserStore.cs" />
     <Compile Include="Models\IdentityModels.cs" />
-    <Compile Include="Models\ManageViewModels.cs" />
-    <Compile Include="Models\MyPagedList.cs" />
-    <Compile Include="Models\RegisterForAdminsViewModel.cs" />
-    <Compile Include="Models\UserProfileViewModel.cs" />
+    <Compile Include="Models\Identity\ManageViewModels.cs" />
+    <Compile Include="Models\Shared\MyPagedList.cs" />
+    <Compile Include="Models\Identity\RegisterForAdminsViewModel.cs" />
+    <Compile Include="Models\Shared\UserProfileViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>

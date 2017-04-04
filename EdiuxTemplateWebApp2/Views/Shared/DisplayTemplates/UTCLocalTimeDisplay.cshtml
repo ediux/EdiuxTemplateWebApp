@@ -1,0 +1,2 @@
+﻿@model DateTime?
+@((Model != null && Model.HasValue)? Model.Value.ToString("yyyy/MM/dd tt hh:mm"): "") 

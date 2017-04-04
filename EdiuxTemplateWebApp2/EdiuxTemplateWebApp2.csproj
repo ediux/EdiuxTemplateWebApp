@@ -1,0 +1,819 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BB65D4AD-9339-4405-83A6-4C48A652EED2}</ProjectGuid>
+    <ProjectTypeGuids>{349C5851-65DF-11DA-9384-00065B846F21};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>EdiuxTemplateWebApp</RootNamespace>
+    <AssemblyName>EdiuxTemplateWebApp2</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Web.Razor">
+      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.3\lib\net45\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure">
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Helpers">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc">
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web.Http">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.3\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin">
+      <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin">
+      <HintPath>..\packages\Microsoft.Owin.3.0.1\lib\net45\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.Owin">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Owin.5.2.3\lib\net45\System.Web.Http.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security">
+      <HintPath>..\packages\Microsoft.Owin.Security.3.0.1\lib\net45\Microsoft.Owin.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.OAuth">
+      <HintPath>..\packages\Microsoft.Owin.Security.OAuth.3.0.1\lib\net45\Microsoft.Owin.Security.OAuth.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.Core">
+      <HintPath>..\packages\Microsoft.AspNet.Identity.Core.2.2.1\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.Owin">
+      <HintPath>..\packages\Microsoft.AspNet.Identity.Owin.2.2.1\lib\net45\Microsoft.AspNet.Identity.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Cookies">
+      <HintPath>..\packages\Microsoft.Owin.Security.Cookies.3.0.1\lib\net45\Microsoft.Owin.Security.Cookies.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Google">
+      <HintPath>..\packages\Microsoft.Owin.Security.Google.3.0.1\lib\net45\Microsoft.Owin.Security.Google.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="Microsoft.Owin.Security.Facebook">
+      <HintPath>..\packages\Microsoft.Owin.Security.Facebook.3.0.1\lib\net45\Microsoft.Owin.Security.Facebook.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.MicrosoftAccount">
+      <HintPath>..\packages\Microsoft.Owin.Security.MicrosoftAccount.3.0.1\lib\net45\Microsoft.Owin.Security.MicrosoftAccount.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Hosting">
+      <HintPath>..\packages\Microsoft.Owin.Hosting.3.0.1\lib\net45\Microsoft.Owin.Hosting.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.HttpListener">
+      <HintPath>..\packages\Microsoft.Owin.Host.HttpListener.3.0.1\lib\net45\Microsoft.Owin.Host.HttpListener.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Cors">
+      <HintPath>..\packages\Microsoft.AspNet.Cors.5.2.3\lib\net45\System.Web.Cors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.Cors">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Cors.5.2.3\lib\net45\System.Web.Http.Cors.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.EntityFramework">
+      <HintPath>..\packages\Microsoft.AspNet.Identity.EntityFramework.2.2.1\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime">
+      <HintPath>..\packages\Antlr.3.4.1.9004\lib\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="WebGrease">
+      <HintPath>..\packages\WebGrease.1.5.2\lib\WebGrease.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="Elmah">
+      <HintPath>..\packages\elmah.corelibrary.1.2\lib\Elmah.dll</HintPath>
+    </Reference>
+    <Reference Include="Elmah.Mvc">
+      <HintPath>..\packages\Elmah.Mvc.2.1.2\lib\net40\Elmah.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="PagedList">
+      <HintPath>..\packages\PagedList.1.17.0.0\lib\net40\PagedList.dll</HintPath>
+    </Reference>
+    <Reference Include="PagedList.Mvc">
+      <HintPath>..\packages\PagedList.Mvc.4.5.0.0\lib\net40\PagedList.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="AntiXssLibrary">
+      <HintPath>..\packages\AntiXSS.4.3.0\lib\net40\AntiXssLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlSanitizationLibrary">
+      <HintPath>..\packages\AntiXSS.4.3.0\lib\net40\HtmlSanitizationLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="Microsoft.Owin.Host.SystemWeb">
+      <HintPath>..\packages\Microsoft.Owin.Host.SystemWeb.3.0.1\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Content\" />
+    <Folder Include="Models\" />
+    <Folder Include="Scripts\" />
+    <Folder Include="Filters\" />
+    <Folder Include="Models\Identity\" />
+    <Folder Include="Models\Shared\" />
+    <Folder Include="Models\AspNetModels\" />
+    <Folder Include="Views\Account\" />
+    <Folder Include="Views\AccountsManage\" />
+    <Folder Include="Views\Demo\" />
+    <Folder Include="Views\Manage\" />
+    <Folder Include="Views\Menus\" />
+    <Folder Include="Views\Notifications\" />
+    <Folder Include="Views\SystemApplications\" />
+    <Folder Include="Views\Shared\DisplayTemplates\" />
+    <Folder Include="Views\Shared\EditorTemplates\" />
+    <Folder Include="Content\assets\" />
+    <Folder Include="Content\css\" />
+    <Folder Include="Content\font\" />
+    <Folder Include="Content\font-awesome-4.0.3\" />
+    <Folder Include="Content\fonts\" />
+    <Folder Include="Content\images\" />
+    <Folder Include="Content\img\" />
+    <Folder Include="Content\javascript\" />
+    <Folder Include="Content\js\" />
+    <Folder Include="Content\style\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="Models\AspNetModels\DBService\" />
+    <Folder Include="Models\AspNetModels\StoredProcedures\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\IdentityConfig.cs" />
+    <Compile Include="App_Start\Startup.Auth.cs" />
+    <Compile Include="App_Start\Startup.DataStore.cs" />
+    <Compile Include="Filters\AjaxValidateAntiForgeryTokenAttribute.cs" />
+    <Compile Include="Filters\ApplicationIdentifyAttribute.cs" />
+    <Compile Include="Filters\ComponentRegistrationAttribute.cs" />
+    <Compile Include="Filters\DbAuthorizeAttribute.cs" />
+    <Compile Include="Filters\ElmahErrorAttribute.cs" />
+    <Compile Include="Filters\MappingParentMenuIdAttribute.cs" />
+    <Compile Include="Filters\MappingPathIdAttribute.cs" />
+    <Compile Include="Models\Identity\AccountViewModels.cs" />
+    <Compile Include="Models\Identity\IdentityModels.cs" />
+    <Compile Include="Models\Identity\ManageViewModels.cs" />
+    <Compile Include="Models\Identity\PageSettingsBaseModel.cs" />
+    <Compile Include="Models\Identity\RegisterForAdminsViewModel.cs" />
+    <Compile Include="Models\Shared\EdiuxAspNetSqlUserStore.cs" />
+    <Compile Include="Models\Shared\MyPagedList.cs" />
+    <Compile Include="Models\Shared\UserProfileViewModel.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\AspNetDbEntities2.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\Menus.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\Menus.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\Others.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_AnyDataInTables_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Applications.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Applications.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPasswordWithFormat_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPasswordWithFormat_Result.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPassword_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPassword_Result.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByEmail_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByName_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByName_Result.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByUserId_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByUserId_Result.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Paths.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Paths.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers_GetPageSettings_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser_GetPageSettings_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_DeleteInactiveProfiles_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_DeleteProfiles_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_GetNumberOfInactiveProfiles_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_GetProperties_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_GetProperties_Result.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles_GetAllRoles_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_SchemaVersions.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_SchemaVersions.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserClaims.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserClaims.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserLogin.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserLogin.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Users.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Users.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_AddUsersToRoles_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_FindUsersInRole_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_GetRolesForUser_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_GetUsersInRoles_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_RemoveUsersFromRoles_Result.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_RemoveUsersFromRoles_Result.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_VoidUsers.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_VoidUsers.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_WebEvent_Events.Partial.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_WebEvent_Events.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AccountsManageController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\DemoController.cs" />
+    <Compile Include="Controllers\ErrorController.cs" />
+    <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Controllers\MenusController.cs" />
+    <Compile Include="Controllers\NotificationsController.cs" />
+    <Compile Include="Controllers\SystemApplicationsController.cs" />
+    <Compile Include="Helpers\ConfigHelper.cs" />
+    <Compile Include="Helpers\IdentityFrameworkExtensions.cs" />
+    <Compile Include="Helpers\SecurityHelper.cs" />
+    <Compile Include="Helpers\StoredProcedureExtension.cs" />
+    <Compile Include="Helpers\UserStoreExtension.cs" />
+    <Compile Include="Helpers\WebHelper.cs" />
+    <Compile Include="Models\AspNetModels\TablesToCheck.cs" />
+    <Compile Include="Models\AspNetModels\DBService\aspnet_ApplicationsRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_MembershipRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_PathsRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_PersonalizationAllUsersRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_PersonalizationPerUserRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_ProfileRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_RolesRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_SchemaVersionsRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_UserClaimsRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_UserLoginRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_UsersRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_VoidUsersRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\aspnet_WebEvent_EventsRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\EFRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\EFUnitOfWork.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\IRepositoryBase.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\IUnitOfWork.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\MenusRepository.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DBService\RepositoryHelper.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_AnyDataInTables_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Applications_CreateApplication_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_CheckSchemaVersion_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_ChangePasswordQuestionAndAnswer_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_CreateUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_FindUsersByEmail_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_FindUsersByName_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_GetAllUsers_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_GetNumberOfUsersOnline_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_GetPassword_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_GetPasswordWithFormat_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_GetUserByEmail_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_GetUserByName_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_GetUserByUserId_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_ResetPassword_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_SetPassword_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_UnlockUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_UpdateUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Membership_UpdateUserInfo_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Paths_CreatePath_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Personalization_GetApplicationId_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAdministration_DeleteAllState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAdministration_FindState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAdministration_GetCountOfState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAdministration_ResetSharedState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAdministration_ResetUserState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAllUsers_GetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAllUsers_ResetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationAllUsers_SetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationPerUser_GetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationPerUser_ResetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_PersonalizationPerUser_SetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Profile_DeleteInactiveProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Profile_DeleteProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Profile_GetNumberOfInactiveProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Profile_GetProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Profile_GetProperties_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Profile_SetProperties_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_RegisterSchemaVersion_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Roles_CreateRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Roles_DeleteRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Roles_GetAllRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Roles_RoleExists_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Setup_RemoveAllRoleMembers_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Setup_RestorePermissions_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_UnRegisterSchemaVersion_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Users_CreateUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_Users_DeleteUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_UsersInRoles_AddUsersToRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_UsersInRoles_FindUsersInRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_UsersInRoles_GetRolesForUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_UsersInRoles_GetUsersInRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_UsersInRoles_IsUserInRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_UsersInRoles_RemoveUsersFromRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_WebEvent_LogEvent_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_AnyDataInTables_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Applications_CreateApplication_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_CheckSchemaVersion_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_ChangePasswordQuestionAndAnswer_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_CreateUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_FindUsersByEmail_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_FindUsersByName_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_GetAllUsers_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_GetNumberOfUsersOnline_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_GetPassword_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_GetPasswordWithFormat_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_GetUserByEmail_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_GetUserByName_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_GetUserByUserId_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_ResetPassword_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_SetPassword_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_UnlockUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_UpdateUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Membership_UpdateUserInfo_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Paths_CreatePath_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Personalization_GetApplicationId_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAdministration_DeleteAllState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAdministration_FindState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAdministration_GetCountOfState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAdministration_ResetSharedState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAdministration_ResetUserState_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAllUsers_GetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAllUsers_ResetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationAllUsers_SetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationPerUser_GetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationPerUser_ResetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_PersonalizationPerUser_SetPageSettings_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Profile_DeleteInactiveProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Profile_DeleteProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Profile_GetNumberOfInactiveProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Profile_GetProfiles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Profile_GetProperties_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Profile_SetProperties_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_RegisterSchemaVersion_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Roles_CreateRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Roles_DeleteRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Roles_GetAllRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Roles_RoleExists_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Setup_RemoveAllRoleMembers_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Setup_RestorePermissions_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_UnRegisterSchemaVersion_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Users_CreateUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_Users_DeleteUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_UsersInRoles_AddUsersToRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_UsersInRoles_FindUsersInRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_UsersInRoles_GetRolesForUser_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_UsersInRoles_GetUsersInRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_UsersInRoles_IsUserInRole_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_UsersInRoles_RemoveUsersFromRoles_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\SP_Output_aspnet_WebEvent_LogEvent_Parameter.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\StoredProcedures\StoredProcedures.cs">
+      <DependentUpon>..\..\..\..\EdiuxTemplateWebApp\Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4</DependentUpon>
+    </Compile>
+    <Compile Include="TaskExtensions.cs" />
+    <Compile Include="Startup.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Web.config" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Web.config" />
+    <Content Include="Global.asax" />
+    <Content Include="packages.config" />
+    <Content Include="Views\Account\_ExternalLoginsListPartial.cshtml" />
+    <Content Include="Views\Account\ConfirmEmail.cshtml" />
+    <Content Include="Views\Account\ExternalLoginConfirmation.cshtml" />
+    <Content Include="Views\Account\ExternalLoginFailure.cshtml" />
+    <Content Include="Views\Account\ForgotPassword.cshtml" />
+    <Content Include="Views\Account\ForgotPasswordConfirmation.cshtml" />
+    <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Account\Register.cshtml" />
+    <Content Include="Views\Account\ResetPassword.cshtml" />
+    <Content Include="Views\Account\ResetPasswordConfirmation.cshtml" />
+    <Content Include="Views\Account\SendCode.cshtml" />
+    <Content Include="Views\Account\VerifyCode.cshtml" />
+    <Content Include="Views\AccountsManage\Create.cshtml" />
+    <Content Include="Views\AccountsManage\Delete.cshtml" />
+    <Content Include="Views\AccountsManage\Details.cshtml" />
+    <Content Include="Views\AccountsManage\Edit.cshtml" />
+    <Content Include="Views\AccountsManage\Index.cshtml" />
+    <Content Include="Views\Demo\Accordions.cshtml" />
+    <Content Include="Views\Demo\Buttons.cshtml" />
+    <Content Include="Views\Demo\Chart.cshtml" />
+    <Content Include="Views\Demo\Dialogs.cshtml" />
+    <Content Include="Views\Demo\DropzoneFileUpload.cshtml" />
+    <Content Include="Views\Demo\DynamicTable.cshtml" />
+    <Content Include="Views\Demo\FormElements.cshtml" />
+    <Content Include="Views\Demo\FormMasks.cshtml" />
+    <Content Include="Views\Demo\FormValidation.cshtml" />
+    <Content Include="Views\Demo\General.cshtml" />
+    <Content Include="Views\Demo\Grid.cshtml" />
+    <Content Include="Views\Demo\Icons.cshtml" />
+    <Content Include="Views\Demo\IconsNew.cshtml" />
+    <Content Include="Views\Demo\Index.cshtml" />
+    <Content Include="Views\Demo\MultipleFileUpload.cshtml" />
+    <Content Include="Views\Demo\NestableList.cshtml" />
+    <Content Include="Views\Demo\StaticTable.cshtml" />
+    <Content Include="Views\Demo\Tabs.cshtml" />
+    <Content Include="Views\Manage\AddPhoneNumber.cshtml" />
+    <Content Include="Views\Manage\ChangePassword.cshtml" />
+    <Content Include="Views\Manage\Index.cshtml" />
+    <Content Include="Views\Manage\ManageLogins.cshtml" />
+    <Content Include="Views\Manage\SetPassword.cshtml" />
+    <Content Include="Views\Manage\UserProfile.cshtml" />
+    <Content Include="Views\Manage\VerifyPhoneNumber.cshtml" />
+    <Content Include="Views\Menus\Create.cshtml" />
+    <Content Include="Views\Menus\Delete.cshtml" />
+    <Content Include="Views\Menus\Details.cshtml" />
+    <Content Include="Views\Menus\Edit.cshtml" />
+    <Content Include="Views\Menus\Index.cshtml" />
+    <Content Include="Views\Menus\ListMenuInRoles.cshtml" />
+    <Content Include="Views\Notifications\Create.cshtml" />
+    <Content Include="Views\Notifications\Delete.cshtml" />
+    <Content Include="Views\Notifications\Details.cshtml" />
+    <Content Include="Views\Notifications\Edit.cshtml" />
+    <Content Include="Views\Notifications\Index.cshtml" />
+    <Content Include="Views\Notifications\NotificationsBar.cshtml" />
+    <Content Include="Views\SystemApplications\Create.cshtml" />
+    <Content Include="Views\SystemApplications\Delete.cshtml" />
+    <Content Include="Views\SystemApplications\Details.cshtml" />
+    <Content Include="Views\SystemApplications\Edit.cshtml" />
+    <Content Include="Views\SystemApplications\Index.cshtml" />
+    <Content Include="Views\Home\About.cshtml" />
+    <Content Include="Views\Home\Contact.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\CarTypeDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\EnabledDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\LockedStateDispaly.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\Password.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\RoleIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\UserIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\UTCLocalDateDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\UTCLocalTimeDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\VoidDisplay.cshtml" />
+    <Content Include="Views\Shared\DisplayTemplates\YesNoDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\CarTypeDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\EnabledDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Html.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\LockedStateDispaly.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Password.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\RoleIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\UserIDMappingDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\UTCLocalDateDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\UTCLocalTimeDisplay.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\VoidDisplay.cshtml" />
+    <Content Include="Views\Shared\_LoginPartial.cshtml" />
+    <Content Include="Views\Shared\_MenuBarPartial.cshtml" />
+    <Content Include="Views\Shared\_SubMenuBarPartial.cshtml" />
+    <Content Include="Views\Shared\_ThemeChanger.cshtml" />
+    <Content Include="Views\Shared\DbEntityValidationException.cshtml" />
+    <Content Include="Views\Shared\Lockout.cshtml" />
+    <Content Include="Content\PagedList.css" />
+    <Content Include="Content\Site.css" />
+    <Content Include="Content\css\bootstrap.css" />
+    <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\css\demo_page.css" />
+    <Content Include="Content\css\demo_table.css" />
+    <Content Include="Content\css\font-awesome.css" />
+    <Content Include="Content\css\thin-admin.css" />
+    <Content Include="Content\fonts\FontAwesome.otf" />
+    <Content Include="Content\fonts\fontawesome-webfont.eot" />
+    <Content Include="Content\fonts\fontawesome-webfont.svg" />
+    <Content Include="Content\fonts\fontawesome-webfont.ttf" />
+    <Content Include="Content\fonts\fontawesome-webfont.woff" />
+    <Content Include="Content\style\dashboard.css" />
+    <Content Include="Content\style\dropzone.css" />
+    <Content Include="Content\style\fullcalendar.css" />
+    <Content Include="Content\style\fullcalendar.print.css" />
+    <Content Include="Content\style\jquery.jqplot.min.css" />
+    <Content Include="Content\style\lightbox.css" />
+    <Content Include="Content\style\nestable.css" />
+    <Content Include="Content\style\screen.css" />
+    <Content Include="Content\style\slider.css" />
+    <Content Include="Content\style\style - Copy.css" />
+    <Content Include="Content\style\style.css" />
+    <Content Include="Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4" />
+    <Content Include="Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <XspParameters Port="8080" Address="127.0.0.1" SslMode="None" SslProtocol="Default" KeyType="None" CertFile="" KeyFile="" PasswordOptions="None" Password="" Verbose="True" />
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
+</Project>

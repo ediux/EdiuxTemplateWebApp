@@ -1,0 +1,14 @@
+﻿@model Guid?
+@{ 
+    Guid userId = Model ?? Guid.Empty;
+    if (userId == Guid.Empty)
+    {
+        @Html.Raw("訪客")
+    }
+    else
+    {
+        @Html.GetUserName(userId);
+    }
+
+
+}

@@ -1,0 +1,3 @@
+﻿@model string
+@Html.DropDownListFor(m=>m,new SelectListItem[] {
+new SelectListItem() { Text="汽車", Value="C" }, new SelectListItem { Text="機車",Value="M" } },new { @class="form-control" })

@@ -1,0 +1,14 @@
+﻿@model DateTime?
+    @{
+        DateTime UTCTime;
+        if (Model != null && Model.HasValue)
+        {
+            UTCTime = new DateTime(Model.Value.Ticks, DateTimeKind.Utc).ToLocalTime();
+        }
+        else
+        {
+            UTCTime = DateTime.Now;
+        }
+
+    }
+    @UTCTime.ToString("yyyy/MM/dd")

@@ -1,0 +1,129 @@
+﻿@model EdiuxTemplateWebApp.Models.ApplicationUser
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-user"></i>
+                <h3>@ViewBag.Title</h3>
+            </div>
+            <div class="widget-content">
+                <div class="btn-group" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index")" class="btn btn-primary" title="回到帳號清單"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                </div>
+                <div class="btn-group" role="group" aria-label="Second group">
+                    <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-info" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>
+                </div>
+                <hr/>
+                <div>
+                    <dl class="dl-horizontal">
+                        <dt>
+                            @Html.DisplayNameFor(model => model.UserName)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.UserName)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.DisplayName)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.DisplayName)
+                        </dd>
+                        <dt>
+                            @Html.DisplayNameFor(model => model.EMail)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.EMail)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.EMailConfirmed)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.EMailConfirmed)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.PhoneNumber)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.PhoneNumber)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.PhoneConfirmed)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.PhoneConfirmed)
+                        </dd>
+                        <dt>
+                            @Html.DisplayNameFor(model => model.TwoFactorEnabled)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.TwoFactorEnabled)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.Void)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.Void)
+                        </dd>
+                        <dt>
+                            @Html.DisplayNameFor(model => model.CreateUserId)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.CreateUserId)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.CreateTime)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.CreateTime)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.LastUpdateUserId)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.LastUpdateUserId)
+                        </dd>
+
+                        <dt>
+                            @Html.DisplayNameFor(model => model.LastUpdateTime)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.LastUpdateTime)
+                        </dd>
+                        <dt>
+                            角色名稱
+                        </dt>
+
+                        <dd>
+                            @ViewBag.RoleName
+                        </dd>
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

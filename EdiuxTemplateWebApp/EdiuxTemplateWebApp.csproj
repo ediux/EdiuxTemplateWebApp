@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props')" />
+  <Import Project="..\packages\Microsoft.Net.Compilers.2.0.1\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.2.0.1\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -14,7 +14,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>EdiuxTemplateWebApp</RootNamespace>
     <AssemblyName>EdiuxTemplateWebApp</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
@@ -24,6 +23,7 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <NeutralLanguage>zh-TW</NeutralLanguage>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -83,7 +83,6 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Web.DynamicData" />
-    <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -230,50 +229,14 @@
     <Compile Include="Interfaces\ICacheProvider.cs" />
     <Compile Include="Interfaces\IDataRepository.cs" />
     <Compile Include="Models\Identity\AccountViewModels.cs" />
-    <Compile Include="Models\AspNetModels\aspnetdb.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>aspnetdb.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnetdb.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnetdb.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>aspnetdb.edmx</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Applications.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPassword_Result.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_AnyDataInTables_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Applications.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetPasswordWithFormat_Result.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetUserByName_Result.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Membership_GetUserByUserId_Result.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Paths.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPasswordWithFormat_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -293,14 +256,8 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Paths.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_PersonalizationAllUsers.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_PersonalizationPerUser.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers_GetPageSettings_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -308,20 +265,11 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Profile.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser_GetPageSettings_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Profile_GetProperties_Result.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Roles.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_DeleteInactiveProfiles_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -338,32 +286,17 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_SchemaVersions.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles_GetAllRoles_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_SchemaVersions.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_UserClaims.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserClaims.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_UserLogin.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserLogin.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_Users.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_UsersInRoles_RemoveUsersFromRoles_Result.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_Users.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -383,14 +316,8 @@
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_RemoveUsersFromRoles_Result.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_VoidUsers.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_VoidUsers.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\aspnet_WebEvent_Events.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\DataEntity\aspnet_WebEvent_Events.Partial.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -462,9 +389,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>GeneratorDatabaseCodes.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetModels\Menus.cs">
-      <DependentUpon>aspnetdb.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\StoredProcedures\SP_aspnet_AnyDataInTables_Parameter.cs">
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
@@ -802,13 +726,74 @@
     <Compile Include="Models\AspNetModels\TablesToCheck.cs" />
     <Compile Include="Models\Identity\PageSettingsBaseModel.cs" />
     <Compile Include="Models\Shared\EdiuxAspNetSqlUserStore.cs" />
-    <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\Identity\ManageViewModels.cs" />
     <Compile Include="Models\Shared\MyPagedList.cs" />
     <Compile Include="Models\Identity\RegisterForAdminsViewModel.cs" />
     <Compile Include="Models\Shared\UserProfileViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Applications.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPassword_Result.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetPasswordWithFormat_Result.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByName_Result.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Membership_GetUserByUserId_Result.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Paths.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationAllUsers.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_PersonalizationPerUser.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Profile_GetProperties_Result.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Roles.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_SchemaVersions.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserClaims.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UserLogin.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_Users.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_UsersInRoles_RemoveUsersFromRoles_Result.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_VoidUsers.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\aspnet_WebEvent_Events.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\Menus.cs">
+      <DependentUpon>..\aspnetdb.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AspNetModels\DataEntity\AspNetDbEntities2.cs" />
+    <Compile Include="Models\Identity\IdentityModels.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\css\bootstrap.css" />
@@ -837,14 +822,6 @@
     <Content Include="Content\fonts\fontawesome-webfont.ttf" />
     <Content Include="Content\fonts\fontawesome-webfont.woff" />
     <Content Include="Content\fonts\FontAwesome.otf" />
-    <EntityDeploy Include="Models\AspNetModels\aspnetdb.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>aspnetdb.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>EdiuxTemplateWebApp.Models.AspNetModels</CustomToolNamespace>
-    </EntityDeploy>
-    <Content Include="Models\AspNetModels\aspnetdb.edmx.diagram">
-      <DependentUpon>aspnetdb.edmx</DependentUpon>
-    </Content>
     <Content Include="Models\AspNetModels\DataEntity\GeneratorDatabaseCodes.tt.txt4" />
     <Content Include="Models\AspNetModels\DBService\GeneratorDatabaseCodes.tt.txt4" />
     <Content Include="Models\AspNetModels\StoredProcedures\GeneratorDatabaseCodes.tt.txt4" />
@@ -852,16 +829,6 @@
     <None Include="Properties\PublishProfiles\ediuxcity - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\localRelease.pubxml" />
     <None Include="Scripts\jquery-3.1.1.intellisense.js" />
-    <Content Include="Models\AspNetModels\aspnetdb.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>aspnetdb.edmx</DependentUpon>
-      <LastGenOutput>aspnetdb.Context.cs</LastGenOutput>
-    </Content>
-    <Content Include="Models\AspNetModels\aspnetdb.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>aspnetdb.edmx</DependentUpon>
-      <LastGenOutput>aspnetdb.cs</LastGenOutput>
-    </Content>
     <Content Include="Models\AspNetModels\GeneratorDatabaseCodes.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>GeneratorDatabaseCodes.cs</LastGenOutput>
@@ -1042,16 +1009,4 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>此專案參考這部電腦上所缺少的 NuGet 封裝。請啟用 NuGet 封裝還原，以下載該封裝。如需詳細資訊，請參閱 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的檔案是 {0}。</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target> -->
 </Project>

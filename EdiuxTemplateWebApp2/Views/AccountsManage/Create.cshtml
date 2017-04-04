@@ -1,0 +1,98 @@
+﻿@model EdiuxTemplateWebApp.Models.RegisterForAdminsViewModel
+
+@{
+    ViewBag.Title = "建立帳號";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-user"></i>
+                <h3>@ViewBag.Title</h3>
+            </div>
+            <div class="widget-content">
+                <div class="btn-group" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index")" class="btn btn-primary" title="回到帳號清單"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                </div>
+                <hr />
+                @using (Html.BeginForm("Create", "AccountsManage", FormMethod.Post, new { @class = "form-horizontal" }))
+            {
+                    <fieldset>
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                @Html.LabelFor(model => model.UserName, htmlAttributes: new { @for = Html.IdFor(p => p.UserName), @class = "control-label" })
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { @id = Html.IdFor(p => p.UserName), @placeholder = "帳號名稱", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "help-block text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                @Html.LabelFor(model => model.DisplayName, htmlAttributes: new { @for = Html.IdFor(p => p.DisplayName), @class = "control-label" })
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    @Html.EditorFor(model => model.DisplayName, new { htmlAttributes = new { @id = Html.IdFor(p => p.DisplayName), @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.DisplayName, "", new { @class = "help-block text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                @Html.LabelFor(model => model.Email, htmlAttributes: new { @for = Html.IdFor(p => p.Email), @class = "control-label" })
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @id = Html.IdFor(p => p.Email), @placeholder = "@example.com", @class = "form-control" } })
+                                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "help-block text-danger" })                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                @Html.LabelFor(model => model.Password, htmlAttributes: new { @for = Html.IdFor(p => p.Password), @class = "control-label" })
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    @Html.PasswordFor(model => model.Password,new { @id = Html.IdFor(p => p.Password), @class = "form-control" })
+                               
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                @Html.LabelFor(model => model.ConfirmPassword, htmlAttributes: new { @for = Html.IdFor(p => p.ConfirmPassword), @class = "control-label" })
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    @Html.PasswordFor(model => model.ConfirmPassword, new { @class = "form-control" })
+                   
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                @Html.LabelFor(model => model.Role.Name, htmlAttributes: new { @for = Html.IdFor(p => p.RoleId), @class = "control-label" })
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    @Html.DropDownListFor(model => model.RoleId,null, new { @id = Html.IdFor(p => p.RoleId), @class = "form-control" })
+                                    @Html.ValidationMessageFor(model => model.RoleId, "", new { @class = "help-block text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="panel-footer text-right">
+                        <input type="submit" value="建立帳號" class="btn btn-success" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

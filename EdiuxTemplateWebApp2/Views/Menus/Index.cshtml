@@ -1,0 +1,89 @@
+﻿@model IEnumerable<Menus>
+
+@{
+    ViewBag.Title = "選單管理";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-list"></i>
+                <h3>@ViewBag.Title</h3>
+            </div>
+            <div class="widget-content">
+
+                <div class="btn-group m-r-5" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index","Manage")" class="btn btn-primary" title="回到選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                </div>
+                <div class="btn-group m-l-5" role="group" aria-label="First group">
+                    <a href="@Url.Action("Create")" class="btn btn-info" title="新增選單"><i class="glyphicon glyphicon-plus"></i></a>
+                </div>
+                <hr />
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover ">
+                        <thead>
+                            <tr class="info">
+                                <th class="hidden-xs hidden-sm">
+                                    @Html.DisplayNameFor(model => model.IconCSS)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Name)
+                                </th>
+                                <th class="hidden-xs hidden-sm">
+                                    @Html.DisplayNameFor(model => model.CreateUserId)
+                                </th>
+                                <th class="hidden-xs hidden-sm">
+                                    @Html.DisplayNameFor(model => model.CreateTime)
+                                </th>
+                                <th class="hidden-xs hidden-sm">
+                                    @Html.DisplayNameFor(model => model.LastUpdateUserId)
+                                </th>
+                                <th class="hidden-xs hidden-sm">
+                                    @Html.DisplayNameFor(model => model.LastUpdateTime)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.ParentMenu)
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="hidden-xs hidden-sm " title="@item.IconCSS">
+                                        <i class="@item.IconCSS text-center"></i>
+                                    </td>
+                                    <td class="text-justify">
+                                        @Html.DisplayFor(modelItem => item.Name)
+                                    </td>
+                                    <td class="hidden-xs hidden-sm">
+                                        @Html.DisplayFor(modelItem => item.CreateUserId)
+                                    </td>
+                                    <td class="hidden-xs hidden-sm">
+                                        @Html.DisplayFor(modelItem => item.CreateTime)
+                                    </td>
+                                    <td class="hidden-xs hidden-sm">
+                                        @Html.DisplayFor(modelItem => item.LastUpdateUserId)
+                                    </td>
+                                    <td class="hidden-xs hidden-sm">
+                                        @Html.DisplayFor(modelItem => item.LastUpdateTime)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.ParentMenu.Name)
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-primary btn-xs m-r-5" title="編輯"><i class="glyphicon glyphicon-edit"></i></a>
+                                        <a href="@Url.Action("Details", new { id = item.Id })" class="btn btn-info btn-xs m-r-5" title="詳細"><i class="glyphicon glyphicon-info-sign"></i></a>
+                                        <a href="@Url.Action("Delete", new { id = item.Id })" class="btn btn-danger btn-xs m-r-5" title="刪除"><i class="glyphicon glyphicon-remove"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

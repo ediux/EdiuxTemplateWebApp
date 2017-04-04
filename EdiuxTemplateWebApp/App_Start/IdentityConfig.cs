@@ -6,7 +6,6 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp
@@ -40,7 +39,7 @@ namespace EdiuxTemplateWebApp
         {
 
         }
-       
+
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {
             var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<IUnitOfWork>()));
@@ -139,11 +138,11 @@ namespace EdiuxTemplateWebApp
         {
             return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
         }
-        
+
         public override Task<SignInStatus> PasswordSignInAsync(string userName, string password, bool isPersistent, bool shouldLockout)
         {
             aspnet_Users foundUser = UserManager.FindByName(userName);
-            
+
             if (foundUser == null)
                 return Task.FromResult(SignInStatus.Failure);
 
@@ -160,7 +159,7 @@ namespace EdiuxTemplateWebApp
                 {
                     foundUser.aspnet_Membership.Password = UserManager.PasswordHasher.HashPassword(foundUser.aspnet_Membership.Password + foundUser.aspnet_Membership.PasswordSalt);
                     foundUser.aspnet_Membership.PasswordFormat = (int)System.Web.Security.MembershipPasswordFormat.Hashed;
-                    UserManager.UpdateAsync(foundUser);               
+                    UserManager.UpdateAsync(foundUser);
                 }
             }
 
@@ -168,7 +167,7 @@ namespace EdiuxTemplateWebApp
                 return Task.FromResult(SignInStatus.Failure);
 
             SignInAsync(foundUser, isPersistent, true);
-          
+
             return Task.FromResult(SignInStatus.Success);
         }
     }

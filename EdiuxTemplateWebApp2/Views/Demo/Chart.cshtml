@@ -1,0 +1,111 @@
+﻿
+@{
+    ViewBag.Title = "Chart";
+}
+@section pagelevelcss{
+    <link rel="stylesheet" type="text/css" href="/Content/style/jquery.jqplot.min.css" />
+}
+@section pagelevelscripts{
+    <script class="include" type="text/javascript" src="/Content/javascript/jquery191.min.js"></script>
+    <script class="include" type="text/javascript" src="/Content/javascript/jquery.jqplot.min.js"></script> 
+}
+@section scripts{
+    <!-- Additional plugins go here -->
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.barRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.highlighter.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.cursor.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.pointLabels.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/bar-animated.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/widget.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.dateAxisRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.logAxisRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.canvasTextRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.canvasAxisTickRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/jqplot.pieRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/pie-test.js"></script>
+<script class="include" language="javascript" type="text/javascript" src="/Content/javascript/jqplot.donutRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/donut-render.js"></script>
+<script class="include" language="javascript" type="text/javascript" src="/Content/javascript/jqplot.categoryAxisRenderer.min.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/bar-charts.js"></script>
+<script class="include" type="text/javascript" src="/Content/javascript/line-charts.js"></script>
+<!-- End additional plugins -->
+    }
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="page-title">Charts and Statistics</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-tasks"></i>
+                <h3>Bar Line Animated</h3>
+            </div>
+            <div class="widget-content">
+                <div id="chart1" style="width:100%; height:350px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-tasks"></i>
+                <h3>Pie Test</h3>
+            </div>
+            <div class="widget-content">
+                <div id="chart7" style="width:100%; height:350px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-tasks"></i>
+                <h3>Dashboard Widget</h3>
+            </div>
+            <div class="widget-content">
+                <div id="chart2" style="width:100%; height:350px"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-tasks"></i>
+                <h3>Pie donut charts</h3>
+            </div>
+            <div class="widget-content">
+                <div id="chart3" style="height:350px; width:100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-tasks"></i>
+                <h3>Axis Renderer</h3>
+            </div>
+            <div class="widget-content">
+                <div id="chart4" style="width:100%; height:350px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-tasks"></i>
+                <h3>Line Charts</h3>
+            </div>
+            <div class="widget-content">
+                <div id="chart5" style="height:350px; width:100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+

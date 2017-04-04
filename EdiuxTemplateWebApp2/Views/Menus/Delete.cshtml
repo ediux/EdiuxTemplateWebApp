@@ -1,0 +1,82 @@
+﻿@model EdiuxTemplateWebApp.Models.AspNetModels.Menus
+
+@{
+    ViewBag.Title = "刪除選單";
+}
+<div class="row">
+    <div class="col-md-6">
+        <div class="widget">
+            <div class="widget-header">
+                <i class="icon-list"></i>
+                <h3>@ViewBag.Title</h3>
+            </div>
+            <div class="widget-content">
+                <div class="btn-group m-r-5" role="group" aria-label="First group">
+                    <a href="@Url.Action("Index")" class="btn btn-primary" title="返回選單列表"><i class="glyphicon glyphicon-arrow-left"></i></a>
+                </div>
+                <h3>您確定要刪除這個選單嗎?</h3>
+                <dl class="dl-horizontal">
+                    <dt>
+                        @Html.DisplayNameFor(model => model.Name)
+                    </dt>
+
+                    <dd>
+                        <i class="@Model.IconCSS"></i> @Html.DisplayFor(model => model.Name)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.IsExternalLinks)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.IsExternalLinks)
+                    </dd>
+                    @if (Model.IsExternalLinks)
+                    {
+                        <dt>
+                            @Html.DisplayNameFor(model => model.ExternalURL)
+                        </dt>
+
+                        <dd>
+                            @Html.DisplayFor(model => model.ExternalURL)
+                        </dd>
+                    }
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.AllowAnonymous)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.AllowAnonymous)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ParentMenu)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ParentMenu.Name)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.System_ControllerActions)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.System_ControllerActions.Name) (@Html.DisplayFor(model => model.System_ControllerActions.System_Controllers.Name))
+                    </dd>
+
+                </dl>
+            </div>
+            <div class="widget-footer text-right">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(model => model.Id)
+                    <input type="submit" value="刪除" class="btn btn-danger" />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

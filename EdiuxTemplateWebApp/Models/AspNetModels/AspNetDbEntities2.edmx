@@ -731,8 +731,8 @@
           <Property Name="ApplicationId" Type="Guid" />
           <NavigationProperty Name="aspnet_Applications" Relationship="Self.FK_Menus_aspnet_Applications" FromRole="Menus" ToRole="aspnet_Applications" />
           <NavigationProperty Name="aspnet_Paths" Relationship="Self.FK_Menus_aspnet_Paths" FromRole="Menus" ToRole="aspnet_Paths" />
-          <NavigationProperty Name="ParentMenu" Relationship="Self.FK_dbo_Menus_dbo_Menus_Parent_MenuId" FromRole="Menus" ToRole="Menus1" />
-          <NavigationProperty Name="SubMenus" Relationship="Self.FK_dbo_Menus_dbo_Menus_Parent_MenuId" FromRole="Menus1" ToRole="Menus" />
+          <NavigationProperty Name="ChildMenus" Relationship="Self.FK_dbo_Menus_dbo_Menus_Parent_MenuId" FromRole="Menus" ToRole="Menus1" />
+          <NavigationProperty Name="ParentMenu" Relationship="Self.FK_dbo_Menus_dbo_Menus_Parent_MenuId" FromRole="Menus1" ToRole="Menus" />
           <NavigationProperty Name="aspnet_Roles" Relationship="Self.MenusInRoles" FromRole="Menus" ToRole="aspnet_Roles" />
         </EntityType>
         <Association Name="FK__aspnet_Me__Appli__4C6B5938">

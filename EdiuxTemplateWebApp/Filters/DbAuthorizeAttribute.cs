@@ -1,5 +1,6 @@
 ﻿using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models.Shared;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -80,7 +81,16 @@ namespace EdiuxTemplateWebApp.Filters
 
                     if (pageInfo.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUser))
                     {
-                        pageInfo.aspnet_PersonalizationPerUser.SingleOrDefault(a => a.aspnet_Users.Id == loginUser).PageSettings.Deserialize<PageSettingsBaseModel>();
+                        byte[] data = pageInfo.aspnet_PersonalizationPerUser.SingleOrDefault(a => a.aspnet_Users.Id == loginUser).PageSettings;
+
+                        if (data != null && data.Length > 0)
+                        {
+                            var pagePermission = data.Deserialize<PagePermissionForUserModel>();
+                            if (pagePermission.CanAccess)
+                            {
+                                return;
+                            }
+                        }
                     }
                 }
                 //if (appInfo.isActionInApplication(filterContext.ActionDescriptor))

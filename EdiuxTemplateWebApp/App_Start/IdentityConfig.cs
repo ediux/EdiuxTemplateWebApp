@@ -6,6 +6,8 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -39,6 +41,38 @@ namespace EdiuxTemplateWebApp
             : base(store)
         {
 
+        }
+
+        public override Task<ClaimsIdentity> CreateIdentityAsync(aspnet_Users user, string authenticationType)
+        {
+            Task<ClaimsIdentity> task = Task.Run(() =>
+            {
+                if (user.aspnet_UserClaims.Any())
+                {
+                    List<Claim> claims = new List<Claim>();
+                    foreach (var claimdata in user.aspnet_UserClaims)
+                    {
+                        claims.Add(new Claim(claimdata.ClaimType, claimdata.ClaimValue));
+                    }
+                    ClaimsIdentity identity = new ClaimsIdentity(authenticationType);
+                    identity.AddClaims(claims);
+                    return identity;
+                }
+                else
+                {
+                    List<Claim> claims = new List<Claim>{
+                        new Claim(ClaimTypes.Authentication,(user!=null)?bool.TrueString:bool.FalseString),
+                        new Claim(ClaimTypes.Email, user.aspnet_Membership.Email),
+                        new Claim(ClaimTypes.Name,user.UserName),
+                        new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
+                        new Claim("http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider","")};
+                    ClaimsIdentity identity = new ClaimsIdentity(authenticationType);
+                    identity.AddClaims(claims);
+                    return identity;
+                }
+
+            });
+            return task;
         }
 
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
@@ -130,9 +164,9 @@ namespace EdiuxTemplateWebApp
         {
         }
 
-        public override Task<ClaimsIdentity> CreateUserIdentityAsync(aspnet_Users user)
+        public override Task SignInAsync(aspnet_Users user, bool isPersistent, bool rememberBrowser)
         {
-            return UserManager.CreateIdentityAsync(user, AuthenticationType);
+            return base.SignInAsync(user, isPersistent, rememberBrowser);
         }
 
         public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options, IOwinContext context)

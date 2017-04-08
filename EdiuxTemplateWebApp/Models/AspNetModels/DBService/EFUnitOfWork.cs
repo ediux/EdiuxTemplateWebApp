@@ -1,111 +1,158 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Validation;
 using System.Threading.Tasks;
 
 
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
 
-	public partial class EFUnitOfWork : IUnitOfWork
-	{
-		private AspNetDbEntities _databaseObject;
+    public partial class EFUnitOfWork : IUnitOfWork
+    {
+        private AspNetDbEntities _databaseObject;
 
         public EFUnitOfWork()
         {
             _databaseObject = new AspNetDbEntities();
         }
 
-		public IDbConnection Connection
-		{
-			get
-			{
-				return _databaseObject.Database.Connection;
-			}
-		}
+        public IDbConnection Connection
+        {
+            get
+            {
+                return _databaseObject.Database.Connection;
+            }
+        }
 
-		public string ConnectionString
-		{
-			get
-			{
-				return _databaseObject.Database.Connection.ConnectionString;
-			}
+        public string ConnectionString
+        {
+            get
+            {
+                return _databaseObject.Database.Connection.ConnectionString;
+            }
 
-			set
-			{
+            set
+            {
                 _databaseObject.Database.Connection.ConnectionString = value;
-			}
-		}
+            }
+        }
 
-		public IObjectContextAdapter Context
-		{
-			get
-			{
-				return _databaseObject;
-			}
+        public IObjectContextAdapter Context
+        {
+            get
+            {
+                return _databaseObject;
+            }
 
-		}
+        }
 
-		public bool LazyLoadingEnabled
-		{
-			get
-			{
-				return _databaseObject.Configuration.LazyLoadingEnabled;
-			}
+        public bool LazyLoadingEnabled
+        {
+            get
+            {
+                return _databaseObject.Configuration.LazyLoadingEnabled;
+            }
 
-			set
-			{
+            set
+            {
                 _databaseObject.Configuration.LazyLoadingEnabled = value;
-			}
-		}
+            }
+        }
 
-		public bool ProxyCreationEnabled
-		{
-			get
-			{
-				return _databaseObject.Configuration.ProxyCreationEnabled;
-			}
+        public bool ProxyCreationEnabled
+        {
+            get
+            {
+                return _databaseObject.Configuration.ProxyCreationEnabled;
+            }
 
-			set
-			{
+            set
+            {
                 _databaseObject.Configuration.ProxyCreationEnabled = value;
-			}
-		}
+            }
+        }
 
 
 
-		public IRepositoryCollection Repositories
-		{
-			get
-			{
-				return _databaseObject;
-			}
+        public IRepositoryCollection Repositories
+        {
+            get
+            {
+                return _databaseObject;
+            }
 
-			set
-			{
-				var repositories = value;
-			}
-		}
+            set
+            {
+                var repositories = value;
+            }
+        }
 
-		public void Commit()
-		{
-			if (!transcationMode)
-                _databaseObject.SaveChanges();
-		}
+        public void Commit()
+        {
+            try
+            {
 
-		public virtual Task CommitAsync()
-		{
-			if (!transcationMode)
-				return _databaseObject.SaveChangesAsync();
-			else
-				return Task.CompletedTask;
-		}
+                if (!transcationMode)
+                    _databaseObject.SaveChanges();
 
-		public T GetTypedContext<T>() where T : IObjectContextAdapter
-		{
-			return (T)Context;
-		}
+            }
+            catch (Exception ex)
+            {
+                if (ex is DbEntityValidationException)
+                {
+                    DbEntityValidationException dbeValidEx = ex as DbEntityValidationException;
+                    List<string> msg = new List<string>();
+                    foreach (var err in dbeValidEx.EntityValidationErrors)
+                    {
+                        foreach (var msgcontext in err.ValidationErrors)
+                        {
+                            msg.Add(string.Format("{0}:{1}", msgcontext.PropertyName, msgcontext.ErrorMessage));
+                        }
+                    }
+                    throw new Exception(string.Join("\n", msg.ToArray()));
+                }
+                throw;
+            }
+
+        }
+
+        public virtual Task CommitAsync()
+        {
+            try
+            {
+                if (!transcationMode)
+                    return _databaseObject.SaveChangesAsync();
+                else
+                    return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                if (ex is DbEntityValidationException)
+                {
+                    DbEntityValidationException dbeValidEx = ex as DbEntityValidationException;
+                    List<string> msg = new List<string>();
+                    foreach (var err in dbeValidEx.EntityValidationErrors)
+                    {
+                        foreach (var msgcontext in err.ValidationErrors)
+                        {
+                            msg.Add(string.Format("{0}:{1}", msgcontext.PropertyName, msgcontext.ErrorMessage));
+                        }
+                    }
+                    return Task.FromException(new Exception(string.Join("\n", msg.ToArray())));
+                }
+
+                return Task.FromException(ex);
+            }
+
+        }
+
+        public T GetTypedContext<T>() where T : IObjectContextAdapter
+        {
+            return (T)Context;
+        }
 
         public DbEntityEntry Entry(object entity)
         {
@@ -114,7 +161,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public DbEntityEntry<T> Entry<T>(T entity) where T : class
         {
-           return _databaseObject.Entry<T>(entity);
+            return _databaseObject.Entry<T>(entity);
         }
 
         public DbSet Set(Type entityType)
@@ -165,23 +212,23 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         bool transcationMode = false;
 
-		/// <summary>
-		/// 取得或設定目前是否處於交易模式。
-		/// <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.aspnet_MembershipRepository"/> transcation mode.
-		/// </summary>
-		/// <value>值如果為 <c>true</c> 則處於交易模式，不會呼叫Commit()方法; 假如為 <c>false</c> 會直接呼叫 Commit()。</value>
-		public bool TranscationMode
-		{
-			get
-			{
-				return transcationMode;
-			}
+        /// <summary>
+        /// 取得或設定目前是否處於交易模式。
+        /// <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.aspnet_MembershipRepository"/> transcation mode.
+        /// </summary>
+        /// <value>值如果為 <c>true</c> 則處於交易模式，不會呼叫Commit()方法; 假如為 <c>false</c> 會直接呼叫 Commit()。</value>
+        public bool TranscationMode
+        {
+            get
+            {
+                return transcationMode;
+            }
 
-			set
-			{
-				transcationMode = value;
-			}
-		}
+            set
+            {
+                transcationMode = value;
+            }
+        }
 
         public int Count
         {

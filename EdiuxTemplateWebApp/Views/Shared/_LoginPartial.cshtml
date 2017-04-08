@@ -1,9 +1,9 @@
 ﻿@using Microsoft.AspNet.Identity
-@if (Request.IsAuthenticated)
+@if (User.Identity.IsAuthenticated)
 {
     using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
     {
-    @Html.AntiForgeryToken()
+        @Html.AntiForgeryToken()
         <ul class="nav navbar-nav navbar-right  hidden-xs">
             @{Html.RenderAction("NotificationsBar", "Notifications"); }
             <li class="dropdown">
@@ -62,26 +62,25 @@
             <li class="dropdown user  hidden-xs">
                 <a data-toggle="dropdown" class="dropdown-toggle" href="#"> <i class="icon-male"></i> <span class="username">@User.Identity.GetUserName()</span> <i class="icon-caret-down small"></i> </a>
                 <ul class="dropdown-menu">
-                    <li><a href="@Url.Action("UserProfile","Manage",new { id=User.Identity.GetUserGuid() })"><i class="icon-user"></i> My Profile</a></li>
+                    <li><a href="@Url.Action("UserProfile","Manage",new { id= User.Identity.GetUserId2() })"><i class="icon-user"></i> My Profile</a></li>
                     <li><a href="/Html/fullCalendar.html"><i class="icon-calendar"></i> My Calendar</a></li>
                     <li><a href="#"><i class="icon-tasks"></i> My Tasks</a></li>
                     @if (User.IsInRole("Admins") || User.Identity.GetUserName() == "root")
                     {
-                    <li class="divider"></li>
-                    <li><a href="@Url.Action("Index","Manage")"><i class="icon-dashboard"></i> 系統管理 </a></li>
+                        <li class="divider"></li>
+                        <li><a href="@Url.Action("Index","Manage")"><i class="icon-dashboard"></i> 系統管理 </a></li>
                     }
-
                     <li class="divider"></li>
                     <li><a href="javascript:document.getElementById('logoutForm').submit()"><i class="icon-key"></i> 登出 </a></li>
                 </ul>
             </li>
         </ul>
-    }
-}
-else
-{
-    <ul class="nav navbar-nav navbar-right  hidden-xs">
-        <li>@Html.ActionLink("註冊", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
-        <li>@Html.ActionLink("登入", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
-    </ul>
-        }
+                    }
+                }
+                else
+                {
+                    <ul class="nav navbar-nav navbar-right  hidden-xs">
+                        <li>@Html.ActionLink("註冊", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
+                        <li>@Html.ActionLink("登入", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+                    </ul>
+                }

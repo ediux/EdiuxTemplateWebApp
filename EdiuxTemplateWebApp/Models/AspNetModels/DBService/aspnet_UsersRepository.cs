@@ -40,6 +40,16 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public aspnet_Users GetUserByName(string applicationName, string userName, DateTime currentTimeUtc, bool updateLastActivity)
         {
+            if (string.IsNullOrEmpty(applicationName ))
+            {
+                throw new ArgumentNullException(nameof(applicationName));
+            }
+
+            //if (string.IsNullOrEmpty(userName))
+            //{
+            //    userName = "";
+            //}
+
             var loweredAppName = applicationName.ToLowerInvariant();
             var loweredUserName = userName.ToLowerInvariant();
             var user = (from u in All()

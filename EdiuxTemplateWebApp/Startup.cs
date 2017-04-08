@@ -1,7 +1,7 @@
 ﻿using Microsoft.Owin;
 using Owin;
 
-[assembly: OwinStartupAttribute(typeof(EdiuxTemplateWebApp.Startup))]
+[assembly: OwinStartup(typeof(EdiuxTemplateWebApp.Startup))]
 namespace EdiuxTemplateWebApp
 {
     public partial class Startup

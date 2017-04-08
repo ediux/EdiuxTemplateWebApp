@@ -32,6 +32,10 @@ namespace EdiuxTemplateWebApp
             return Guid.Empty;
         }
 
+        public static Guid GetUserId2(this IIdentity identity)
+        {
+            return GetUserId(identity);
+        }
         public static AspNetDbEntities GetAspNetMembershipDbContext(this IUnitOfWork db)
         {
             return db.Context as AspNetDbEntities;

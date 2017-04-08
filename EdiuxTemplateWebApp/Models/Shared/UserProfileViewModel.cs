@@ -1,4 +1,5 @@
 ﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -26,7 +27,10 @@ namespace EdiuxTemplateWebApp.Models
                 newProfile.CompanyWebSiteURL = "http://www.riaxe.com/";
 
                 profileData.PropertyValuesBinary = newProfile.Serialize();
-
+                profileData.PropertyValuesString = JsonConvert.SerializeObject(newProfile);
+                profileData.PropertyNames = string.Join(",", newProfile.GetProperties().Keys.ToArray());
+                profileData.LastUpdatedDate = DateTime.UtcNow;
+               
                 profileRepo.Add(profileData);
                 profileRepo.UnitOfWork.Commit();
                 profileData = profileRepo.Reload(profileData);
@@ -44,9 +48,9 @@ namespace EdiuxTemplateWebApp.Models
                 profileData = new aspnet_Profile();
                 profileData.UserId = userId;
                 profileData.PropertyValuesBinary = value.Serialize();
-                profileData.PropertyValuesString = string.Empty;
+                profileData.PropertyValuesString = JsonConvert.SerializeObject(value);
                 profileData.PropertyNames = string.Join(",", value.GetProperties().Keys.ToArray());
-                profileData.LastUpdatedDate = new DateTime(1900, 1, 1);
+                profileData.LastUpdatedDate = DateTime.UtcNow;
 
                 profileRepo.Add(profileData);
                 profileRepo.UnitOfWork.Commit();
@@ -54,7 +58,9 @@ namespace EdiuxTemplateWebApp.Models
             else
             {
                 profileData.PropertyValuesBinary = profileData.Serialize();
-                profileData.PropertyValuesString = string.Empty;
+                profileData.PropertyValuesString = JsonConvert.SerializeObject(value);
+                profileData.PropertyNames = string.Join(",", value.GetProperties().Keys.ToArray());
+                profileData.LastUpdatedDate = DateTime.UtcNow;
                 profileRepo.Update(profileData);
                 profileRepo.UnitOfWork.Commit();
             }

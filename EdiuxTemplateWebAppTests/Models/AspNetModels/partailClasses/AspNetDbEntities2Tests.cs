@@ -12,7 +12,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels.Tests
     [TestClass()]
     public class AspNetDbEntities2Tests
     {
-        private AspNetDbEntities2 db;
+        private AspNetDbEntities db;
 
         [ClassInitialize]
         public static void class_init(TestContext t)
@@ -22,53 +22,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels.Tests
         [TestInitialize]
         public void TestInit()
         {
-            db = new AspNetDbEntities2();
-        }
-        [TestMethod()]
-        public void aspnet_AnyDataInTablesTest()
-        {
-            try
-            {
-                //db = new AspNetDbEntities2();
-
-                string table = db.aspnet_AnyDataInTables(TablesToCheck.aspnet_Membership | TablesToCheck.aspnet_PersonalizationPerUser | TablesToCheck.aspnet_Profile | TablesToCheck.aspnet_Roles | TablesToCheck.aspnet_WebEvent_Events);
-
-                Assert.IsTrue(true);
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail(ex.Message);
-            }
-
-
-        }
-
-        [TestMethod()]
-        public void aspnet_Applications_CreateApplicationTest()
-        {
-            try
-            {
-                Guid AppId = db.aspnet_Applications_CreateApplication("EdiuxTemplateWebAppTest");
-                Assert.IsTrue(AppId != Guid.Empty);
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail(ex.Message);
-            }
-        }
-
-        [TestMethod()]
-        public void aspnet_CheckSchemaVersionTest()
-        {
-            try
-            {
-                int rtn = db.aspnet_CheckSchemaVersion("Test","0.0.0.1");
-                Assert.AreEqual(0,rtn);
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail(ex.Message);
-            }
+            db = new AspNetDbEntities();
         }
 
         [TestMethod()]
@@ -669,18 +623,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels.Tests
             }
         }
 
-        [TestMethod()]
-        public void aspnet_WebEvent_LogEventTest()
-        {
-            try
-            {
-                db.aspnet_WebEvent_LogEvent("event_01", DateTime.UtcNow, DateTime.Now, "Test", 0, 0, 1, 1003, "e", HttpRuntime.AppDomainAppPath, HttpRuntime.AppDomainAppVirtualPath, Environment.MachineName, "/", "Null", "adfd");
-
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail(ex.Message);
-            }
-        }
+        
     }
 }

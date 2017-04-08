@@ -301,40 +301,57 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 <#BeginNamespace(code);#>
-    /// <summary>
+	
+	public partial interface IRepositoryCollection : ICollection<IRepositoryBase>, IDisposable
+	{
+
+		T GetRepository<T>() where T : IRepositoryBase;
+	}
+
+	/// <summary>
+    /// <paramref name="T"/> 的儲存庫操作的共同介面。
+    /// </summary>
+	public partial interface IRepositoryBase : IDisposable
+	{
+
+	}
+	
+	/// <summary>
     /// <paramref name="T"/> 的儲存庫操作介面。
     /// </summary>
     /// <typeparam name="T">資料實體物件。</typeparam>	
-	public partial interface IRepositoryBase<T> :IDisposable
+	public partial interface IRepositoryBase<T> :IRepositoryBase
 		where T : class
 	{
         /// <summary>
-        /// 取得或設定統一操作物件的參考。
-        /// </summary>
+		/// 取得或設定統一操作物件的參考。
+		/// </summary>
 		IUnitOfWork UnitOfWork { get; set; }
-		
+
 		/// <summary>
 		/// 取得Entity全部筆數的IQueryable。
 		/// </summary>
 		/// <returns>Entity全部筆數的IQueryable。</returns>
 		IQueryable<T> All();
 
-        /// <summary>
-        /// 取得Entity全部筆數的IQueryable<<typeparamref name="T>"></typeparamref>>的非同步版本。
-        /// </summary>
-        Task<IQueryable<T>> AllAsync();
+		/// <summary>
+		/// Alls the async.
+		/// </summary>
+		/// <returns>The async.</returns>
+		Task<IQueryable<T>> AllAsync();
 
-        /// <summary>
-        /// 傳回<paramref name="T"/> 的篩選結果。
-        /// </summary>
-        /// <param name="expression">代表Where查詢子句的Lamba方法</param>
+		/// <summary>
+		/// Where the specified expression.
+		/// </summary>
+		/// <returns>The where.</returns>
+		/// <param name="expression">代表Where查詢子句的Lamba方法</param>
 		IQueryable<T> Where(Expression<Func<T, bool>> expression);
 
-        /// <summary>
-        /// 插入一列新的資料列。
-        /// </summary>
-        /// <param name="entity">資料列實體。</param>
-        /// <returns></returns>
+		/// <summary>
+		/// 插入一列新的資料列。
+		/// </summary>
+		/// <param name="entity">資料列實體。</param>
+		/// <returns></returns>
 		T Add(T entity);
 
 		/// <summary>
@@ -343,25 +360,25 @@ using System.Threading.Tasks;
 		/// <param name="entities">資料列實體。</param>
 		IList<T> BatchAdd(IEnumerable<T> entities);
 
-        /// <summary>
-        /// 從資料庫刪除實體。
-        /// </summary>
-        /// <param name="entity">資料列實體。</param>
-        void Delete(T entity);
+		/// <summary>
+		/// 從資料庫刪除實體。
+		/// </summary>
+		/// <param name="entity">資料列實體。</param>
+		void Delete(T entity);
 
-        /// <summary>
-        /// 依據傳入的主索引鍵值尋找符合的資料列並回傳。
-        /// </summary>
-        /// <param name="predicate">主索引鍵值(組)</param>
-        /// <returns>傳回符合鍵值的資料列。</returns>
+		/// <summary>
+		/// 依據傳入的主索引鍵值尋找符合的資料列並回傳。
+		/// </summary>
+		/// <param name="values">主索引鍵值(組)</param>
+		/// <returns>傳回符合鍵值的資料列。</returns>
 		T Get(params object[] values);
 
-        /// <summary>
-        /// 以非同步方法依據傳入的主索引鍵值尋找符合的資料列並回傳。
-        /// </summary>
-        /// <param name="values">主索引鍵值(組)</param>
-        /// <returns>傳回符合鍵值的資料列。</returns>
-        Task<T> GetAsync(params object[] values);
+		/// <summary>
+		/// 以非同步方法依據傳入的主索引鍵值尋找符合的資料列並回傳。
+		/// </summary>
+		/// <param name="values">主索引鍵值(組)</param>
+		/// <returns>傳回符合鍵值的資料列。</returns>
+		Task<T> GetAsync(params object[] values);
 
 		/// <summary>
 		/// 重新從資料庫載入實體。
@@ -369,11 +386,33 @@ using System.Threading.Tasks;
 		/// <param name="entity">資料列實體。</param>
 		T Reload(T entity);
 
-        /// <summary>
-        /// 重新從資料庫載入實體的非同步方法。
-        /// </summary>
-        /// <param name="entity">資料列實體。</param>
+		/// <summary>
+		/// 重新從資料庫載入實體的非同步方法。
+		/// </summary>
+		/// <param name="entity">資料列實體。</param>
 		Task<T> ReloadAsync(T entity);
+
+		/// <summary>
+		/// 將實體加入變更追蹤。尤其針對預存程序轉換來的實體。
+		/// </summary>
+		/// <param name="entity"></param>
+		void Attach(T entity);
+
+		/// <summary>
+		/// Converts from.
+		/// </summary>
+		/// <returns>The from.</returns>
+		/// <param name="entity">Entity.</param>
+		/// <typeparam name="TResult">The 1st type parameter.</typeparam>
+		T ConvertFrom<TResult>(TResult entity);
+
+		/// <summary>
+		/// Copies to.
+		/// </summary>
+		/// <returns>The to.</returns>
+		/// <param name="entity">Entity.</param>
+		/// <typeparam name="R">The 1st type parameter.</typeparam>
+		R CopyTo<R>(T entity);
 	}
 <#
 	EndNamespace(code);
@@ -390,27 +429,105 @@ string UnitOfWork_Interface_csFilePath = Path.Combine(GetCurrentDirectory(),Repo
 if(!DoesFileExist(UnitOfWork_Interface_csFilePath))
 {
 	fileManager.StartNewFile(UnitOfWork_Interface_csFileName,project.Name,RepositoryDirName);
-#>using System.Data.Entity;
+#>using System;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 <#BeginNamespace(code);#>
-	public partial interface IUnitOfWork
+	public partial interface IUnitOfWork : IDisposable
 	{
-		DbContext Context { get; set; }
+		/// <summary>
+		/// Gets or sets a value indicating whether this
+		/// <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.Iaspnet_MembershipRepository"/> transcation mode.
+		/// </summary>
+		/// <value><c>true</c> if transcation mode; otherwise, <c>false</c>.</value>
+		bool TranscationMode { get; set; }
 
-        /// <summary>
-        /// 提交資料庫變更要求的非同步方法。
-        /// </summary>
-		void Commit();
+		/// <summary>
+		/// 統一操作介面的資料庫連接器(EF框架使用或是其他ORM框架使用)
+		/// </summary>
+		IObjectContextAdapter Context { get; }
+
+		/// <summary>
+		/// 所有對應資料表的儲存庫物件
+		/// </summary>
+		IRepositoryCollection Repositories { get; set; }
+
+		/// <summary>
+		/// 共用的資料庫連線
+		/// </summary>
+		/// <remarks>
+		/// 此屬性是供底層為ADO.NET連接層使用
+		/// </remarks>
+		IDbConnection Connection { get; }
+
+		/// <summary>
+		/// 取得或設定啟用延遲載入
+		/// </summary>
 		bool LazyLoadingEnabled { get; set; }
+
+		/// <summary>
+		/// 取得或設定是否建立遠端Proxy參考物件。
+		/// Gets or sets a value indicating whether this <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.IUnitOfWork"/>
+		/// proxy creation enabled.
+		/// </summary>
+		/// <value><c>true</c> if proxy creation enabled; otherwise, <c>false</c>.</value>
 		bool ProxyCreationEnabled { get; set; }
+
+		/// <summary>
+		/// Gets or sets the connection string.
+		/// </summary>
+		/// <value>The connection string.</value>
 		string ConnectionString { get; set; }
 
-        /// <summary>
-        /// 提交資料庫變更要求的非同步方法。
-        /// </summary>
-        /// <returns>非同步執行結果。</returns>
-        Task CommitAsync();
+		/// <summary>
+		/// 提交資料庫變更要求的同步方法。
+		/// </summary>
+		void Commit();
+
+		/// <summary>
+		/// 提交資料庫變更要求的非同步方法。
+		/// </summary>
+		/// <returns>非同步執行結果。</returns>
+		Task CommitAsync();
+
+		/// <summary>
+		/// Entry the specified entity.
+		/// </summary>
+		/// <returns>The entry.</returns>
+		/// <param name="entity">Entity.</param>
+		DbEntityEntry Entry(object entity);
+
+		/// <summary>
+		/// Entry the specified entity.
+		/// </summary>
+		/// <returns>The entry.</returns>
+		/// <param name="entity">Entity.</param>
+		/// <typeparam name="T">The 1st type parameter.</typeparam>
+		DbEntityEntry<T> Entry<T>(T entity) where T : class;
+
+		/// <summary>
+		/// Set the specified entityType.
+		/// </summary>
+		/// <returns>The set.</returns>
+		/// <param name="entityType">Entity type.</param>
+		DbSet Set(Type entityType);
+
+		/// <summary>
+		/// Set this instance.
+		/// </summary>
+		/// <returns>The set.</returns>
+		/// <typeparam name="T">The 1st type parameter.</typeparam>
+		DbSet<T> Set<T>() where T : class;
+
+		/// <summary>
+		/// Gets the typed context.
+		/// </summary>
+		/// <returns>The typed context.</returns>
+		/// <typeparam name="T">The 1st type parameter.</typeparam>
+		T GetTypedContext<T>() where T : IObjectContextAdapter;
 	}
 <#
 	EndNamespace(code);
@@ -438,19 +555,30 @@ using System.Threading.Tasks;
 <#BeginNamespace(code);#>
 	public partial class EFRepository<T> : IRepositoryBase<T> where T : class
 	{
-		public IUnitOfWork UnitOfWork { get; set; }
-		
-		private IDbSet<T> _objectset;
+			public EFRepository()
+		{
+            UnitOfWork = RepositoryHelper.GetUnitOfWork(); 
+		}	
+
+		IDbSet<T> _objectset;
+
 		protected IDbSet<T> ObjectSet
 		{
 			get
 			{
-				if (_objectset == null)
-				{
-					_objectset = UnitOfWork.Context.Set<T>();
-				}
-				return _objectset;
+                if (_objectset == null)
+                {
+                    _objectset = UnitOfWork.Set<T>();
+                }
+
+                return _objectset;
 			}
+		}
+
+		public IUnitOfWork UnitOfWork
+		{
+            get;
+            set;
 		}
 
 		public virtual IQueryable<T> All()
@@ -465,80 +593,183 @@ using System.Threading.Tasks;
 
 		public virtual T Add(T entity)
 		{
-			return ObjectSet.Add(entity);
+			var addEntity = ObjectSet.Add(entity);
+
+			if (!UnitOfWork.TranscationMode)
+			{
+				UnitOfWork.Commit();
+				addEntity = Reload(addEntity);
+			}
+
+			return addEntity;
 		}
 
 		public virtual void Delete(T entity)
 		{
 			ObjectSet.Remove(entity);
+
+			if (!UnitOfWork.TranscationMode)
+			{
+				UnitOfWork.Commit();
+			}
 		}
 
 		public virtual Task<IQueryable<T>> AllAsync()
-        {
-            return Task.Run(() => ObjectSet.AsQueryable());
-        }
+		{
+			return Task.FromResult(All());
+		}
 
-        public virtual IList<T> BatchAdd(IEnumerable<T> entities)
-        {
-            return ((DbSet<T>)ObjectSet).AddRange(entities).ToList();
-        }
+		public virtual IList<T> BatchAdd(IEnumerable<T> entities)
+		{
+			return ((DbSet<T>)ObjectSet).AddRange(entities).ToList();
+		}
 
-        public virtual T Get(params object[] values)
-        {
-            return ObjectSet.Find(values);
-        }
+		public virtual T Get(params object[] values)
+		{
+			return ObjectSet.Find(values);
+		}
 
-        public virtual Task<T> GetAsync(params object[] values)
-        {
-            return Task.Run(() => ObjectSet.Find(values));
-        }
+		public virtual Task<T> GetAsync(params object[] values)
+		{
+			return Task.FromResult(Get(values));
+		}
 
-        public virtual T Reload(T entity)
-        {
-            UnitOfWork.Context.Entry(entity).Reload();
-            return entity;
-        }
+		public virtual T Reload(T entity)
+		{
+            UnitOfWork.Entry<T>(entity).Reload();
+			return entity;
+		}
 
-        public virtual async Task<T> ReloadAsync(T entity)
-        {
-           await UnitOfWork.Context.Entry(entity).ReloadAsync();
-            return entity;
-        }
+		public virtual async Task<T> ReloadAsync(T entity)
+		{
+			await UnitOfWork.Entry(entity).ReloadAsync();
+			return entity;
+		}
+
+		public IQueryable<JR> Join<JT, TKey, JR>(IRepositoryBase<JT> joinFromRepository, Expression<Func<T, TKey>> keyselect, Expression<Func<JT, TKey>> OuterKey, Expression<Func<T, JT, JR>> ResultSelector) where JT : class
+		{
+			return ObjectSet.Join(joinFromRepository.All().AsEnumerable(), keyselect, OuterKey, ResultSelector);
+		}
+
+		protected virtual void WriteErrorLog(Exception ex)
+		{
+			if (System.Web.HttpContext.Current == null)
+			{
+				Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
+			}
+			else
+			{
+				Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+			}
+		}
+
+		public void Attach(T entity)
+		{
+			ObjectSet.Attach(entity);
+		}
+
+		public virtual T ConvertFrom<TResult>(TResult entity)
+		{
+			Type _type = typeof(TResult);
+
+			if (_type.FindInterfaces(new TypeFilter((x, y) => (Type)y == x), typeof(IConvertible)).Any())
+			{
+				return (T)Convert.ChangeType(entity, typeof(T));
+			}
+
+			var props = entity.GetProperties();
+
+			if (props.Count > 0)
+			{
+				Type _targetType = typeof(T);
+				var returnValue = Activator.CreateInstance<T>();
+
+				foreach (string key in props.Keys)
+				{
+                    var prop = props[key];
+                    if (prop == null)
+                    {
+                        continue;
+                    }
+                    var value = prop.GetValue(entity);
+					var targetProp = _targetType.GetProperty(key);
+
+					if (targetProp != null)
+					{
+						targetProp.SetValue(returnValue, value);
+					}
+
+				}
+				return returnValue;
+			}
+
+			return Activator.CreateInstance<T>();
+		}
+
+		public R CopyTo<R>(T entity)
+		{
+            if (entity == null)
+                return default(R);
+			Dictionary<string, PropertyInfo> props = entity.GetProperties();
+			if (props.Count > 0)
+			{
+				Type _targetType = typeof(R);
+				R targetEntity = Activator.CreateInstance<R>();
+
+				foreach (var key in props.Keys)
+				{
+					var targetprop = _targetType.GetProperty(key);
+					if (targetprop == null)
+						continue;
+					targetprop.SetValue(targetEntity, props[key].GetValue(entity));
+				}
+				return targetEntity;
+			}
+			return default(R);
+
+
+		}
+
 		#region IDisposable Support
-        private bool disposedValue = false; // 偵測多餘的呼叫
+		private bool disposedValue = false; // 偵測多餘的呼叫
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    UnitOfWork.Commit();
-                    UnitOfWork.Context.Dispose();
-                }
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+					UnitOfWork.Commit();
 
-                // TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。
-                // TODO: 將大型欄位設為 null。
+				}
 
-                disposedValue = true;
-            }
-        }
+				// TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。
+				// TODO: 將大型欄位設為 null。
 
-        // TODO: 僅當上方的 Dispose(bool disposing) 具有會釋放 Unmanaged 資源的程式碼時，才覆寫完成項。
-        // ~EFRepository() {
-        //   // 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
-        //   Dispose(false);
-        // }
+				disposedValue = true;
+			}
+		}
 
-        // 加入這個程式碼的目的在正確實作可處置的模式。
-        public void Dispose()
-        {
-            // 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
-            Dispose(true);
-            // TODO: 如果上方的完成項已被覆寫，即取消下行的註解狀態。
-            // GC.SuppressFinalize(this);
-        }
-        #endregion
+		// TODO: 僅當上方的 Dispose(bool disposing) 具有會釋放 Unmanaged 資源的程式碼時，才覆寫完成項。
+		// ~EFRepository() {
+		//   // 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
+		//   Dispose(false);
+		// }
+
+		// 加入這個程式碼的目的在正確實作可處置的模式。
+		public void Dispose()
+		{
+			// 請勿變更這個程式碼。請將清除程式碼放入上方的 Dispose(bool disposing) 中。
+			Dispose(true);
+			// TODO: 如果上方的完成項已被覆寫，即取消下行的註解狀態。
+			// GC.SuppressFinalize(this);
+		}
+
+		protected virtual T getPrimaryKey(Expression<Func<T, bool>> findkeys)
+		{
+			return Where(findkeys).SingleOrDefault();
+		}
+		#endregion
 	}
 <# EndNamespace(code);
 }
@@ -559,41 +790,204 @@ using System.Threading.Tasks;
 <#	BeginNamespace(code);#>
 	public partial class EFUnitOfWork : IUnitOfWork
 	{
-		private DbContext _context;
-		public DbContext Context { get{ return _context;} set{ _context=value;} }
+		private <#=code.Escape(container)#> _databaseObject;
 
-		public EFUnitOfWork()
-		{
-			Context = new <#=code.Escape(container)#>();
-		}
-
-		public void Commit()
-		{
-			Context.SaveChanges();
-		}
-		
-		public async Task CommitAsync()
+        public EFUnitOfWork()
         {
-            await Context.SaveChangesAsync();
+            _databaseObject = new <#=code.Escape(container)#>();
+
         }
+
+		public IDbConnection Connection
+		{
+			get
+			{
+				return _databaseObject.Database.Connection;
+			}
+		}
+
+		public string ConnectionString
+		{
+			get
+			{
+				return _databaseObject.Database.Connection.ConnectionString;
+			}
+
+			set
+			{
+                _databaseObject.Database.Connection.ConnectionString = value;
+			}
+		}
+
+		public IObjectContextAdapter Context
+		{
+			get
+			{
+				return _databaseObject;
+			}
+
+		}
 
 		public bool LazyLoadingEnabled
 		{
-			get { return Context.Configuration.LazyLoadingEnabled; }
-			set { Context.Configuration.LazyLoadingEnabled = value; }
+			get
+			{
+				return _databaseObject.Configuration.LazyLoadingEnabled;
+			}
+
+			set
+			{
+                _databaseObject.Configuration.LazyLoadingEnabled = value;
+			}
 		}
 
 		public bool ProxyCreationEnabled
 		{
-			get { return Context.Configuration.ProxyCreationEnabled; }
-			set { Context.Configuration.ProxyCreationEnabled = value; }
+			get
+			{
+				return _databaseObject.Configuration.ProxyCreationEnabled;
+			}
+
+			set
+			{
+                _databaseObject.Configuration.ProxyCreationEnabled = value;
+			}
 		}
-		
-		public string ConnectionString
+
+
+
+		public IRepositoryCollection Repositories
 		{
-			get { return Context.Database.Connection.ConnectionString; }
-			set { Context.Database.Connection.ConnectionString = value; }
+			get
+			{
+				return this;
+			}
+
+			set
+			{
+				var repositories = value;
+			}
 		}
+
+		public void Commit()
+		{
+			if (!transcationMode)
+                _databaseObject.SaveChanges();
+		}
+
+		public virtual Task CommitAsync()
+		{
+			if (!transcationMode)
+				return _databaseObject.SaveChangesAsync();
+			else
+				return Task.CompletedTask;
+		}
+
+		public T GetTypedContext<T>() where T : IObjectContextAdapter
+		{
+			return (T)Context;
+		}
+
+        public DbEntityEntry Entry(object entity)
+        {
+            return _databaseObject.Entry(entity);
+        }
+
+        public DbEntityEntry<T> Entry<T>(T entity) where T : class
+        {
+           return _databaseObject.Entry<T>(entity);
+        }
+
+        public DbSet Set(Type entityType)
+        {
+            return _databaseObject.Set(entityType);
+        }
+
+        public DbSet<T> Set<T>() where T : class
+        {
+            return _databaseObject.Set<T>();
+        }
+
+        public T GetRepository<T>() where T : IRepositoryBase
+        {
+            return _databaseObject.GetRepository<T>();
+        }
+
+        public void Add(IRepositoryBase item)
+        {
+            _databaseObject.Add(item);
+        }
+
+        public void Clear()
+        {
+            _databaseObject.Clear();
+        }
+
+        public bool Contains(IRepositoryBase item)
+        {
+            return _databaseObject.Contains(item);
+        }
+
+        public void CopyTo(IRepositoryBase[] array, int arrayIndex)
+        {
+            _databaseObject.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(IRepositoryBase item)
+        {
+            return _databaseObject.Remove(item);
+        }
+
+        public IEnumerator<IRepositoryBase> GetEnumerator()
+        {
+            return _databaseObject.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public void Dispose()
+        {
+            _databaseObject.Dispose();
+        }
+
+        bool transcationMode = false;
+
+		/// <summary>
+		/// 取得或設定目前是否處於交易模式。
+		/// <see cref="T:EdiuxTemplateWebApp.Models.AspNetModels.aspnet_MembershipRepository"/> transcation mode.
+		/// </summary>
+		/// <value>值如果為 <c>true</c> 則處於交易模式，不會呼叫Commit()方法; 假如為 <c>false</c> 會直接呼叫 Commit()。</value>
+		public bool TranscationMode
+		{
+			get
+			{
+				return transcationMode;
+			}
+
+			set
+			{
+				transcationMode = value;
+			}
+		}
+
+        public int Count
+        {
+            get
+            {
+                return _databaseObject.Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return _databaseObject.IsReadOnly;
+            }
+        }
 
 	}
 <#
@@ -620,11 +1014,6 @@ using System;
 		{
 			return new EFUnitOfWork();
 		}
-
-		public static TUnitOfWork GetUnitOfWork<TUnitOfWork>() where TUnitOfWork : IUnitOfWork
-        {
-            return Activator.CreateInstance<TUnitOfWork>();
-        }
 		
 		<# foreach (EntityType entity in typeMapper.GetItemsToGenerate<EntityType>(itemCollection).OrderBy(e => e.Name))
 {; #>
@@ -729,7 +1118,7 @@ BeginNamespace(code);
 				"<#=fnName #>",
 				out outputparameter,
 				out returnValue,
-				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);  
+				spParameters);  
 			spParameters.OutputParameter = outputparameter;
 			spParameters.ReturnValue=returnValue;
 <#
@@ -738,7 +1127,8 @@ BeginNamespace(code);
 				{#>
 			returnValue = this.ExecuteStoredProcedure(
 				"<#=fnName #>",
-				<#=string.Join(",\n",parameters_In.Select(p => string.Format("spParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);  
+				spParameters
+				);  
 			spParameters.ReturnValue=returnValue;
 			<#}#>
 		}<#
@@ -761,8 +1151,7 @@ BeginNamespace(code);
 				"<#=fnName#>",
 				out outputparameter,
                 out returnValue,
-				<#=string.Join(",\n",parameters_In.Select(p => string.Format("\t\tspParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>
-				);
+				spParameters);
 				spParameters.OutputParameter = outputparameter;
 				spParameters.ReturnValue = returnValue;
 			<#	}
@@ -771,7 +1160,7 @@ BeginNamespace(code);
             returnValue = this.ExecuteStoredProcedure(
                  "<#=fnName#>",
                  out result,
-                 <#=string.Join(",\n",parameters_In.Select(p => string.Format("\t\tspParameters.{0}", TypeMapper.FixNamespaces(p.FunctionParameterName))).ToArray())#>);
+                 spParameters);
             spParameters.ReturnValue = returnValue;
 				<#}#>
 			return result;

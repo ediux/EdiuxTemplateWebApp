@@ -19,7 +19,15 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{
-			modelBuilder.Entity<aspnet_PersonalizationAllUsers>()
+			modelBuilder.Entity<aspnet_Roles>()
+						.HasMany(p => p.aspnet_Users)
+						.WithMany(m => m.aspnet_Roles)
+						.Map(s => {
+							s.ToTable("aspnet_UsersInRoles");
+							s.MapLeftKey("UserId");
+							s.MapRightKey("RoleId");
+			});		
+						modelBuilder.Entity<aspnet_PersonalizationAllUsers>()
 			            .HasRequired(r => r.aspnet_Paths)
 						.WithRequiredPrincipal();
 

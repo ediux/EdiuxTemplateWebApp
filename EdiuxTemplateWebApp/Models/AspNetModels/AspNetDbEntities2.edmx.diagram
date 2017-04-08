@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="2e02dbe7a446416ea2a5c9df41566311" Name="Diagram1">
+        <EntityTypeShape EntityType="AspNetModels.aspnet_Applications" Width="1.5" PointX="0.75" PointY="15.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_Membership" Width="1.5" PointX="8" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_Paths" Width="1.5" PointX="3" PointY="12.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_PersonalizationAllUsers" Width="1.5" PointX="5.25" PointY="13.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_PersonalizationPerUser" Width="1.5" PointX="5.25" PointY="9.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_Profile" Width="1.5" PointX="10.5" PointY="20.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_Roles" Width="1.5" PointX="3" PointY="23.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_UserClaims" Width="1.5" PointX="10.5" PointY="23.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_UserLogin" Width="1.5" PointX="10.5" PointY="25.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_Users" Width="1.5" PointX="8.25" PointY="22.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_VoidUsers" Width="1.5" PointX="3" PointY="26.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.aspnet_WebEvent_Events" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AspNetModels.Menus" Width="1.5" PointX="5.25" PointY="16.75" IsExpanded="true" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Me__Appli__4C6B5938" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Pa__Appli__4E53A1AA" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Ro__Appli__531856C7" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Us__Appli__0F624AF8" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Vo__Appli__12FDD1B2" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK_Menus_aspnet_Applications" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK_aspnet_Membership_aspnet_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Pe__PathI__4F47C5E3" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Pe__PathI__503BEA1C" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK_Menus_aspnet_Paths" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Pe__UserI__51300E55" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK__aspnet_Pr__UserI__5224328E" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK_aspnet_UserClaims_aspnet_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK_aspnet_UserLogin_ToApplicationUser" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.FK_dbo_Menus_dbo_Menus_Parent_MenuId" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.aspnet_UsersInRoles" ManuallyRouted="false" />
+        <AssociationConnector Association="AspNetModels.MenusInRoles" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

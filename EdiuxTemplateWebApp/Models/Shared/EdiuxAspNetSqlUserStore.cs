@@ -739,22 +739,20 @@ namespace EdiuxTemplateWebApp.Models
 
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
-                aspnet_Membership_SetPassword_InputParameter paramObject = new aspnet_Membership_SetPassword_InputParameter();
-
-                paramObject.applicationName = applicationInfo.ApplicationName;
-                paramObject.currentTimeUtc = DateTime.UtcNow;
-                paramObject.newPassword = passwordHash;
-                paramObject.passwordFormat = (int)MembershipPasswordFormat.Hashed;
-                paramObject.passwordSalt = user.aspnet_Membership.PasswordSalt;
-                paramObject.userName = user.UserName;
-
-                UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Membership_SetPassword(paramObject);
-
-                if (paramObject.ReturnValue != 0)
+                if (membership != null)
                 {
-                    return Task.FromException(new Exception(string.Format("Has Error.(ErrorCode:{0})", paramObject.ReturnValue)));
+                    membership.Password = passwordHash;
+                    membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
+                    membership.LastPasswordChangedDate = DateTime.UtcNow;
+                    membership.LastUpdateTime = DateTime.UtcNow;
+                    membership.LastUpdateUserId = HttpContext.Current.User.Identity.GetUserId();
+
+                    membershipRepo.Update(membership);
+                    membershipRepo.UnitOfWork.Commit();
+
+                    user = userRepo.Get(user.Id);
                 }
-                user = userRepo.Reload(user);
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)

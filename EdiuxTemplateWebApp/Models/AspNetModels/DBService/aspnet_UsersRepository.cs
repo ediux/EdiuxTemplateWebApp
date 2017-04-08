@@ -11,55 +11,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     public partial class aspnet_UsersRepository : EFRepository<aspnet_Users>, Iaspnet_UsersRepository
     {
      
-        public override void Delete(aspnet_Users entity)
-        {
-            try
-            {
-                var inputParam = new aspnet_Users_DeleteUser_InputParameter();
-
-                inputParam.ApplicationName = entity.aspnet_Applications.ApplicationName;
-                inputParam.TablesToDeleteFrom = (int)(TablesToCheck.aspnet_Membership | TablesToCheck.aspnet_Profile | TablesToCheck.aspnet_Roles);
-                inputParam.UserName = entity.UserName;
-
-                UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Users_DeleteUser(inputParam);
-            }
-            catch (Exception ex)
-            {
-                WriteErrorLog(ex);
-                throw ex;
-            }
-        }
-
-        public override aspnet_Users Add(aspnet_Users entity)
-        {
-
-            try
-            {
-                var inputParam = new aspnet_Users_CreateUser_InputParameter();
-
-                inputParam.applicationId = entity.ApplicationId;
-                inputParam.isUserAnonymous = entity.IsAnonymous;
-                inputParam.lastActivityDate = entity.LastActivityDate;
-                inputParam.userName = entity.UserName;
-
-                UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Users_CreateUser(inputParam);
-
-                if (inputParam.ReturnValue == (int)MembershipCreateStatus.Success)
-                {
-                    return Get(inputParam.OutputParameter.UserId);
-                }
-
-                throw new Exception(string.Format("Provider Error.(ErrorCode:{0})", inputParam.ReturnValue));
-
-            }
-            catch (Exception ex)
-            {
-                WriteErrorLog(ex);
-                throw ex;
-            }
-
-        }
-
         public IEnumerable<aspnet_Users> FindByName(string applicationName, string userNameToMatch, int pageIndex, int pageSize)
         {
             var loweredAppName = applicationName.ToLowerInvariant();
@@ -175,20 +126,14 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public int getNumberOfUsersOnline(string applicationName, int minutesSinceLastInActive, DateTime currentTimeUtc)
         {
-            aspnet_Membership_GetNumberOfUsersOnline_InputParameter paramObject = new aspnet_Membership_GetNumberOfUsersOnline_InputParameter();
+            DateTime DateActive = DateTime.Now.AddMinutes(-1 * minutesSinceLastInActive);
+            string loweredName = applicationName.ToLowerInvariant();
+            var result = from user in ObjectSet
+                         where user.aspnet_Applications.LoweredApplicationName == loweredName
+                         && user.aspnet_Membership.LastActivityTime > DateActive
+                         select user;
 
-            paramObject.ApplicationName = applicationName;
-            paramObject.CurrentTimeUtc = currentTimeUtc;
-            paramObject.MinutesSinceLastInActive = minutesSinceLastInActive;
-
-            UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_Membership_GetNumberOfUsersOnline(paramObject);
-
-            if (paramObject.ReturnValue == 0)
-            {
-                return paramObject.OutputParameter.NumOnline;
-            }
-
-            return 0;
+            return result.Count();
         }
 
         public void AddToRole(aspnet_Users user, string roleName)
@@ -247,33 +192,48 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 
         public bool IsInRole(aspnet_Users user, string roleName)
         {
-            var paramObject = new aspnet_UsersInRoles_IsUserInRole_InputParameter();
-
-            paramObject.applicationName = user.aspnet_Applications.ApplicationName;
-            paramObject.roleName = roleName;
-            paramObject.userName = user.UserName;
-
-            if (paramObject.ReturnValue == 1)
+            if (user.ApplicationId == Guid.Empty || user.aspnet_Applications ==null)
             {
-                return true;
+                throw new Exception("ApplicationId can't be null.");
             }
 
-            return false;
+            Guid getRoleId = Guid.Empty;
+
+            string loweredRoleName = roleName.ToLowerInvariant();
+
+            var result = from u in ObjectSet
+                         from r in u.aspnet_Roles
+                         where u.ApplicationId == user.ApplicationId && 
+                         r.ApplicationId == user.ApplicationId &&
+                         u.Id == user.Id &&
+                         r.LoweredRoleName == loweredRoleName
+                         select r.Id;
+
+            return result.Any();
         }
 
         public void RemoveFromRole(aspnet_Users user, string roleName)
         {
-            var paramObject = new aspnet_UsersInRoles_RemoveUsersFromRoles_InputParameter();
-
-            paramObject.applicationName = user?.aspnet_Applications.ApplicationName;
-            paramObject.roleNames = roleName;
-            paramObject.userNames = user.UserName;
-
-            UnitOfWork.GetTypedContext<AspNetDbEntities2>().aspnet_UsersInRoles_RemoveUsersFromRoles(paramObject);
-
-            if (paramObject.ReturnValue != 0)
+            if (user.ApplicationId == Guid.Empty || user.aspnet_Applications == null)
             {
-                throw new Exception(string.Format("發生錯誤!(錯誤碼:{0})", paramObject.ReturnValue));
+                throw new Exception("ApplicationId can't be null.");
+            }
+
+            string loweredRoleName = roleName.ToLowerInvariant();
+
+            if (IsInRole(user, roleName))
+            {
+                var role = (from u in ObjectSet
+                            from r in u.aspnet_Roles
+                            where u.ApplicationId == user.ApplicationId &&
+                        r.ApplicationId == user.ApplicationId &&
+                        u.Id == user.Id &&
+                        r.LoweredRoleName == loweredRoleName
+                            select r).SingleOrDefault();
+
+                var foundUser = Get(user.Id);
+                foundUser.aspnet_Roles.Remove(role);
+                UnitOfWork.Commit();
             }
         }
 

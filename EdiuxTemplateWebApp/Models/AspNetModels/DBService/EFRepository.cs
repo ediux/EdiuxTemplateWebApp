@@ -12,8 +12,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 	{
 		public EFRepository()
 		{
-            UnitOfWork = RepositoryHelper.GetUnitOfWork();
-          //  _objectset =  _unitofwork.GetTypedContext<AspNetDbEntities2>().Set<T>();
+            UnitOfWork = RepositoryHelper.GetUnitOfWork(); 
 		}	
 
 		IDbSet<T> _objectset;

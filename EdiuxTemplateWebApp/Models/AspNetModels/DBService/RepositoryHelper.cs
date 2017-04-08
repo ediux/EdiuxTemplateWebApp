@@ -111,20 +111,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			return repository;
 		}
 
-		public static aspnet_SchemaVersionsRepository Getaspnet_SchemaVersionsRepository()
-		{
-			var repository = new aspnet_SchemaVersionsRepository();
-			repository.UnitOfWork = GetUnitOfWork();
-			return repository;
-		}
-
-		public static aspnet_SchemaVersionsRepository Getaspnet_SchemaVersionsRepository(IUnitOfWork unitOfWork)
-		{
-			var repository = new aspnet_SchemaVersionsRepository();
-			repository.UnitOfWork = unitOfWork;
-			return repository;
-		}
-
 		public static aspnet_UserClaimsRepository Getaspnet_UserClaimsRepository()
 		{
 			var repository = new aspnet_UserClaimsRepository();

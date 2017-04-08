@@ -52,7 +52,7 @@ namespace EdiuxTemplateWebApp.Filters
 
                     filterContext.Controller.TempData.Add("Exception", customerException);
 
-                    filterContext.Result =  new RedirectToRouteResult(new RouteValueDictionary
+                    filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
                         {
                             { "controller", "Error" },
                             { "action", "Index" },
@@ -65,10 +65,23 @@ namespace EdiuxTemplateWebApp.Filters
                     WriteErrorLog(customerException);
                     return;
                 }
-                filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
+
+                var loginUser = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
+
                 if (appInfo.aspnet_Paths.Any(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path))
                 {
-                    
+                    var pageInfo = appInfo.aspnet_Paths.SingleOrDefault(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path);
+
+                    if (pageInfo == null)
+                    {
+                        filterContext.Result = new HttpNotFoundResult(filterContext.RequestContext.HttpContext.Request.Path + " is not found.");
+                        return;
+                    }
+
+                    if (pageInfo.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUser))
+                    {
+                        pageInfo.aspnet_PersonalizationPerUser.SingleOrDefault(a => a.aspnet_Users.Id == loginUser).PageSettings.Deserialize<PageSettingsBaseModel>();
+                    }
                 }
                 //if (appInfo.isActionInApplication(filterContext.ActionDescriptor))
                 //{

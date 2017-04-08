@@ -32,9 +32,9 @@ namespace EdiuxTemplateWebApp
             return Guid.Empty;
         }
 
-        public static AspNetDbEntities2 GetAspNetMembershipDbContext(this IUnitOfWork db)
+        public static AspNetDbEntities GetAspNetMembershipDbContext(this IUnitOfWork db)
         {
-            return db.Context as AspNetDbEntities2;
+            return db.Context as AspNetDbEntities;
         }
     }
 }

@@ -1,21 +1,20 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
+
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-	public partial class EFUnitOfWork : IUnitOfWork, IRepositoryCollection
+
+	public partial class EFUnitOfWork : IUnitOfWork
 	{
-        private AspNetDbEntities2 _databaseObject;
+		private AspNetDbEntities _databaseObject;
 
         public EFUnitOfWork()
         {
-            _databaseObject = new AspNetDbEntities2();
-
+            _databaseObject = new AspNetDbEntities();
         }
 
 		public IDbConnection Connection
@@ -80,7 +79,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		{
 			get
 			{
-				return this;
+				return _databaseObject;
 			}
 
 			set
@@ -158,15 +157,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             return _databaseObject.Remove(item);
         }
 
-        public IEnumerator<IRepositoryBase> GetEnumerator()
-        {
-            return _databaseObject.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
 
         public void Dispose()
         {
@@ -209,4 +199,5 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
     }
+
 }

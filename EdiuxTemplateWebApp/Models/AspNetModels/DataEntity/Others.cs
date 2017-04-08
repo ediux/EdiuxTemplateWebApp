@@ -1,24 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Linq.Expressions;
 // =========================================
 // 產生額外資料庫回應物件
 // =========================================
 namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
-    public partial class AspNetDbEntities2 : IRepositoryCollection
+    public partial class AspNetDbEntities : IRepositoryCollection
     {
-        ICollection<IRepositoryBase> internalRepository = new Collection<IRepositoryBase>();
-
         public int Count
         {
             get
             {
-
-                return internalRepository.Count;
+                throw new NotImplementedException();
             }
         }
 
@@ -26,58 +20,48 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         {
             get
             {
-                return false;
+                throw new NotImplementedException();
             }
         }
 
         public void Add(IRepositoryBase item)
         {
-            internalRepository.Add(item);
+            throw new NotImplementedException();
         }
 
         public void Clear()
         {
-            internalRepository.Clear();
+            throw new NotImplementedException();
         }
 
         public bool Contains(IRepositoryBase item)
         {
-            return internalRepository.Contains(item);
+            throw new NotImplementedException();
         }
 
         public void CopyTo(IRepositoryBase[] array, int arrayIndex)
         {
-            internalRepository.CopyTo(array, arrayIndex);
+            throw new NotImplementedException();
         }
 
         public IEnumerator<IRepositoryBase> GetEnumerator()
         {
-            return (IEnumerator<IRepositoryBase>)internalRepository.GetEnumerator();
+            throw new NotImplementedException();
         }
 
         public T GetRepository<T>() where T : IRepositoryBase
         {
-            Type t = typeof(RepositoryHelper);
-
-            var foundMethod = t.GetMethods().Where(s => s.Name.EndsWith(t.Name));
-
-            if (foundMethod.Any())
-            {
-                return (T)foundMethod.Single().Invoke(null, new object[] { });
-            }
-         
-
-            return default(T);
+            throw new NotImplementedException();
         }
 
         public bool Remove(IRepositoryBase item)
         {
-            return internalRepository.Remove(item);
+            throw new NotImplementedException();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return internalRepository.GetEnumerator();
+            throw new NotImplementedException();
         }
     }
     public partial class aspnet_Membership_FindUsersByEmail_Result

@@ -1,12 +1,13 @@
 ﻿namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
+    using Shared;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
 
     [MetadataType(typeof(aspnet_ApplicationsMetaData))]
-    public partial class aspnet_Applications 
+    public partial class aspnet_Applications : IApplicationData<Guid>
     {
        
     }

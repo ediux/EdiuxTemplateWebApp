@@ -55,7 +55,7 @@ namespace EdiuxTemplateWebApp
         {
             if (ctr.ViewBag.ApplicationInfo == null)
             {
-                aspnet_Applications appInfo = Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(ctr, Startup.ApplicationInfoKey);
+                aspnet_Applications appInfo = Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(ctr, EdiuxAspNetSqlUserStore.ApplicationInfoKey);
 
                 if (appInfo == null)
                 {
@@ -70,7 +70,7 @@ namespace EdiuxTemplateWebApp
 
         public static aspnet_Applications getApplicationInfo(this object obj)
         {
-            return Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(obj, Startup.ApplicationInfoKey);
+            return Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(obj, EdiuxAspNetSqlUserStore.ApplicationInfoKey);
         }
 
         public static aspnet_Applications addApplicationInfotoServer(this object obj)
@@ -79,7 +79,7 @@ namespace EdiuxTemplateWebApp
             {
                 Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
 
-                aspnet_Applications appInfo = new aspnet_Applications() { ApplicationName = Startup.ApplicationInfoKey };
+                aspnet_Applications appInfo = new aspnet_Applications() { ApplicationName = EdiuxAspNetSqlUserStore.ApplicationInfoKey };
                 appInfo.LoweredApplicationName = appInfo.ApplicationName.ToLowerInvariant();
                 appInfo.Description = appInfo.ApplicationName;
                 appInfo = appRepo.Add(appInfo);

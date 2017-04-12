@@ -202,7 +202,6 @@
     <Compile Include="App_Start\IdentityConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
-    <Compile Include="App_Start\Startup.DataStore.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AccountsManageController.cs" />
@@ -392,6 +391,8 @@
       <DependentUpon>GeneratorDatabaseCodes.tt.txt4</DependentUpon>
     </Compile>
     <Compile Include="Models\AspNetModels\TablesToCheck.cs" />
+    <Compile Include="Models\Shared\IApplicationData.cs" />
+    <Compile Include="Models\Shared\IApplicationStore.cs" />
     <Compile Include="Models\Shared\PagePermissionForUserModel.cs" />
     <Compile Include="Models\Shared\PageSettingsBaseModel.cs" />
     <Compile Include="Models\Shared\EdiuxAspNetSqlUserStore.cs" />

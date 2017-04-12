@@ -17,7 +17,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Menus()
         {
-            this.ParentMenu = new HashSet<Menus>();
+            this.ChildMenus = new HashSet<Menus>();
             this.aspnet_Roles = new HashSet<aspnet_Roles>();
         }
     
@@ -44,8 +44,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public virtual aspnet_Applications aspnet_Applications { get; set; }
         public virtual aspnet_Paths aspnet_Paths { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Menus> ParentMenu { get; set; }
-        public virtual Menus SubMenus { get; set; }
+        public virtual ICollection<Menus> ChildMenus { get; set; }
+        public virtual Menus ParentMenu { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<aspnet_Roles> aspnet_Roles { get; set; }
     }

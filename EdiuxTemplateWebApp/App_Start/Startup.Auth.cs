@@ -24,6 +24,7 @@ namespace EdiuxTemplateWebApp
             // 在 Cookie 中設定簽章
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
+                CookieSecure = CookieSecureOption.SameAsRequest,
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 LoginPath = new PathString("/Account/Login"),
                 Provider = new CookieAuthenticationProvider
@@ -35,7 +36,7 @@ namespace EdiuxTemplateWebApp
                          , (manager, user) => user.GenerateUserIdentityAsync(manager)
                         , (x) => x.GetUserId())
                 }
-            });            
+            });
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 
             // 讓應用程式在雙因素驗證程序中驗證第二個因素時暫時儲存使用者資訊。

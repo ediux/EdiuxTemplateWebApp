@@ -20,6 +20,7 @@ namespace EdiuxTemplateWebApp.Models
                 profileData.UserId = userId;
 
                 UserProfileViewModel newProfile = new UserProfileViewModel();
+                profileData.PropertyValuesString = JsonConvert.SerializeObject(newProfile);
 
                 newProfile.AvatarFilePath = "/Content/images/user.jpg";
                 newProfile.CompanyName = "Ediux Workshop";
@@ -27,7 +28,7 @@ namespace EdiuxTemplateWebApp.Models
                 newProfile.CompanyWebSiteURL = "http://www.riaxe.com/";
 
                 profileData.PropertyValuesBinary = newProfile.Serialize();
-                profileData.PropertyValuesString = JsonConvert.SerializeObject(newProfile);
+                profileData.PropertyValuesString = "{}";
                 profileData.PropertyNames = string.Join(",", newProfile.GetProperties().Keys.ToArray());
                 profileData.LastUpdatedDate = DateTime.UtcNow;
                

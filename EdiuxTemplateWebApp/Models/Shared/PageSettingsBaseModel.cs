@@ -3,12 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Web;
 
 namespace EdiuxTemplateWebApp.Models
 {
     public class PageSettingsBaseModel
     {
+        public PageSettingsBaseModel()
+        {
+            AllowAnonymous = true;
+            AllowExcpetionRoles = new Dictionary<string, bool>();
+            AllowExcpetionRoles.Add("Admins", true);
+            AllowExcpetionUsers = new Dictionary<string, bool>();
+            AllowExcpetionUsers.Add("root", true);
+        }
         public static PageSettingsBaseModel Get(Guid pathId)
         {
             Iaspnet_PersonalizationAllUsersRepository pageSettingRepo = RepositoryHelper.Getaspnet_PersonalizationAllUsersRepository();
@@ -50,7 +57,7 @@ namespace EdiuxTemplateWebApp.Models
                 profileData.PageSettings = profileData.Serialize();
                 profileData.PathId = pathId;
                 profileData.LastUpdatedDate = DateTime.Now;
-               
+
             }
             pageSettingRepo.UnitOfWork.Commit();
 
@@ -58,17 +65,11 @@ namespace EdiuxTemplateWebApp.Models
         [DisplayName("允許匿名存取")]
         public bool AllowAnonymous { get; set; }
 
-        [DisplayName("允許存取的角色列表")]
-        public Dictionary<Guid, bool> AllowRoles { get; set; }
-
-        [DisplayName("允許存取的使用者列表")]
-        public Dictionary<Guid, bool> AllowUsers { get; set; }
-
         [DisplayName("允許例外存取的角色列表")]
-        public Dictionary<Guid, bool> AllowExcpetionRoles { get; set; }
+        public Dictionary<string, bool> AllowExcpetionRoles { get; set; }
 
         [DisplayName("允許例外存取的使用者列表")]
-        public Dictionary<Guid, bool> AllowExcpetionUsers { get; set; }
+        public Dictionary<string, bool> AllowExcpetionUsers { get; set; }
 
         [DisplayName("頁面標題")]
         public string Title { get; set; }
@@ -87,5 +88,8 @@ namespace EdiuxTemplateWebApp.Models
 
         [DisplayName("對應選單識別碼")]
         public Guid MenuId { get; set; }
+
+        [DisplayName("預設的CSS內容資源")]
+        public string CSS { get; set; }
     }
 }

@@ -8,8 +8,7 @@ namespace EdiuxTemplateWebApp
     {
         public void Configuration(IAppBuilder app)
         {
-            ConfigureAuth(app);
-            ConfigureDataStore(app);
+            ConfigureAuth(app); 
         }
     }
 }

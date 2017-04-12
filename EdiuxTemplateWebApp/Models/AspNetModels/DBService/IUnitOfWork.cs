@@ -98,6 +98,16 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <returns>The typed context.</returns>
 		/// <typeparam name="T">The 1st type parameter.</typeparam>
 		T GetTypedContext<T>() where T : IObjectContextAdapter;
+
+        /// <summary>
+        /// 開始批次提交交易。
+        /// </summary>
+        void BatchCommitStart();
+
+        /// <summary>
+        /// 結束批次提交交易!
+        /// </summary>
+        void BatchCommitEnd();
 	}
 
 }

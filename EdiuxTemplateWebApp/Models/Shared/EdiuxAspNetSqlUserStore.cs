@@ -1,5 +1,8 @@
-﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+﻿using EdiuxTemplateWebApp.Helpers;
+using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models.Shared;
 using Microsoft.AspNet.Identity;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -20,6 +23,7 @@ namespace EdiuxTemplateWebApp.Models
         , IUserPhoneNumberStore<aspnet_Users, Guid>, IUserSecurityStampStore<aspnet_Users, Guid>
         , IUserTwoFactorStore<aspnet_Users, Guid>, IUserClaimStore<aspnet_Users, Guid>
         , IQueryableUserStore<aspnet_Users, Guid>, IQueryableRoleStore<aspnet_Roles, Guid>
+        , IApplicationStore<aspnet_Applications, Guid>
     {
         #region 變數宣告區
         protected IUnitOfWork UnitOfWork;
@@ -36,12 +40,10 @@ namespace EdiuxTemplateWebApp.Models
 
             appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(UnitOfWork);
 
-            applicationInfo = this.getApplicationInfo();
+            createApplicationIfNotExisted().RunSynchronously();
 
-            if (applicationInfo == null)
-            {
-                throw new Exception("Application isn't existed.");
-            }
+            applicationInfo = this.getApplicationGlobalVariable<aspnet_Applications>(ApplicationInfoKey);
+
             userRepo = RepositoryHelper.Getaspnet_UsersRepository(UnitOfWork);
             membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository(UnitOfWork);
             roleRepo = RepositoryHelper.Getaspnet_RolesRepository(UnitOfWork);
@@ -68,63 +70,153 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
+        public IQueryable<aspnet_Applications> Applications
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
 
         #endregion
 
         #region User Store(使用者帳號的CRUD)
         public Task CreateAsync(aspnet_Users user)
         {
-            try
+            if (user == null)
             {
+                throw new ArgumentNullException("user");
+            }
 
-                var appInfos = appRepo.FindByName(user.aspnet_Applications.ApplicationName);
+            var asynctask = createApplicationIfNotExisted();
+            asynctask.Start();
+            asynctask.Wait();
 
-                aspnet_Applications appInfo = null;
+            if (user.ApplicationId == null || user.ApplicationId == Guid.Empty)
+            {
+                user.ApplicationId = applicationInfo.ApplicationId;
+                user.aspnet_Applications = applicationInfo;
+            }
 
-                if (!appInfos.Any())
+            var users = userRepo.GetUserByName(user.aspnet_Applications.ApplicationName,
+                                               user.UserName,
+                                               DateTime.UtcNow,
+                                               true);
+
+            aspnet_Users newUser = new aspnet_Users();
+
+            if (users == null)
+            {
+                newUser.ApplicationId = user.ApplicationId;
+                newUser.aspnet_Applications = user.aspnet_Applications;
+                newUser.IsAnonymous = false;
+                newUser.LastActivityDate = DateTime.UtcNow;
+                if (string.IsNullOrEmpty(user.LoweredUserName))
                 {
-                    appInfo = appRepo.Add(user.aspnet_Applications);
-                    UnitOfWork.Commit();
-                    appInfo = appRepo.Reload(appInfo);
-                    user.ApplicationId = appInfo.ApplicationId;
-                    user.aspnet_Applications = appInfo;
+                    if (string.IsNullOrEmpty(user.UserName))
+                    {
+                        throw new ArgumentException("user.UserName 不能為空或Null.");
+                    }
+                    else
+                    {
+                        newUser.UserName = user.UserName;
+                        newUser.LoweredUserName = user.UserName.ToLowerInvariant();
+                    }
                 }
                 else
                 {
-                    appInfo = appInfos.Single();
-                    user.ApplicationId = appInfo.ApplicationId;
-                    user.aspnet_Applications = appInfo;
+                    newUser.LoweredUserName = user.LoweredUserName;
                 }
-
-                var users = userRepo.GetUserByName(user.aspnet_Applications.ApplicationName,
-                                                   user.UserName,
-                                                   DateTime.UtcNow,
-                                                   true);
-
-                if (users == null)
+                if (string.IsNullOrEmpty(user.UserName))
                 {
-                    aspnet_Users newUser = userRepo.Add(user);
-                    UnitOfWork.TranscationMode = false;
-                    UnitOfWork.Commit();
-                    user = newUser;
-
+                    throw new ArgumentException("user.UserName 不能為空或Null.");
                 }
-
-                if (user?.aspnet_Membership == null)
+                else
                 {
-                    user.aspnet_Membership = membershipRepo.Add(user.aspnet_Membership);
-                    UnitOfWork.TranscationMode = false;
-                    UnitOfWork.Commit();
-                    user.aspnet_Membership = membershipRepo.Reload(user.aspnet_Membership);
+                    newUser.UserName = user.UserName;
+                }
+                if (!string.IsNullOrEmpty(user.MobileAlias))
+                {
+                    newUser.MobileAlias = user.MobileAlias;
                 }
 
-                return Task.CompletedTask;
+                newUser = userRepo.CopyTo<aspnet_Users>(user);
+
+                userRepo.Add(newUser);
+
+                UnitOfWork.Commit();
+
+                newUser = userRepo.Reload(newUser);
             }
-            catch (Exception ex)
+            else
             {
-                WriteErrorLog(ex);
-                throw;
+                newUser = userRepo.GetUserByName(user.aspnet_Applications.ApplicationName, user.UserName, DateTime.UtcNow, true);
+                return Task.FromResult(newUser);
             }
+
+            if (newUser.aspnet_Membership == null)
+            {
+                if (user.aspnet_Membership != null)
+                {
+                    newUser.aspnet_Membership = membershipRepo.Add(user.aspnet_Membership);
+                    newUser.aspnet_Membership.UserId = newUser.Id;
+                }
+                else
+                {
+                    newUser.aspnet_Membership = new aspnet_Membership();
+                }
+
+                userRepo.UnitOfWork.BatchCommitStart();
+            }
+
+
+            if (!newUser.aspnet_PersonalizationPerUser.Any())
+            {
+                //add
+
+            }
+
+
+            if (newUser.aspnet_Profile == null)
+            {
+                newUser.aspnet_Profile = new aspnet_Profile();
+                newUser.aspnet_Profile.LastUpdatedDate = DateTime.UtcNow;
+
+                UserProfileViewModel newProfile = new UserProfileViewModel();
+
+                newProfile.AvatarFilePath = "/Content/images/user.jpg";
+                newProfile.CompanyName = "Ediux Workshop";
+                newProfile.PositionTitle = "PG";
+                newProfile.CompanyWebSiteURL = "http://www.riaxe.com/";
+
+                newUser.aspnet_Profile.PropertyValuesBinary = newProfile.Serialize();
+                newUser.aspnet_Profile.PropertyValuesString = "{}";
+                newUser.aspnet_Profile.PropertyNames = string.Join(",", newProfile.GetProperties().Keys.ToArray());
+                newUser.aspnet_Profile.LastUpdatedDate = DateTime.UtcNow;
+
+
+
+            }
+
+            if (!newUser.aspnet_Roles.Any())
+            {
+                AddToRoleAsync(newUser, "Users");
+            }
+
+            if (!newUser.aspnet_UserClaims.Any())
+            {
+
+            }
+
+            if (!newUser.aspnet_UserLogin.Any())
+            {
+
+            }
+
+            UnitOfWork.Commit();
+
+            return Task.CompletedTask;
         }
 
         public Task DeleteAsync(aspnet_Users user)
@@ -925,14 +1017,7 @@ namespace EdiuxTemplateWebApp.Models
                 var profile = user.GetProfile();
                 profile.SecurityStamp = stamp;
                 user.SetProfile(profile);
-                //if (user.aspnet_PersonalizationPerUser == null)
-                //{
-                //    throw new Exception(string.Format("The user '{0}' has missed page setting information! ", user.UserName));
-                //}
 
-                //var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
-
-                //user.SetProfile<ProfileModel>((s) => s.SecurityStamp = stamp);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -1047,6 +1132,42 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region Helper Functions
+
+        private bool checkCurrentAppIsRegistered()
+        {
+            try
+            {
+                var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
+                getAppNameTask.Start();
+                getAppNameTask.Wait();
+
+                string appName = getAppNameTask.Result;
+
+                if (!appRepo.FindByName(appName).Any())
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                WriteErrorLog(ex);
+                throw;
+            }
+
+        }
+
+        private void addToMemoryCache()
+        {
+            this.setApplicationGlobalVariable(ApplicationInfoKey, applicationInfo);
+        }
+
+        private void setToMemoryCache()
+        {
+            this.setApplicationGlobalVariable(ApplicationInfoKey, applicationInfo);
+        }
+
         protected virtual void WriteErrorLog(Exception ex)
         {
             if (System.Web.HttpContext.Current == null)
@@ -1057,6 +1178,212 @@ namespace EdiuxTemplateWebApp.Models
             {
                 Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
             }
+        }
+
+        private bool checkRootUserHasAdminsRole()
+        {
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            string appName = GetApplicationNameFromConfiguratinFileAsync().Result;
+            aspnet_Applications appInfo = appRepo.FindByName(appName).SingleOrDefault();
+
+            Iaspnet_UsersRepository usersRepo = RepositoryHelper.Getaspnet_UsersRepository(appRepo.UnitOfWork);
+
+            aspnet_Users rootUser = usersRepo.GetUserByName(appInfo.ApplicationName, "root", DateTime.UtcNow, false);
+
+            if (rootUser != null)
+            {
+                return rootUser.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase));
+            }
+            throw new NullReferenceException(string.Format("The object of '{0}' is not found.", nameof(rootUser)));
+        }
+
+        private void addRootUserToAdminsRole()
+        {
+            if (applicationInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
+                throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
+
+            aspnet_Users rootUser = userRepo.GetUserByName(applicationInfo.ApplicationName, "root", DateTime.UtcNow, false);
+
+            if (rootUser != null)
+            {
+                if (userRepo.IsInRole(rootUser, "Admins") == false)
+                    userRepo.AddToRole(rootUser, "Admins");
+                return;
+            }
+            throw new NullReferenceException(string.Format("The username , '{0}', is not found.", "root"));
+        }
+
+        private bool checkCurrentAppHasRootUser()
+        {
+            if (applicationInfo != null)
+            {
+                return applicationInfo.aspnet_Users.Any(s => s.UserName.Equals("root", StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            return false;
+        }
+
+        private void createRootUser()
+        {
+            aspnet_Users rootUser = new aspnet_Users();  // ("root", "!QAZ2wsx");
+            rootUser.ApplicationId = applicationInfo.ApplicationId;
+            rootUser.UserName = "root";
+            rootUser.LoweredUserName = "root";
+            rootUser.IsAnonymous = false;
+            rootUser.LastActivityDate = DateTime.Now;
+            rootUser.MobileAlias = "";
+
+            rootUser.aspnet_Membership = new aspnet_Membership();
+            rootUser.aspnet_Membership.AccessFailedCount = 0;
+            rootUser.aspnet_Membership.ApplicationId = applicationInfo.ApplicationId;
+            rootUser.aspnet_Membership.aspnet_Applications = applicationInfo;
+            rootUser.aspnet_Membership.Comment = "";
+            rootUser.aspnet_Membership.CreateDate = DateTime.Now.Date;
+            rootUser.aspnet_Membership.Email = "root@localhost.local";
+            rootUser.aspnet_Membership.EmailConfirmed = true;
+            rootUser.aspnet_Membership.FailedPasswordAnswerAttemptCount = 0;
+            rootUser.aspnet_Membership.FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.FailedPasswordAttemptCount = 0;
+            rootUser.aspnet_Membership.FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.IsApproved = true;
+            rootUser.aspnet_Membership.IsLockedOut = false;
+            rootUser.aspnet_Membership.LastLockoutDate = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.LastLoginDate = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.LastPasswordChangedDate = new DateTime(1754, 1, 1);
+            rootUser.aspnet_Membership.LoweredEmail = rootUser.aspnet_Membership.Email.ToLowerInvariant();
+            rootUser.aspnet_Membership.MobilePIN = "123456";
+            rootUser.aspnet_Membership.Password = "!QAZ2wsx";
+            rootUser.aspnet_Membership.PasswordAnswer = "";
+            rootUser.aspnet_Membership.PasswordFormat = (int)System.Web.Security.MembershipPasswordFormat.Hashed;
+            rootUser.aspnet_Membership.PasswordQuestion = "";
+            rootUser.aspnet_Membership.PasswordSalt = Path.GetRandomFileName();
+            rootUser.aspnet_Membership.PhoneConfirmed = true;
+            rootUser.aspnet_Membership.PhoneNumber = "0901-123-456";
+            rootUser.aspnet_Membership.ResetPasswordToken = "";
+
+            var asynctask = CreateAsync(rootUser);
+            asynctask.ContinueWith((x) =>
+            {
+                var asynctaskb = AddToRoleAsync(rootUser, "Admins");
+                asynctaskb.Start();
+            });
+        }
+
+        private bool checkCurrentAppHasRoles()
+        {
+            if (appRepo == null)
+                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+
+
+
+
+
+            if (applicationInfo != null)
+            {
+                if (applicationInfo.aspnet_Roles.Count == 0)
+                {
+                    return false;
+                }
+
+                aspnet_Roles[] defaultRoles = new aspnet_Roles[] {
+                    new aspnet_Roles() {
+                        ApplicationId = applicationInfo.ApplicationId,
+                         aspnet_Applications = applicationInfo,
+                        Description = "系統管理員",
+                        LoweredRoleName = "admins",
+                        Name = "Admins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = applicationInfo.ApplicationId,
+                        aspnet_Applications = applicationInfo,
+                        Description = "次要管理員",
+                        LoweredRoleName = "coadmins",
+                        Name = "CoAdmins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = applicationInfo.ApplicationId,
+                        aspnet_Applications = applicationInfo,
+                        Description = "使用者",
+                        LoweredRoleName = "users",
+                        Name = "Users",
+                        Id = Guid.NewGuid()
+                    }
+                };
+
+                bool roleexisted = true;
+
+                foreach (var checkRole in defaultRoles)
+                {
+                    if (!roleRepo.IsExists(checkRole))
+                    {
+                        roleexisted = false;
+                        break;
+                    }
+                }
+                return roleexisted;
+            }
+
+            return false;
+        }
+        private aspnet_Applications getApplicationInformationFromCache(string appName)
+        {
+            var appInfo = appName.getApplicationGlobalVariable<aspnet_Applications>(ApplicationInfoKey);
+
+            if (appInfo == null)
+            {
+                appInfo = appRepo.FindByName(ConfigHelper.GetConfig(ApplicationName)).SingleOrDefault();
+                WebHelper.setApplicationGlobalVariable(appName, appName, appInfo);
+            }
+
+            return appInfo;
+        }
+
+        private void createDefaultRoles()
+        {
+            string appName = GetApplicationNameFromConfiguratinFileAsync().Result;
+
+            aspnet_Applications appInfo = getApplicationInformationFromCache(appName);
+
+            aspnet_Roles[] defaultRoles = new aspnet_Roles[] {
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        Description = "系統管理員",
+                        LoweredRoleName = "admins",
+                        Name = "Admins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        Description = "次要管理員",
+                        LoweredRoleName = "coadmins",
+                        Name = "CoAdmins",
+                        Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = appInfo.ApplicationId,
+                        Description = "使用者",
+                        LoweredRoleName = "users",
+                        Name = "Users",
+                        Id = Guid.NewGuid()
+                    }
+                };
+
+            roleRepo.UnitOfWork.TranscationMode = true;
+
+            foreach (var checkRole in defaultRoles)
+            {
+                if (!roleRepo.IsExists(checkRole))
+                {
+                    roleRepo.Add(checkRole);
+                }
+            }
+
+            roleRepo.UnitOfWork.TranscationMode = false;
+            roleRepo.UnitOfWork.Commit();
+
         }
         #endregion
 
@@ -1095,6 +1422,96 @@ namespace EdiuxTemplateWebApp.Models
         }
         #endregion
 
+        public Task createApplicationIfNotExisted()
+        {
+            //檢查Application是否已經註冊?
 
+            if (checkCurrentAppIsRegistered() == false)
+            {
+                aspnet_Applications newApplication = new aspnet_Applications();
+
+                var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
+                getAppNameTask.Start();
+                getAppNameTask.Wait();
+
+                string applicationName = ConfigHelper.GetConfig(getAppNameTask.Result);
+
+                newApplication.ApplicationName = applicationName;
+                newApplication.Description = applicationName;
+                newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
+
+                CreateAsync(newApplication).Wait();
+
+                addToMemoryCache();
+            }
+            else
+            {
+                addToMemoryCache();
+            }
+
+            if (checkCurrentAppHasRoles() == false)
+            {
+                createDefaultRoles();
+            }
+
+            if (checkCurrentAppHasRootUser() == false)
+            {
+                createRootUser();
+            }
+            if (checkRootUserHasAdminsRole() == false)
+            {
+                addRootUserToAdminsRole();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task CreateAsync(aspnet_Applications app)
+        {
+            aspnet_Applications newApplication = new aspnet_Applications();
+
+            newApplication.ApplicationId = app.ApplicationId;
+            newApplication.ApplicationName = app.ApplicationName;
+            newApplication.Description = app.Description;
+            newApplication.LoweredApplicationName = app.LoweredApplicationName;
+
+            appRepo.Add(newApplication);
+            appRepo.UnitOfWork.Commit();
+
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(aspnet_Applications app)
+        {
+            appRepo.Delete(app);
+            appRepo.UnitOfWork.Commit();
+            return Task.CompletedTask;
+        }
+
+        Task<aspnet_Applications> IApplicationStore<aspnet_Applications, Guid>.FindByIdAsync(Guid appId)
+        {
+            return Task.FromResult(appRepo.Get(appId));
+        }
+
+        Task<aspnet_Applications> IApplicationStore<aspnet_Applications, Guid>.FindByNameAsync(string appName)
+        {
+            return Task.FromResult(appRepo.FindByName(appName).SingleOrDefault());
+        }
+
+        public Task UpdateAsync(aspnet_Applications app)
+        {
+            var existapp = appRepo.Get(app.ApplicationId);
+            existapp = appRepo.CopyTo<aspnet_Applications>(app);
+            return appRepo.UnitOfWork.CommitAsync();
+        }
+
+        public Task<string> GetApplicationNameFromConfiguratinFileAsync()
+        {
+            string appName = ConfigHelper.GetConfig(ApplicationName);
+            return Task.FromResult(appName);
+        }
+
+        public const string ApplicationInfoKey = "ApplicationInfo";
+        internal const string ApplicationName = "ApplicationName";
     }
 }

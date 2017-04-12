@@ -96,8 +96,13 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             {
 
                 if (!transcationMode)
+                {
                     _databaseObject.SaveChanges();
 
+                    //savechange後會釋放資源 因此需要Renew
+                    _databaseObject = null;
+                    _databaseObject = new AspNetDbEntities();
+                }
             }
             catch (Exception ex)
             {
@@ -208,6 +213,17 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public void Dispose()
         {
             _databaseObject.Dispose();
+        }
+
+        public void BatchCommitStart()
+        {
+            transcationMode = true;
+        }
+
+        public void BatchCommitEnd()
+        {
+            transcationMode = false;
+            Commit();
         }
 
         bool transcationMode = false;

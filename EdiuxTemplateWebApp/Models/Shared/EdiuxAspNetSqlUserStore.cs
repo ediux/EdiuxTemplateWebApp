@@ -40,14 +40,17 @@ namespace EdiuxTemplateWebApp.Models
 
             appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(UnitOfWork);
 
-            createApplicationIfNotExisted().RunSynchronously();
-
-            applicationInfo = this.getApplicationGlobalVariable<aspnet_Applications>(ApplicationInfoKey);
-
             userRepo = RepositoryHelper.Getaspnet_UsersRepository(UnitOfWork);
             membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository(UnitOfWork);
             roleRepo = RepositoryHelper.Getaspnet_RolesRepository(UnitOfWork);
             userloginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(UnitOfWork);
+
+
+
+            createApplicationIfNotExisted();
+
+
+
         }
         #endregion
 
@@ -1138,8 +1141,6 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
-                getAppNameTask.Start();
-                getAppNameTask.Wait();
 
                 string appName = getAppNameTask.Result;
 
@@ -1156,11 +1157,6 @@ namespace EdiuxTemplateWebApp.Models
                 throw;
             }
 
-        }
-
-        private void addToMemoryCache()
-        {
-            this.setApplicationGlobalVariable(ApplicationInfoKey, applicationInfo);
         }
 
         private void setToMemoryCache()
@@ -1431,8 +1427,6 @@ namespace EdiuxTemplateWebApp.Models
                 aspnet_Applications newApplication = new aspnet_Applications();
 
                 var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
-                getAppNameTask.Start();
-                getAppNameTask.Wait();
 
                 string applicationName = ConfigHelper.GetConfig(getAppNameTask.Result);
 
@@ -1440,13 +1434,28 @@ namespace EdiuxTemplateWebApp.Models
                 newApplication.Description = applicationName;
                 newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
 
-                CreateAsync(newApplication).Wait();
+                CreateAsync(newApplication);
 
-                addToMemoryCache();
+                applicationInfo = newApplication;
+
+                setToMemoryCache();
+
             }
             else
             {
-                addToMemoryCache();
+                applicationInfo = this.getApplicationGlobalVariable<aspnet_Applications>(ApplicationInfoKey);
+
+                if (applicationInfo == null)
+                {
+                    applicationInfo = appRepo.FindByName(GetApplicationNameFromConfiguratinFileAsync().Result).Single();
+                    setToMemoryCache();
+                }
+                else
+                {
+                    applicationInfo = this.getApplicationInformationFromCache(GetApplicationNameFromConfiguratinFileAsync().Result);
+                }
+                
+                
             }
 
             if (checkCurrentAppHasRoles() == false)
@@ -1477,6 +1486,9 @@ namespace EdiuxTemplateWebApp.Models
 
             appRepo.Add(newApplication);
             appRepo.UnitOfWork.Commit();
+
+            app = appRepo.Reload(app);
+
 
             return Task.CompletedTask;
         }

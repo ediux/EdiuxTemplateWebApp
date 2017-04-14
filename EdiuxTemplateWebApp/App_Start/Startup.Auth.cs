@@ -1,11 +1,11 @@
-﻿using System;
+﻿using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Owin;
-using EdiuxTemplateWebApp.Models.AspNetModels;
-using EdiuxTemplateWebApp.Helpers;
+using System;
 
 namespace EdiuxTemplateWebApp
 {
@@ -15,6 +15,10 @@ namespace EdiuxTemplateWebApp
         public void ConfigureAuth(IAppBuilder app)
         {
             // 設定資料庫內容、使用者管理員和登入管理員，以針對每個要求使用單一執行個體
+            app.CreatePerOwinContext<IUnitOfWork>((x, i) =>
+            RepositoryHelper.GetUnitOfWork());
+            app.CreatePerOwinContext<EdiuxAspNetSqlUserStore>((x, i)
+                => new EdiuxAspNetSqlUserStore(i.Get<IUnitOfWork>()));
             app.CreatePerOwinContext(RepositoryHelper.GetUnitOfWork);
             app.CreatePerOwinContext<ApplicationUserManager>(ApplicationUserManager.Create);
             app.CreatePerOwinContext<ApplicationSignInManager>(ApplicationSignInManager.Create);

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using System.Data.Entity.Validation;
 using System.Web.Routing;
 using EdiuxTemplateWebApp.Models.AspNetModels;
 using System.Runtime.Caching;
+using Microsoft.AspNet.Identity.Owin;
+using EdiuxTemplateWebApp.Models;
 
 namespace EdiuxTemplateWebApp.Filters
 {
@@ -76,7 +79,7 @@ namespace EdiuxTemplateWebApp.Filters
             aspnet_Paths pathInfo;
             string loweredUrl = url.ToLowerInvariant();
             pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
-			 && w.ApplicationId == appInfo.ApplicationId).SingleOrDefault();
+             && w.ApplicationId == appInfo.ApplicationId).SingleOrDefault();
             return pathInfo;
         }
 
@@ -93,7 +96,10 @@ namespace EdiuxTemplateWebApp.Filters
 
         private static Iaspnet_ApplicationsRepository getApplicationInformation(ActionExecutingContext filterContext, ref aspnet_Applications appInfo)
         {
-            Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            IUnitOfWork uow = filterContext.RequestContext.HttpContext.GetOwinContext().Get<IUnitOfWork>();
+            EdiuxAspNetSqlUserStore store = filterContext.RequestContext.HttpContext.GetOwinContext().Get<EdiuxAspNetSqlUserStore>();
+
+            Iaspnet_ApplicationsRepository appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(uow);
 
             if (filterContext.Controller.ViewBag.ApplicationInfo != null)
             {
@@ -103,7 +109,11 @@ namespace EdiuxTemplateWebApp.Filters
             {
                 if (appInfo == null)
                 {
-                    string applicationName = Startup.getApplicationNameFromConfiguationFile();
+                    var asyncTask = store.GetApplicationNameFromConfiguratinFileAsync();
+                    asyncTask.Start();
+                    asyncTask.Wait();
+
+                    string applicationName = asyncTask.Result;
                     appInfo = appRepo.FindByName(applicationName).Single();
                     MemoryCache.Default.Add("ApplicationInfo", appInfo, DateTime.UtcNow.AddMinutes(38400));
                 }

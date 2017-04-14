@@ -15,43 +15,18 @@ namespace EdiuxTemplateWebApp.Controllers
     [Authorize]
     public class ManageController : BaseController
     {
-        private ApplicationSignInManager _signInManager;
-        private ApplicationUserManager _userManager;
         private aspnet_Applications appInfo;
         public ManageController()
         {
             appInfo = this.getApplicationInfo();
         }
 
-        public ManageController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
+        public ManageController(ApplicationUserManager userManager, ApplicationSignInManager signInManager) : base(userManager, signInManager)
         {
-            UserManager = userManager;
-            SignInManager = signInManager;
+
         }
 
-        public ApplicationSignInManager SignInManager
-        {
-            get
-            {
-                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
-            }
-            private set
-            {
-                _signInManager = value;
-            }
-        }
 
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
-        }
 
         //
         // GET: /Manage/Index
@@ -364,7 +339,7 @@ namespace EdiuxTemplateWebApp.Controllers
             }
             model.TwoFactorEnabled = false;
             model.BrowserRemembered = false;
-          
+
             //  IApplicationRoleRepository roleRepo = RepositoryHelper.GetApplicationRoleRepository(UserManager.UnitOfWork);
             var roleList = user.aspnet_Roles.AsEnumerable();
             var options = appInfo.aspnet_Roles.AsEnumerable();
@@ -395,16 +370,7 @@ namespace EdiuxTemplateWebApp.Controllers
             return RedirectToAction("UserProfile", new { Id = id });
         }
         #endregion
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && _userManager != null)
-            {
-                _userManager.Dispose();
-                _userManager = null;
-            }
-
-            base.Dispose(disposing);
-        }
+        
 
         #region Helper
         // 新增外部登入時用來當做 XSRF 保護

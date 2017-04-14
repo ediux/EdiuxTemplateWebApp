@@ -1,16 +1,13 @@
-﻿using System;
+﻿using EdiuxTemplateWebApp.Filters;
+using EdiuxTemplateWebApp.Models.AspNetModels;
+using Microsoft.AspNet.Identity;
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.AspNet.Identity;
-using System.Collections.Generic;
-using EdiuxTemplateWebApp.Models.AspNetModels;
-using EdiuxTemplateWebApp.Helpers;
-using EdiuxTemplateWebApp.Filters;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
@@ -20,7 +17,6 @@ namespace EdiuxTemplateWebApp.Controllers
         private Iaspnet_ApplicationsRepository appRepo;
         private Iaspnet_PathsRepository pathRepo;
 
-        private ApplicationUserManager _userManager;
         private aspnet_Applications appInfo;
         public MenusController()
         {
@@ -32,21 +28,10 @@ namespace EdiuxTemplateWebApp.Controllers
 
         public MenusController(ApplicationUserManager userManager) : this()
         {
-            UserManager = userManager;
             menuRepo = RepositoryHelper.GetMenusRepository();
         }
 
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
-        }
+    
 
         // GET: Menus
         public ActionResult Index()

@@ -1,5 +1,6 @@
 ﻿using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models.Identity;
 using EdiuxTemplateWebApp.Models.Shared;
 using Microsoft.AspNet.Identity;
 using System;
@@ -59,79 +60,150 @@ namespace EdiuxTemplateWebApp.Filters
                             { "action", "Index" },
                             { "actionName",filterContext.ActionDescriptor.ActionName},
                             { "controllerName",filterContext.ActionDescriptor.ControllerDescriptor.ControllerName },
-                            { "statusCode", System.Net.HttpStatusCode.BadRequest },
-                            { "ex", customerException }
+                            { "statusCode", System.Net.HttpStatusCode.BadRequest }
+
                         });
 
                     WriteErrorLog(customerException);
                     return;
                 }
 
-                var loginUser = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
+                #region 取得目前所在虛擬路徑的資訊
 
                 if (appInfo.aspnet_Paths.Any(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path))
                 {
-                    var pageInfo = appInfo.aspnet_Paths.SingleOrDefault(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path);
+                    #region 取出路徑資訊
+                    var pagePathInformation = appInfo.aspnet_Paths.Single(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path);
 
-                    if (pageInfo == null)
+                    var loginUserId = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
+
+                    #region 檢查是否有目前使用者對應的設定紀錄
+                    if (pagePathInformation.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUserId))
                     {
-                        filterContext.Result = new HttpNotFoundResult(filterContext.RequestContext.HttpContext.Request.Path + " is not found.");
-                        return;
-                    }
+                        //有紀錄
 
-                    if (pageInfo.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUser))
-                    {
-                        byte[] data = pageInfo.aspnet_PersonalizationPerUser.SingleOrDefault(a => a.aspnet_Users.Id == loginUser).PageSettings;
+                        //當前使用者的設定檔
+                        var pageUserSettings = pagePathInformation.aspnet_PersonalizationPerUser.Single(a => a.aspnet_Users.Id == loginUserId);
 
-                        if (data != null && data.Length > 0)
+                        PageSettingByUserViewModel userSettingModel = new PageSettingByUserViewModel(pageUserSettings);
+
+                        #region 檢查是否匿名存取
+                        if (userSettingModel.AllowAnonymous)
                         {
-                            var pagePermission = data.Deserialize<PagePermissionForUserModel>();
-                            if (pagePermission.CanAccess)
+                            return;
+                        }
+                        #endregion
+
+                        #region 權限
+                        var UserPermission = userSettingModel.Permission;
+
+                        if (UserPermission != null)
+                        {
+                            if (UserPermission.ExecuteFeature || UserPermission.IsErrorPage || UserPermission.SharedView)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            UserPermission = new PagePermissionForUserModel();
+
+                            UserPermission.ExecuteFeature = false;
+                            UserPermission.ReadData = false;
+
+                            userSettingModel.Permission = UserPermission;
+
+                            pageUserSettings.PageSettings = userSettingModel.Serialize();
+                            pageUserSettings.LastUpdatedDate = DateTime.UtcNow;
+
+                            Iaspnet_PersonalizationPerUserRepository PersonalizationPerUserRepo =
+                                RepositoryHelper.Getaspnet_PersonalizationPerUserRepository();
+
+                            PersonalizationPerUserRepo.Update(pageUserSettings);
+                            PersonalizationPerUserRepo.UnitOfWork.Commit();
+
+                        }
+                        #endregion
+
+                    }
+                    else
+                    {
+                        PageSettingByUserViewModel userSettingModel = new PageSettingByUserViewModel();
+
+                        userSettingModel.Permission.ExecuteFeature = false;
+                        userSettingModel.Permission.ReadData = false;
+
+                        //未建立
+                        var pageUserSettings = new aspnet_PersonalizationPerUser();
+
+                        pageUserSettings.Id = Guid.NewGuid();
+                        pageUserSettings.LastUpdatedDate = DateTime.UtcNow;
+                        pageUserSettings.PathId = pagePathInformation.PathId;
+                        pageUserSettings.PageSettings = userSettingModel.Serialize();
+                        pageUserSettings.UserId = loginUserId;
+
+                        Iaspnet_PersonalizationPerUserRepository PersonalizationPerUserRepo =
+                             RepositoryHelper.Getaspnet_PersonalizationPerUserRepository();
+
+                        PersonalizationPerUserRepo.Add(pageUserSettings);
+                        PersonalizationPerUserRepo.UnitOfWork.Commit();
+
+
+                    }
+                    #endregion
+
+                    #region 檢查是否有共用的設定檔
+                    if (pagePathInformation.aspnet_PersonalizationAllUsers != null)
+                    {
+                        PageSettingsBaseModel GlobalSettings
+                            = pagePathInformation.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
+
+                        if (GlobalSettings.AllowAnonymous)
+                        {
+                            return;
+                        }
+
+                        var username = filterContext.RequestContext.HttpContext.User.Identity.GetUserName();
+
+                        if (GlobalSettings.AllowExcpetionUsers[username])
+                        {
+                            return;
+                        }
+
+                        if (GlobalSettings.AllowExcpetionRoles.Any())
+                        {
+                            var UserInfo = appInfo.aspnet_Users.Where(w => w.Id == loginUserId).Single();
+                            var checkRoleCanAccess = (from r in UserInfo.aspnet_Roles
+                                                      from e in GlobalSettings.AllowExcpetionRoles
+                                                      where r.LoweredRoleName == e.Key.ToLowerInvariant()
+                                                      select r);
+                            if (checkRoleCanAccess.Any())
                             {
                                 return;
                             }
                         }
                     }
+                    else
+                    {
+                        if (pagePathInformation.aspnet_PersonalizationAllUsers == null)
+                        {
+                            var aspnet_PersonalizationAllUsers = new aspnet_PersonalizationAllUsers();
+                            aspnet_PersonalizationAllUsers.LastUpdatedDate = DateTime.UtcNow;
+                            aspnet_PersonalizationAllUsers.PageSettings = (new PageSettingsBaseModel()).Serialize();
+                            aspnet_PersonalizationAllUsers.PathId = pagePathInformation.PathId;
+
+                            Iaspnet_PersonalizationAllUsersRepository allUserRepo = RepositoryHelper.Getaspnet_PersonalizationAllUsersRepository();
+                            allUserRepo.Add(aspnet_PersonalizationAllUsers);
+                            allUserRepo.UnitOfWork.Commit();
+
+                        }
+                    }
+                    #endregion
+
+                    #endregion
                 }
-                //if (appInfo.isActionInApplication(filterContext.ActionDescriptor))
-                //{
-                //    System_ControllerActions actionInfo = appInfo.getMVCActionInfo(filterContext.ActionDescriptor);
 
-                //    var users = appInfo.getUsers(filterContext.HttpContext.User.Identity.GetUserId<int>());
-
-                //    if (users == null)
-                //    {
-                //        if(filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.Name=="root")
-                //        {
-                //            return;
-                //        }
-
-                //        filterContext.Result = new HttpUnauthorizedResult();
-                //        return;
-                //    }
-
-                //    if (users.Length >= 1)
-                //    {
-                //        var loginedUser = users.OrderBy(o => o.Id).First();
-
-                //        if (filterContext.Controller.ViewBag.CurrentLoginedUser == null)
-                //        {
-                //            //加入取得目前登入使用者的資訊
-                //            filterContext.Controller.ViewBag.CurrentLoginedUser = loginedUser;
-                //        }
-
-                //        if (actionInfo.isUserAuthorizend(loginedUser) == false)
-                //        {
-                //            filterContext.Result = new HttpUnauthorizedResult();
-                //            return;
-                //        }
-
-                //        //base.OnAuthorization(filterContext);
-                //        return;
-                //    }
-                //}
-
-
+                #endregion
 
                 if (filterContext.ActionDescriptor.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any())
                 {
@@ -153,14 +225,17 @@ namespace EdiuxTemplateWebApp.Filters
 
                 if (ex is DbEntityValidationException)
                 {
+                    filterContext.Controller.TempData["Exception"] = ex;
+
                     filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
                     {
                         { "controller", "Error" },
                         { "action", "DbEntityValidationError" },
                         { "actionName",filterContext.ActionDescriptor.ActionName},
-                        { "controllerName",filterContext.ActionDescriptor.ControllerDescriptor.ControllerName },
-                        { "ex", ex }
+                        { "controllerName",filterContext.ActionDescriptor.ControllerDescriptor.ControllerName }
+
                     });
+
                     return;
                 }
 
@@ -176,7 +251,7 @@ namespace EdiuxTemplateWebApp.Filters
                 {
                     return;
                 }
-
+                filterContext.Controller.TempData["Exception"] = ex;
                 filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
                 {
                     { "controller", "Error" },
@@ -184,7 +259,7 @@ namespace EdiuxTemplateWebApp.Filters
                     { "actionName",filterContext.ActionDescriptor.ActionName},
                     { "controllerName",filterContext.ActionDescriptor.ControllerDescriptor.ControllerName },
                     { "statusCode", 500 },
-                    { "ex", ex }
+
                 });
             }
         }

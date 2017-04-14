@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-namespace EdiuxTemplateWebApp.Models
+namespace EdiuxTemplateWebApp.Models.Identity
 {
     public class PageSettingsBaseModel
     {
@@ -15,7 +15,39 @@ namespace EdiuxTemplateWebApp.Models
             AllowExcpetionRoles.Add("Admins", true);
             AllowExcpetionUsers = new Dictionary<string, bool>();
             AllowExcpetionUsers.Add("root", true);
+            Title = "未命名";
+            Description = "";
+            Area = "";
+            ControllerName = "";
+            ActionName = "";
+            ArgumentObject = new object();
+            MenuId = Guid.Empty;
+            CSS = "";
+            CommonSettings = new Dictionary<string, object>();
         }
+
+        public PageSettingsBaseModel(aspnet_PersonalizationAllUsers pagebaseData) : this()
+        {
+            var data = pagebaseData.PageSettings.Deserialize<PageSettingsBaseModel>();
+
+            if (data != null)
+            {
+                AllowAnonymous = data.AllowAnonymous;
+                AllowExcpetionRoles = data.AllowExcpetionRoles;
+                AllowExcpetionUsers = data.AllowExcpetionUsers;
+                Title = data.Title;
+                Description = data.Description;
+                Area = data.Area;
+                ControllerName = data.ControllerName;
+                ActionName = data.ActionName;
+                ArgumentObject = data.ArgumentObject;
+                MenuId = data.MenuId;
+                CSS = data.CSS;
+                CommonSettings = data.CommonSettings;
+
+            }
+        }
+
         public static PageSettingsBaseModel Get(Guid pathId)
         {
             Iaspnet_PersonalizationAllUsersRepository pageSettingRepo = RepositoryHelper.Getaspnet_PersonalizationAllUsersRepository();
@@ -62,6 +94,7 @@ namespace EdiuxTemplateWebApp.Models
             pageSettingRepo.UnitOfWork.Commit();
 
         }
+
         [DisplayName("允許匿名存取")]
         public bool AllowAnonymous { get; set; }
 
@@ -77,6 +110,9 @@ namespace EdiuxTemplateWebApp.Models
         [DisplayName("頁面描述")]
         public string Description { get; set; }
 
+        [DisplayName("子區域名稱")]
+        public string Area { get; set; }
+
         [DisplayName("對應控制器名稱")]
         public string ControllerName { get; set; }
 
@@ -91,5 +127,8 @@ namespace EdiuxTemplateWebApp.Models
 
         [DisplayName("預設的CSS內容資源")]
         public string CSS { get; set; }
+
+        [DisplayName("功能全域設定檔")]
+        public Dictionary<string, object> CommonSettings { get; set; }
     }
 }

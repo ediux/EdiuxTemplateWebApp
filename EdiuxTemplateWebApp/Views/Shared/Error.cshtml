@@ -1,17 +1,83 @@
 ﻿@model System.Web.Mvc.HandleErrorInfo
-
 @{
+    Layout = "";
     ViewBag.Title = "Error";
 }
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewBag.Title - @ViewBag.WebSiteName</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="/Content/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="/Content/css/thin-admin.css" rel="stylesheet" media="screen">
+    <link href="/Content/css/font-awesome.css" rel="stylesheet" media="screen">
+    <link href="/Content/font-awesome-4.0.3/css/font-awesome.min.css" rel="stylesheet" media="screen">
+    <link href="/Content/style/style.css" rel="stylesheet">
 
-@if (Model.Exception == null)
-{
-    <h1 class="text-danger">Error.</h1>
-    <h2 class="text-danger">An error occurred while processing your request.</h2>
-}
-else
-{
-    <h1 class="text-danger">Error.</h1>
-        <h2 class="text-danger">@Model.Exception.Message</h2>
-}
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+          <script src="/Content/assets/js/html5shiv.js"></script>
+          <script src="/Content/assets/js/respond.min.js"></script>
+        <![endif]-->
+</head>
+<body>
+    <div class="container">
+        <div class="top-navbar header b-b">
+            <a data-original-title="Toggle navigation" class="toggle-side-nav pull-left" href="#"><i class="icon-reorder"></i> </a>
+            <div class="brand pull-left"> <a href="@Url.Action("Index", "Demo")"><img src="/Content/images/logo.png" width="147" height="33"></a></div>
 
+            <form class="pull-right">
+                <input type="search" placeholder="Search..." class="search" id="search-input">
+            </form>
+        </div>
+    </div>
+    <div class="wrapper">
+        <div class="left-nav">
+            <div id="side-nav">
+
+            </div>
+        </div>
+        <div class="page-content">
+            <div class="content container">
+                <div class="widget">
+                    <div class="widget-content">
+                        @if (Model.Exception == null)
+                        {
+                            <h1 class="text-danger">Error.</h1>
+                            <h2 class="text-danger">An error occurred while processing your request.</h2>
+                        }
+                        else
+                        {
+                            <h1 class="text-danger">Error.</h1>
+                            if (Model.Exception.InnerException == null)
+                            {
+                                <h2 >@Model.Exception.Message</h2>
+                                <br/>
+                                <h2>
+                                    @Model.Exception.StackTrace
+                                </h2>
+                            }
+                            else
+                            {
+                                <h2>@Model.Exception.Message</h2><br/>
+                                <h2>
+                                    @Model.Exception.InnerException.Message
+                                </h2>
+                            }
+
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-nav footer"> @DateTime.Now.Year &copy; 我的 ASP.NET 應用程式 - Thin Admin by Riaxe Systems. </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/Content/js/jquery.js"></script>
+    <script src="/Content/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/Content/js/smooth-sliding-menu.js"></script>
+    <script class="include" type="text/javascript" src="/Content/javascript/jquery191.min.js"></script>
+    <script class="include" type="text/javascript" src="/Content/javascript/jquery.jqplot.min.js"></script>
+</body>
+</html>

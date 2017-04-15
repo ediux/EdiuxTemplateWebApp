@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace EdiuxTemplateWebApp.Models.Identity
 {
+    [Serializable]
     public class PageSettingsBaseModel
     {
         public PageSettingsBaseModel()

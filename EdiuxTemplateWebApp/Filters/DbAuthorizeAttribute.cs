@@ -73,133 +73,154 @@ namespace EdiuxTemplateWebApp.Filters
                 if (appInfo.aspnet_Paths.Any(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path))
                 {
                     #region 取出路徑資訊
-                    var pagePathInformation = appInfo.aspnet_Paths.Single(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path);
 
-                    var loginUserId = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
-
-                    #region 檢查是否有目前使用者對應的設定紀錄
-                    if (pagePathInformation.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUserId))
+                    try
                     {
-                        //有紀錄
+                        var pagePathInformation = appInfo.aspnet_Paths
+                                              .Single(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path);
 
-                        //當前使用者的設定檔
-                        var pageUserSettings = pagePathInformation.aspnet_PersonalizationPerUser.Single(a => a.aspnet_Users.Id == loginUserId);
+                        var loginUserId = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
 
-                        PageSettingByUserViewModel userSettingModel = new PageSettingByUserViewModel(pageUserSettings);
-
-                        #region 檢查是否匿名存取
-                        if (userSettingModel.AllowAnonymous)
+                        #region 檢查是否有目前使用者對應的設定紀錄
+                        if (pagePathInformation.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUserId))
                         {
-                            return;
+                            //有紀錄
+
+                            //當前使用者的設定檔
+                            var pageUserSettings = pagePathInformation.aspnet_PersonalizationPerUser.Single(a => a.aspnet_Users.Id == loginUserId);
+
+                            PageSettingByUserViewModel userSettingModel = new PageSettingByUserViewModel(pageUserSettings);
+
+                            #region 檢查是否匿名存取
+                            if (userSettingModel.AllowAnonymous)
+                            {
+                                return;
+                            }
+                            #endregion
+
+                            #region 權限
+                            var UserPermission = userSettingModel.Permission;
+
+                            if (UserPermission != null)
+                            {
+                                if (UserPermission.ExecuteFeature || UserPermission.IsErrorPage || UserPermission.SharedView)
+                                {
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                UserPermission = new PagePermissionForUserModel();
+
+                                UserPermission.ExecuteFeature = false;
+                                UserPermission.ReadData = false;
+
+                                userSettingModel.Permission = UserPermission;
+
+                                pageUserSettings.PageSettings = userSettingModel.Serialize();
+                                pageUserSettings.LastUpdatedDate = DateTime.UtcNow;
+
+                                Iaspnet_PersonalizationPerUserRepository PersonalizationPerUserRepo =
+                                    RepositoryHelper.Getaspnet_PersonalizationPerUserRepository();
+
+                                PersonalizationPerUserRepo.Update(pageUserSettings);
+                                PersonalizationPerUserRepo.UnitOfWork.Commit();
+
+                            }
+                            #endregion
+
+                        }
+                        else
+                        {
+                            PageSettingByUserViewModel userSettingModel = new PageSettingByUserViewModel();
+
+                            userSettingModel.Permission.ExecuteFeature = false;
+                            userSettingModel.Permission.ReadData = false;
+
+                            //未建立
+                            var pageUserSettings = new aspnet_PersonalizationPerUser();
+
+                            pageUserSettings.Id = Guid.NewGuid();
+                            pageUserSettings.LastUpdatedDate = DateTime.UtcNow;
+                            pageUserSettings.PathId = pagePathInformation.PathId;
+                            pageUserSettings.PageSettings = userSettingModel.Serialize();
+                            pageUserSettings.UserId = loginUserId;
+
+                            Iaspnet_PersonalizationPerUserRepository PersonalizationPerUserRepo =
+                                 RepositoryHelper.Getaspnet_PersonalizationPerUserRepository();
+
+                            PersonalizationPerUserRepo.Add(pageUserSettings);
+                            PersonalizationPerUserRepo.UnitOfWork.Commit();
+
+
                         }
                         #endregion
 
-                        #region 權限
-                        var UserPermission = userSettingModel.Permission;
-
-                        if (UserPermission != null)
+                        #region 檢查是否有共用的設定檔
+                        if (pagePathInformation.aspnet_PersonalizationAllUsers != null)
                         {
-                            if (UserPermission.ExecuteFeature || UserPermission.IsErrorPage || UserPermission.SharedView)
+                            PageSettingsBaseModel GlobalSettings
+                                = pagePathInformation.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
+
+                            if (GlobalSettings.AllowAnonymous)
                             {
                                 return;
+                            }
+
+                            var username = filterContext.RequestContext.HttpContext.User.Identity.GetUserName();
+
+                            if (GlobalSettings.AllowExcpetionUsers[username])
+                            {
+                                return;
+                            }
+
+                            if (GlobalSettings.AllowExcpetionRoles.Any())
+                            {
+                                var UserInfo = appInfo.aspnet_Users.Where(w => w.Id == loginUserId).Single();
+                                var checkRoleCanAccess = (from r in UserInfo.aspnet_Roles
+                                                          from e in GlobalSettings.AllowExcpetionRoles
+                                                          where r.LoweredRoleName == e.Key.ToLowerInvariant()
+                                                          select r);
+                                if (checkRoleCanAccess.Any())
+                                {
+                                    return;
+                                }
                             }
                         }
                         else
                         {
-                            UserPermission = new PagePermissionForUserModel();
-
-                            UserPermission.ExecuteFeature = false;
-                            UserPermission.ReadData = false;
-
-                            userSettingModel.Permission = UserPermission;
-
-                            pageUserSettings.PageSettings = userSettingModel.Serialize();
-                            pageUserSettings.LastUpdatedDate = DateTime.UtcNow;
-
-                            Iaspnet_PersonalizationPerUserRepository PersonalizationPerUserRepo =
-                                RepositoryHelper.Getaspnet_PersonalizationPerUserRepository();
-
-                            PersonalizationPerUserRepo.Update(pageUserSettings);
-                            PersonalizationPerUserRepo.UnitOfWork.Commit();
-
-                        }
-                        #endregion
-
-                    }
-                    else
-                    {
-                        PageSettingByUserViewModel userSettingModel = new PageSettingByUserViewModel();
-
-                        userSettingModel.Permission.ExecuteFeature = false;
-                        userSettingModel.Permission.ReadData = false;
-
-                        //未建立
-                        var pageUserSettings = new aspnet_PersonalizationPerUser();
-
-                        pageUserSettings.Id = Guid.NewGuid();
-                        pageUserSettings.LastUpdatedDate = DateTime.UtcNow;
-                        pageUserSettings.PathId = pagePathInformation.PathId;
-                        pageUserSettings.PageSettings = userSettingModel.Serialize();
-                        pageUserSettings.UserId = loginUserId;
-
-                        Iaspnet_PersonalizationPerUserRepository PersonalizationPerUserRepo =
-                             RepositoryHelper.Getaspnet_PersonalizationPerUserRepository();
-
-                        PersonalizationPerUserRepo.Add(pageUserSettings);
-                        PersonalizationPerUserRepo.UnitOfWork.Commit();
-
-
-                    }
-                    #endregion
-
-                    #region 檢查是否有共用的設定檔
-                    if (pagePathInformation.aspnet_PersonalizationAllUsers != null)
-                    {
-                        PageSettingsBaseModel GlobalSettings
-                            = pagePathInformation.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
-
-                        if (GlobalSettings.AllowAnonymous)
-                        {
-                            return;
-                        }
-
-                        var username = filterContext.RequestContext.HttpContext.User.Identity.GetUserName();
-
-                        if (GlobalSettings.AllowExcpetionUsers[username])
-                        {
-                            return;
-                        }
-
-                        if (GlobalSettings.AllowExcpetionRoles.Any())
-                        {
-                            var UserInfo = appInfo.aspnet_Users.Where(w => w.Id == loginUserId).Single();
-                            var checkRoleCanAccess = (from r in UserInfo.aspnet_Roles
-                                                      from e in GlobalSettings.AllowExcpetionRoles
-                                                      where r.LoweredRoleName == e.Key.ToLowerInvariant()
-                                                      select r);
-                            if (checkRoleCanAccess.Any())
+                            if (pagePathInformation.aspnet_PersonalizationAllUsers == null)
                             {
-                                return;
+                                var aspnet_PersonalizationAllUsers = new aspnet_PersonalizationAllUsers();
+                                aspnet_PersonalizationAllUsers.LastUpdatedDate = DateTime.UtcNow;
+                                aspnet_PersonalizationAllUsers.PageSettings = (new PageSettingsBaseModel()).Serialize();
+                                aspnet_PersonalizationAllUsers.PathId = pagePathInformation.PathId;
+
+                                Iaspnet_PersonalizationAllUsersRepository allUserRepo = RepositoryHelper.Getaspnet_PersonalizationAllUsersRepository();
+                                allUserRepo.Add(aspnet_PersonalizationAllUsers);
+                                allUserRepo.UnitOfWork.Commit();
+
                             }
                         }
+                        #endregion
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        if (pagePathInformation.aspnet_PersonalizationAllUsers == null)
-                        {
-                            var aspnet_PersonalizationAllUsers = new aspnet_PersonalizationAllUsers();
-                            aspnet_PersonalizationAllUsers.LastUpdatedDate = DateTime.UtcNow;
-                            aspnet_PersonalizationAllUsers.PageSettings = (new PageSettingsBaseModel()).Serialize();
-                            aspnet_PersonalizationAllUsers.PathId = pagePathInformation.PathId;
+                        WriteErrorLog(ex);
 
-                            Iaspnet_PersonalizationAllUsersRepository allUserRepo = RepositoryHelper.Getaspnet_PersonalizationAllUsersRepository();
-                            allUserRepo.Add(aspnet_PersonalizationAllUsers);
-                            allUserRepo.UnitOfWork.Commit();
+                        filterContext.Controller.TempData["Exception"] = ex;
 
-                        }
+                        filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
+                            {
+                                { "controller", "Error" },
+                                { "action", "DbEntityValidationError" },
+                                { "actionName",filterContext.ActionDescriptor.ActionName},
+                                { "controllerName",filterContext.ActionDescriptor.ControllerDescriptor.ControllerName }
+
+                            });
+
+                        return;
                     }
-                    #endregion
-
                     #endregion
                 }
 

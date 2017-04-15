@@ -7,6 +7,7 @@ using System.Web;
 
 namespace EdiuxTemplateWebApp.Models.Identity
 {
+    [Serializable]
     public class PageSettingByUserViewModel : PageSettingsBaseModel
     {
         public PageSettingByUserViewModel() : base()

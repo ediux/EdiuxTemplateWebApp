@@ -1428,7 +1428,7 @@ namespace EdiuxTemplateWebApp.Models
 
                 var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
 
-                string applicationName = ConfigHelper.GetConfig(getAppNameTask.Result);
+                string applicationName = getAppNameTask.Result;
 
                 newApplication.ApplicationName = applicationName;
                 newApplication.Description = applicationName;
@@ -1454,8 +1454,8 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     applicationInfo = this.getApplicationInformationFromCache(GetApplicationNameFromConfiguratinFileAsync().Result);
                 }
-                
-                
+
+
             }
 
             if (checkCurrentAppHasRoles() == false)
@@ -1487,8 +1487,8 @@ namespace EdiuxTemplateWebApp.Models
             appRepo.Add(newApplication);
             appRepo.UnitOfWork.Commit();
 
-            app = appRepo.Reload(app);
-
+            newApplication = appRepo.Reload(newApplication);
+            app = appRepo.CopyTo<aspnet_Applications>(newApplication);
 
             return Task.CompletedTask;
         }

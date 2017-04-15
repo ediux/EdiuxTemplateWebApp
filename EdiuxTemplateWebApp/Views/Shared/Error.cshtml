@@ -64,6 +64,10 @@
                                 <h2>
                                     @Model.Exception.InnerException.Message
                                 </h2>
+                                <br/>
+                                <h2>
+                                    @Model.Exception.StackTrace
+                                </h2>
                             }
 
                         }
@@ -79,5 +83,10 @@
     <script type="text/javascript" src="/Content/js/smooth-sliding-menu.js"></script>
     <script class="include" type="text/javascript" src="/Content/javascript/jquery191.min.js"></script>
     <script class="include" type="text/javascript" src="/Content/javascript/jquery.jqplot.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.left-nav').hide();
+        });
+    </script>
 </body>
 </html>

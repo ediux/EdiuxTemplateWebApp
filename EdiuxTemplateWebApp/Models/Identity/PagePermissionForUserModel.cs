@@ -5,6 +5,7 @@ using System.Web;
 
 namespace EdiuxTemplateWebApp.Models.Identity
 {
+    [Serializable]
     public class PagePermissionForUserModel
     {
         public PagePermissionForUserModel()

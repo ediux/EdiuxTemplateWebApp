@@ -31,11 +31,20 @@ namespace EdiuxTemplateWebApp.Controllers
 
             if (ex == null)
                 ex = Server.GetLastError();
+            
+            if (ex == null)
+            {
+                ex = TempData["Exception"] as Exception;
+                
+            }
 
             if (ex == null)
-                ex = TempData["Exception"] as DbEntityValidationException;
+            {
+                DbEntityValidationException dbex = (DbEntityValidationException)TempData["Exception"];
+                return View("DbEntityValidationException", new HandleErrorInfo(dbex, actionName, controllerName));
+            }
 
-            return View("DbEntityValidationException", new HandleErrorInfo(ex, actionName, controllerName));
+            return View("Error", new HandleErrorInfo(ex, actionName, controllerName));
         }
     }
 }

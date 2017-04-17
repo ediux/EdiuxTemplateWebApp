@@ -9,10 +9,11 @@ using Microsoft.Owin.Security;
 using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Helpers;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Filters;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
-    [Authorize]
+    [DbAuthorize(Roles ="Admins")]
     public class ManageController : BaseController
     {
         private aspnet_Applications appInfo;

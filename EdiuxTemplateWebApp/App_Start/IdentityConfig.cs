@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web.Security;
 
 namespace EdiuxTemplateWebApp
 {
@@ -45,39 +46,35 @@ namespace EdiuxTemplateWebApp
 
         public override Task<ClaimsIdentity> CreateIdentityAsync(aspnet_Users user, string authenticationType)
         {
-            Task<ClaimsIdentity> task = Task.Run(() =>
+            if (user.aspnet_UserClaims.Any())
             {
-                if (user.aspnet_UserClaims.Any())
+                List<Claim> claims = new List<Claim>();
+                foreach (var claimdata in user.aspnet_UserClaims)
                 {
-                    List<Claim> claims = new List<Claim>();
-                    foreach (var claimdata in user.aspnet_UserClaims)
-                    {
-                        claims.Add(new Claim(claimdata.ClaimType, claimdata.ClaimValue));
-                    }
-                    ClaimsIdentity identity = new ClaimsIdentity(authenticationType);
-                    identity.AddClaims(claims);
-                    return identity;
+                    claims.Add(new Claim(claimdata.ClaimType, claimdata.ClaimValue));
                 }
-                else
-                {
-                    List<Claim> claims = new List<Claim>{
+                ClaimsIdentity identity = new ClaimsIdentity(authenticationType);
+                identity.AddClaims(claims);
+                return Task.FromResult(identity);
+            }
+            else
+            {
+               
+                List<Claim> claims = new List<Claim>{
                         new Claim(ClaimTypes.Authentication,(user!=null)?bool.TrueString:bool.FalseString),
                         new Claim(ClaimTypes.Email, user.aspnet_Membership.Email),
                         new Claim(ClaimTypes.Name,user.UserName),
                         new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
-                        new Claim("http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider","")};
-                    ClaimsIdentity identity = new ClaimsIdentity(authenticationType);
-                    identity.AddClaims(claims);
-                    return identity;
-                }
-
-            });
-            return task;
+                        new Claim("http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider",Membership.Provider.Name)};
+                ClaimsIdentity identity = new ClaimsIdentity(authenticationType);
+                identity.AddClaims(claims);
+                return Task.FromResult(identity);
+            }
         }
 
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
         {
-            var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context.Get<IUnitOfWork>()));
+            var manager = new ApplicationUserManager(new EdiuxAspNetSqlUserStore(context));
 
             // 設定使用者名稱的驗證邏輯
             manager.UserValidator = new UserValidator<aspnet_Users, Guid>(manager)
@@ -134,7 +131,7 @@ namespace EdiuxTemplateWebApp
 
         public static ApplicationRoleManager Create(IdentityFactoryOptions<ApplicationRoleManager> options, IOwinContext context)
         {
-            var roleManager = new ApplicationRoleManager(new EdiuxAspNetSqlUserStore(context.Get<Models.AspNetModels.IUnitOfWork>()));
+            var roleManager = new ApplicationRoleManager(new EdiuxAspNetSqlUserStore(context));
             roleManager.RoleValidator = new RoleValidator<aspnet_Roles, Guid>(roleManager);
 
             return roleManager;
@@ -193,7 +190,7 @@ namespace EdiuxTemplateWebApp
                 if (string.IsNullOrEmpty(foundUser.aspnet_Membership.PasswordSalt) != true)
                 {
                     foundUser.aspnet_Membership.Password = UserManager.PasswordHasher.HashPassword(foundUser.aspnet_Membership.Password + foundUser.aspnet_Membership.PasswordSalt);
-                    foundUser.aspnet_Membership.PasswordFormat = (int)System.Web.Security.MembershipPasswordFormat.Hashed;
+                    foundUser.aspnet_Membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
                     UserManager.UpdateAsync(foundUser);
                 }
             }

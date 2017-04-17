@@ -2,13 +2,13 @@
 using EdiuxTemplateWebApp.Models.AspNetModels;
 using EdiuxTemplateWebApp.Models.Shared;
 using Microsoft.AspNet.Identity;
-using Newtonsoft.Json;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
@@ -16,42 +16,50 @@ using System.Web.Security;
 
 namespace EdiuxTemplateWebApp.Models
 {
-    public class EdiuxAspNetSqlUserStore : IUserStore<aspnet_Users, Guid>
-        , IUserRoleStore<aspnet_Users, Guid>, IRoleStore<aspnet_Roles, Guid>
-        , IUserEmailStore<aspnet_Users, Guid>, IUserLockoutStore<aspnet_Users, Guid>
-        , IUserLoginStore<aspnet_Users, Guid>, IUserPasswordStore<aspnet_Users, Guid>
-        , IUserPhoneNumberStore<aspnet_Users, Guid>, IUserSecurityStampStore<aspnet_Users, Guid>
-        , IUserTwoFactorStore<aspnet_Users, Guid>, IUserClaimStore<aspnet_Users, Guid>
-        , IQueryableUserStore<aspnet_Users, Guid>, IQueryableRoleStore<aspnet_Roles, Guid>
-        , IApplicationStore<aspnet_Applications, Guid>
+    public class EdiuxAspNetSqlUserStore : IEdiuxAspNetSqlUserStore
     {
         #region 變數宣告區
-        protected IUnitOfWork UnitOfWork;
-        private Iaspnet_ApplicationsRepository appRepo;
-        private Iaspnet_UsersRepository userRepo;
-        private Iaspnet_RolesRepository roleRepo;
-        private Iaspnet_UserLoginRepository userloginRepo;
-        private Iaspnet_MembershipRepository membershipRepo;
+        //protected IUnitOfWork UnitOfWork;
+        //private Iaspnet_ApplicationsRepository appRepo;
+        //private Iaspnet_UsersRepository userRepo;
+        //private Iaspnet_RolesRepository roleRepo;
+        //private Iaspnet_UserLoginRepository userloginRepo;
+        //private Iaspnet_MembershipRepository membershipRepo;
         private aspnet_Applications applicationInfo;
 
-        public EdiuxAspNetSqlUserStore(IUnitOfWork dbUnitOfWork)
+        private IOwinContext pcontext;
+
+        public static IEdiuxAspNetSqlUserStore Create(IdentityFactoryOptions<IEdiuxAspNetSqlUserStore> options, IOwinContext context)
         {
-            UnitOfWork = dbUnitOfWork;
-
-            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository(UnitOfWork);
-
-            userRepo = RepositoryHelper.Getaspnet_UsersRepository(UnitOfWork);
-            membershipRepo = RepositoryHelper.Getaspnet_MembershipRepository(UnitOfWork);
-            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(UnitOfWork);
-            userloginRepo = RepositoryHelper.Getaspnet_UserLoginRepository(UnitOfWork);
-
-
-
-            createApplicationIfNotExisted();
-
-
-
+            return new EdiuxAspNetSqlUserStore(context);
         }
+
+        public EdiuxAspNetSqlUserStore(IOwinContext context)
+        {
+            pcontext = context;
+
+            //UnitOfWork = pcontext.Get<IUnitOfWork>();
+
+            //appRepo = context.Get<Iaspnet_ApplicationsRepository>();
+            //userRepo = context.Get<Iaspnet_UsersRepository>();
+            //membershipRepo = context.Get<Iaspnet_MembershipRepository>();
+            //roleRepo = context.Get<Iaspnet_RolesRepository>();
+            //userloginRepo = context.Get<Iaspnet_UserLoginRepository>();
+
+            //appRepo.UnitOfWork = UnitOfWork;
+            //userRepo.UnitOfWork = UnitOfWork;
+            //membershipRepo.UnitOfWork = UnitOfWork;
+            //roleRepo.UnitOfWork = UnitOfWork;
+            //userloginRepo.UnitOfWork = UnitOfWork;
+
+            var asynctask = createApplicationIfNotExisted();
+
+            if (asynctask.Status != TaskStatus.RanToCompletion)
+            {
+                asynctask.Wait();
+            }
+        }
+
         #endregion
 
         #region Queryable User Store
@@ -77,7 +85,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             get
             {
-                throw new NotImplementedException();
+                Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+                return appRepo.All();
             }
         }
 
@@ -92,17 +101,15 @@ namespace EdiuxTemplateWebApp.Models
                 throw new ArgumentNullException("user");
             }
 
-            var asynctask = createApplicationIfNotExisted();
-            asynctask.Start();
-            asynctask.Wait();
-
             if (user.ApplicationId == null || user.ApplicationId == Guid.Empty)
             {
                 user.ApplicationId = applicationInfo.ApplicationId;
                 user.aspnet_Applications = applicationInfo;
             }
 
-            var users = userRepo.GetUserByName(user.aspnet_Applications.ApplicationName,
+            Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+
+            var users = userRepo.GetUserByName(applicationInfo.ApplicationName,
                                                user.UserName,
                                                DateTime.UtcNow,
                                                true);
@@ -111,6 +118,7 @@ namespace EdiuxTemplateWebApp.Models
 
             if (users == null)
             {
+                newUser.Id = Guid.NewGuid();
                 newUser.ApplicationId = user.ApplicationId;
                 newUser.aspnet_Applications = user.aspnet_Applications;
                 newUser.IsAnonymous = false;
@@ -145,43 +153,62 @@ namespace EdiuxTemplateWebApp.Models
                 }
 
                 newUser = userRepo.CopyTo<aspnet_Users>(user);
-
-                userRepo.Add(newUser);
-
-                UnitOfWork.Commit();
-
-                newUser = userRepo.Reload(newUser);
             }
             else
             {
                 newUser = userRepo.GetUserByName(user.aspnet_Applications.ApplicationName, user.UserName, DateTime.UtcNow, true);
-                return Task.FromResult(newUser);
+                newUser = userRepo.CopyTo<aspnet_Users>(user);
+                user = userRepo.Update(newUser);
+                return Task.CompletedTask;
             }
 
             if (newUser.aspnet_Membership == null)
             {
                 if (user.aspnet_Membership != null)
                 {
-                    newUser.aspnet_Membership = membershipRepo.Add(user.aspnet_Membership);
                     newUser.aspnet_Membership.UserId = newUser.Id;
                 }
                 else
                 {
                     newUser.aspnet_Membership = new aspnet_Membership();
+
+                    newUser.aspnet_Membership.AccessFailedCount = 0;
+                    newUser.aspnet_Membership.ApplicationId = applicationInfo.ApplicationId;
+                    newUser.aspnet_Membership.aspnet_Applications = applicationInfo;
+                    newUser.aspnet_Membership.Comment = "";
+                    newUser.aspnet_Membership.CreateDate = DateTime.Now.Date;
+                    newUser.aspnet_Membership.Email = newUser.LoweredUserName + "@localhost.local";
+                    newUser.aspnet_Membership.EmailConfirmed = true;
+                    newUser.aspnet_Membership.FailedPasswordAnswerAttemptCount = 0;
+                    newUser.aspnet_Membership.FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1);
+                    newUser.aspnet_Membership.FailedPasswordAttemptCount = 0;
+                    newUser.aspnet_Membership.FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1);
+                    newUser.aspnet_Membership.IsApproved = true;
+                    newUser.aspnet_Membership.IsLockedOut = false;
+                    newUser.aspnet_Membership.LastLockoutDate = new DateTime(1754, 1, 1);
+                    newUser.aspnet_Membership.LastLoginDate = new DateTime(1754, 1, 1);
+                    newUser.aspnet_Membership.LastPasswordChangedDate = new DateTime(1754, 1, 1);
+                    newUser.aspnet_Membership.LoweredEmail = newUser.aspnet_Membership.Email.ToLowerInvariant();
+                    newUser.aspnet_Membership.MobilePIN = "123456";
+                    newUser.aspnet_Membership.Password = Membership.GeneratePassword(Membership.MinRequiredPasswordLength, Membership.MinRequiredNonAlphanumericCharacters);
+                    newUser.aspnet_Membership.PasswordAnswer = "(none)";
+                    newUser.aspnet_Membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
+                    newUser.aspnet_Membership.PasswordQuestion = "(none)";
+                    newUser.aspnet_Membership.PasswordSalt = Path.GetRandomFileName();
+                    newUser.aspnet_Membership.PhoneConfirmed = true;
+                    newUser.aspnet_Membership.PhoneNumber = "0901123456";
+                    newUser.aspnet_Membership.ResetPasswordToken = "";
+                    newUser.aspnet_Membership.UserId = newUser.Id;
+
+                    PasswordHasher pwdHasher = new PasswordHasher();
+
+                    newUser.aspnet_Membership.Password =
+                        pwdHasher.HashPassword(newUser.aspnet_Membership.Password +
+                        newUser.aspnet_Membership.PasswordSalt);
                 }
-
-                userRepo.UnitOfWork.BatchCommitStart();
             }
 
-
-            if (!newUser.aspnet_PersonalizationPerUser.Any())
-            {
-                //add
-
-            }
-
-
-            if (newUser.aspnet_Profile == null)
+            if (user.aspnet_Profile == null)
             {
                 newUser.aspnet_Profile = new aspnet_Profile();
                 newUser.aspnet_Profile.LastUpdatedDate = DateTime.UtcNow;
@@ -198,26 +225,59 @@ namespace EdiuxTemplateWebApp.Models
                 newUser.aspnet_Profile.PropertyNames = string.Join(",", newProfile.GetProperties().Keys.ToArray());
                 newUser.aspnet_Profile.LastUpdatedDate = DateTime.UtcNow;
 
-
-
+                newUser.aspnet_Profile.UserId = newUser.Id;
             }
 
-            if (!newUser.aspnet_Roles.Any())
+            if (!user.aspnet_Roles.Any())
             {
                 AddToRoleAsync(newUser, "Users");
             }
 
-            if (!newUser.aspnet_UserClaims.Any())
+            if (!user.aspnet_UserClaims.Any())
             {
+                List<aspnet_UserClaims> claims = new List<aspnet_UserClaims>();
+                claims.Add(new aspnet_UserClaims()
+                {
+                    UserId = newUser.Id,
+                    ClaimType = ClaimTypes.Email,
+                    ClaimValue = newUser.aspnet_Membership.LoweredEmail,
+                    Id = 0
+                });
+                claims.Add(new aspnet_UserClaims()
+                {
+                    UserId = newUser.Id,
+                    ClaimType = ClaimTypes.Name,
+                    ClaimValue = newUser.UserName,
+                    Id = 1
+                });
+                claims.Add(new aspnet_UserClaims()
+                {
+                    UserId = newUser.Id,
+                    ClaimType = ClaimTypes.NameIdentifier,
+                    ClaimValue = user.Id.ToString(),
+                    Id = 2
+                });
+                claims.Add(new aspnet_UserClaims()
+                {
+                    UserId = newUser.Id,
+                    ClaimType = ClaimTypes.Email,
+                    ClaimValue = "http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider",
+                    Id = 3
+                });
+            }
+            else
+            {
+
+                foreach (var c in user.aspnet_UserClaims)
+                {
+                    c.UserId = newUser.Id;
+                    newUser.aspnet_UserClaims.Add(c);
+                }
 
             }
 
-            if (!newUser.aspnet_UserLogin.Any())
-            {
-
-            }
-
-            UnitOfWork.Commit();
+            user = userRepo.Add(newUser);
+            userRepo.UnitOfWork.Commit();
 
             return Task.CompletedTask;
         }
@@ -226,6 +286,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 userRepo.Delete(user);
                 return Task.CompletedTask;
             }
@@ -240,6 +301,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 var _user = userRepo.Where(w => w.Id == userId &&
                                            w.ApplicationId == applicationInfo.ApplicationId)
                                     .SingleAsync();
@@ -258,6 +320,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 var _user =
                     userRepo.Where(w => (w.UserName == userName
                                          || w.LoweredUserName == userName)
@@ -277,6 +340,11 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
+
+                membershipRepo.UnitOfWork = userRepo.UnitOfWork;
+
                 aspnet_Users _existedUser = userRepo
                     .Where(x => x.ApplicationId == applicationInfo.ApplicationId
                            && (x.UserName == user.UserName
@@ -307,6 +375,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 userRepo.AddToRole(user, roleName);
                 return Task.CompletedTask;
             }
@@ -326,6 +395,7 @@ namespace EdiuxTemplateWebApp.Models
                     user.ApplicationId = applicationInfo.ApplicationId;
                     user.aspnet_Applications = applicationInfo;
                 }
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
 
                 var foundUser = userRepo
                     .Where(w => w.Id == user.Id
@@ -356,6 +426,8 @@ namespace EdiuxTemplateWebApp.Models
             {
                 user.ApplicationId = applicationInfo.ApplicationId;
                 user.aspnet_Applications = applicationInfo;
+
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 var isinrole = userRepo.IsInRole(user, roleName);
                 return Task.FromResult(isinrole);
             }
@@ -370,6 +442,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 userRepo.RemoveFromRole(user, roleName);
 
                 return Task.CompletedTask;
@@ -387,9 +460,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
                 roleRepo.Add(role);
-                UnitOfWork.Commit();
-                return Task.CompletedTask;
+                return roleRepo.UnitOfWork.CommitAsync();
+
             }
             catch (Exception ex)
             {
@@ -402,6 +476,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
                 roleRepo.Update(role);
                 return Task.CompletedTask;
             }
@@ -416,9 +491,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
                 roleRepo.Delete(role);
-                UnitOfWork.Commit();
-                return Task.CompletedTask;
+
+                return roleRepo.UnitOfWork.CommitAsync();
             }
             catch (Exception ex)
             {
@@ -431,6 +507,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
                 return Task.FromResult(roleRepo.Get(roleId));
             }
             catch (Exception ex)
@@ -444,6 +521,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
                 return Task.FromResult(roleRepo.FindByName(
                     applicationInfo.ApplicationId, roleName)
                                        .SingleOrDefault());
@@ -461,6 +539,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
+
                 if (user.aspnet_Membership == null)
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
@@ -490,7 +570,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 if (membership != null)
@@ -514,6 +594,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
                 if (membership != null)
                 {
@@ -536,6 +617,11 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
+
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
+                membershipRepo.UnitOfWork = userRepo.UnitOfWork;
+
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
                 if (membership != null)
                 {
@@ -556,6 +642,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+
                 return Task.FromResult(
                     userRepo.GetUserByEmail(
                         applicationInfo.ApplicationName,
@@ -582,7 +670,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var founduser = membershipRepo.Get(user.aspnet_Membership.UserId);
                 return Task.FromResult(
                     new DateTimeOffset(
@@ -604,7 +692,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 if (membership != null)
@@ -631,7 +719,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 membership.AccessFailedCount += 1;
@@ -658,20 +746,21 @@ namespace EdiuxTemplateWebApp.Models
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
 
-                var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
 
+                var founduser = userRepo.Get(user.Id);
+                var membership = founduser?.aspnet_Membership;
 
+                if (membership != null)
+                {
+                    membership.IsLockedOut = true;
+                    membership.LockoutEndDate = DateTime.UtcNow;
+                    membership.AccessFailedCount = 0;
 
-                UnitOfWork.TranscationMode = true;
-
-                SetLockoutEnabledAsync(user, false);
-                SetLockoutEndDateAsync(user, new DateTimeOffset(DateTime.Now));
-
-                UnitOfWork.TranscationMode = false;
-                membership.AccessFailedCount = 0;
-                membershipRepo.UnitOfWork.Commit();
-
-                user.aspnet_Membership = membershipRepo.Reload(membership);
+                    userRepo.Update(founduser);
+                    user = userRepo.Reload(founduser);
+                }
+                
 
                 return Task.CompletedTask;
             }
@@ -690,7 +779,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 return Task.FromResult(membership.AccessFailedCount);
@@ -710,7 +799,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 return Task.FromResult(membership.IsLockedOut);
@@ -730,7 +819,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 membership.IsLockedOut = enabled;
@@ -761,6 +850,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+                Iaspnet_UserLoginRepository userloginRepo = pcontext.Get<Iaspnet_UserLoginRepository>();
+                userloginRepo.UnitOfWork = userRepo.UnitOfWork;
+
                 userloginRepo.Add(new aspnet_UserLogin() { LoginProvider = login.LoginProvider, ProviderKey = login.ProviderKey, UserId = user.Id });
                 userloginRepo.UnitOfWork.Commit();
                 user = userRepo.Reload(user);
@@ -777,6 +870,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UserLoginRepository userloginRepo = pcontext.Get<Iaspnet_UserLoginRepository>();
                 var found = userloginRepo.Get(login.LoginProvider, login.ProviderKey);
                 userloginRepo.Delete(found);
                 userloginRepo.UnitOfWork.Commit();
@@ -793,6 +887,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UserLoginRepository userloginRepo = pcontext.Get<Iaspnet_UserLoginRepository>();
                 var found = userloginRepo.Where(w => w.UserId == user.Id);
                 return Task.FromResult(found.ToList().ConvertAll(c => new UserLoginInfo(c.LoginProvider, c.ProviderKey)) as IList<UserLoginInfo>);
             }
@@ -807,6 +902,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+                Iaspnet_UserLoginRepository userloginRepo = pcontext.Get<Iaspnet_UserLoginRepository>();
+                userloginRepo.UnitOfWork = userRepo.UnitOfWork;
+
                 aspnet_UserLogin _login = userloginRepo.Get(login.LoginProvider, login.ProviderKey);
                 if (_login != null)
                 {
@@ -827,6 +926,10 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+                Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
+                membershipRepo.UnitOfWork = userRepo.UnitOfWork;
+
                 if (user.aspnet_Membership == null)
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
@@ -861,11 +964,12 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
+
                 if (user.aspnet_Membership == null)
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 if (membership.PasswordFormat == (int)MembershipPasswordFormat.Hashed ||
@@ -894,7 +998,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 bool hasPasswordTask = !string.IsNullOrEmpty(membership.Password);
@@ -918,22 +1022,23 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 if (phoneNumber != membership.PhoneNumber)
                 {
-                    UnitOfWork.TranscationMode = true;
+
+
                     membership.PhoneNumber = phoneNumber;
                     if (GetTwoFactorEnabledAsync(user).Result)
                     {
-                        SetPhoneNumberConfirmedAsync(user, false);
+                        membership.PhoneConfirmed = false;
                     }
                     else
                     {
-                        SetPhoneNumberConfirmedAsync(user, true);
+                        membership.PhoneConfirmed = true;
                     }
-                    UnitOfWork.TranscationMode = false;
+
                     membershipRepo.Update(membership);
                     user.aspnet_Membership = membershipRepo.Reload(membership);
                 }
@@ -955,7 +1060,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 return Task.FromResult(membership.PhoneNumber);
@@ -976,7 +1081,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
                 return Task.FromResult(user.aspnet_Membership.PhoneConfirmed);
             }
@@ -995,7 +1100,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 membership.PhoneConfirmed = confirmed;
@@ -1075,7 +1180,7 @@ namespace EdiuxTemplateWebApp.Models
                 {
                     throw new Exception(string.Format("The user '{0}' has missed membership information! ", user.UserName));
                 }
-
+                Iaspnet_MembershipRepository membershipRepo = pcontext.Get<Iaspnet_MembershipRepository>();
                 var membership = membershipRepo.Get(user.aspnet_Membership.UserId);
 
                 UserProfileViewModel profile = user.GetProfile();
@@ -1144,6 +1249,8 @@ namespace EdiuxTemplateWebApp.Models
 
                 string appName = getAppNameTask.Result;
 
+                Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
                 if (!appRepo.FindByName(appName).Any())
                 {
                     return false;
@@ -1178,6 +1285,8 @@ namespace EdiuxTemplateWebApp.Models
 
         private bool checkRootUserHasAdminsRole()
         {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
             if (appRepo == null)
                 appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
             string appName = GetApplicationNameFromConfiguratinFileAsync().Result;
@@ -1199,6 +1308,8 @@ namespace EdiuxTemplateWebApp.Models
             if (applicationInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
                 throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
 
+            Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+
             aspnet_Users rootUser = userRepo.GetUserByName(applicationInfo.ApplicationName, "root", DateTime.UtcNow, false);
 
             if (rootUser != null)
@@ -1210,19 +1321,23 @@ namespace EdiuxTemplateWebApp.Models
             throw new NullReferenceException(string.Format("The username , '{0}', is not found.", "root"));
         }
 
-        private bool checkCurrentAppHasRootUser()
+        private bool IsHasRootUser
         {
-            if (applicationInfo != null)
+            get
             {
-                return applicationInfo.aspnet_Users.Any(s => s.UserName.Equals("root", StringComparison.InvariantCultureIgnoreCase));
-            }
+                if (applicationInfo != null)
+                {
+                    return applicationInfo.aspnet_Users.Any(s => s.UserName.Equals("root", StringComparison.InvariantCultureIgnoreCase));
+                }
 
-            return false;
+                return false;
+            }
         }
 
-        private void createRootUser()
+        private void CreateRootUser()
         {
-            aspnet_Users rootUser = new aspnet_Users();  // ("root", "!QAZ2wsx");
+            aspnet_Users rootUser = new aspnet_Users();
+            rootUser.Id = Guid.NewGuid();
             rootUser.ApplicationId = applicationInfo.ApplicationId;
             rootUser.UserName = "root";
             rootUser.LoweredUserName = "root";
@@ -1250,12 +1365,12 @@ namespace EdiuxTemplateWebApp.Models
             rootUser.aspnet_Membership.LoweredEmail = rootUser.aspnet_Membership.Email.ToLowerInvariant();
             rootUser.aspnet_Membership.MobilePIN = "123456";
             rootUser.aspnet_Membership.Password = "!QAZ2wsx";
+            rootUser.aspnet_Membership.PasswordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
             rootUser.aspnet_Membership.PasswordAnswer = "";
-            rootUser.aspnet_Membership.PasswordFormat = (int)System.Web.Security.MembershipPasswordFormat.Hashed;
+            rootUser.aspnet_Membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
             rootUser.aspnet_Membership.PasswordQuestion = "";
-            rootUser.aspnet_Membership.PasswordSalt = Path.GetRandomFileName();
             rootUser.aspnet_Membership.PhoneConfirmed = true;
-            rootUser.aspnet_Membership.PhoneNumber = "0901-123-456";
+            rootUser.aspnet_Membership.PhoneNumber = "0901123456";
             rootUser.aspnet_Membership.ResetPasswordToken = "";
 
             var asynctask = CreateAsync(rootUser);
@@ -1266,14 +1381,68 @@ namespace EdiuxTemplateWebApp.Models
             });
         }
 
-        private bool checkCurrentAppHasRoles()
+        private void CreateAnonymousUser()
         {
+            aspnet_Users guestUser = new aspnet_Users();
+            guestUser.Id = Guid.NewGuid();
+            guestUser.ApplicationId = applicationInfo.ApplicationId;
+            guestUser.UserName = "guest";
+            guestUser.LoweredUserName = "guest";
+            guestUser.IsAnonymous = true;
+            guestUser.LastActivityDate = DateTime.Now;
+            guestUser.MobileAlias = "";
+
+
+            guestUser.aspnet_Membership = new aspnet_Membership();
+            guestUser.aspnet_Membership.AccessFailedCount = 0;
+            guestUser.aspnet_Membership.ApplicationId = applicationInfo.ApplicationId;
+            guestUser.aspnet_Membership.aspnet_Applications = applicationInfo;
+            guestUser.aspnet_Membership.Comment = "";
+            guestUser.aspnet_Membership.CreateDate = DateTime.Now.Date;
+            guestUser.aspnet_Membership.Email = "anonymous@localhost.local";
+            guestUser.aspnet_Membership.EmailConfirmed = true;
+            guestUser.aspnet_Membership.FailedPasswordAnswerAttemptCount = 0;
+            guestUser.aspnet_Membership.FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1);
+            guestUser.aspnet_Membership.FailedPasswordAttemptCount = 0;
+            guestUser.aspnet_Membership.FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1);
+            guestUser.aspnet_Membership.IsApproved = true;
+            guestUser.aspnet_Membership.IsLockedOut = false;
+            guestUser.aspnet_Membership.LastLockoutDate = new DateTime(1754, 1, 1);
+            guestUser.aspnet_Membership.LastLoginDate = new DateTime(1754, 1, 1);
+            guestUser.aspnet_Membership.LastPasswordChangedDate = new DateTime(1754, 1, 1);
+            guestUser.aspnet_Membership.LoweredEmail = guestUser.aspnet_Membership.Email.ToLowerInvariant();
+            guestUser.aspnet_Membership.MobilePIN = "123456";
+            guestUser.aspnet_Membership.Password =
+                Membership.GeneratePassword(Membership.MinRequiredPasswordLength,
+                Membership.MinRequiredNonAlphanumericCharacters);
+
+            guestUser.aspnet_Membership.PasswordAnswer = "(none)";
+            guestUser.aspnet_Membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
+            guestUser.aspnet_Membership.PasswordQuestion = "(none)";
+            guestUser.aspnet_Membership.PasswordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+            PasswordHasher pwdhasher = new PasswordHasher();
+
+            pwdhasher.HashPassword(guestUser.aspnet_Membership.Password
+                + guestUser.aspnet_Membership.PasswordSalt);
+
+            guestUser.aspnet_Membership.PhoneConfirmed = true;
+            guestUser.aspnet_Membership.PhoneNumber = "0901123456";
+            guestUser.aspnet_Membership.ResetPasswordToken = "";
+            guestUser.aspnet_Membership.UserId = guestUser.Id;
+
+            CreateAsync(guestUser);
+
+            var asynctaskb = AddToRoleAsync(guestUser, "Guests");
+
+        }
+
+        private bool CheckCurrentAppHasRoles()
+        {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
             if (appRepo == null)
                 appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
-
-
-
-
 
             if (applicationInfo != null)
             {
@@ -1306,8 +1475,18 @@ namespace EdiuxTemplateWebApp.Models
                         LoweredRoleName = "users",
                         Name = "Users",
                         Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = applicationInfo.ApplicationId,
+                        aspnet_Applications = applicationInfo,
+                        Description = "訪客",
+                        LoweredRoleName = "guests",
+                        Name = "Guests",
+                        Id = Guid.NewGuid()
                     }
                 };
+
+                Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
 
                 bool roleexisted = true;
 
@@ -1324,24 +1503,10 @@ namespace EdiuxTemplateWebApp.Models
 
             return false;
         }
-        private aspnet_Applications getApplicationInformationFromCache(string appName)
-        {
-            var appInfo = appName.getApplicationGlobalVariable<aspnet_Applications>(ApplicationInfoKey);
-
-            if (appInfo == null)
-            {
-                appInfo = appRepo.FindByName(ConfigHelper.GetConfig(ApplicationName)).SingleOrDefault();
-                WebHelper.setApplicationGlobalVariable(appName, appName, appInfo);
-            }
-
-            return appInfo;
-        }
 
         private void createDefaultRoles()
         {
-            string appName = GetApplicationNameFromConfiguratinFileAsync().Result;
-
-            aspnet_Applications appInfo = getApplicationInformationFromCache(appName);
+            aspnet_Applications appInfo = GetCurrentApplicationInfoAsync().Result;
 
             aspnet_Roles[] defaultRoles = new aspnet_Roles[] {
                     new aspnet_Roles() {
@@ -1364,8 +1529,18 @@ namespace EdiuxTemplateWebApp.Models
                         LoweredRoleName = "users",
                         Name = "Users",
                         Id = Guid.NewGuid()
+                    },
+                    new aspnet_Roles() {
+                        ApplicationId = applicationInfo.ApplicationId,
+                        aspnet_Applications = applicationInfo,
+                        Description = "訪客",
+                        LoweredRoleName = "guests",
+                        Name = "Guests",
+                        Id = Guid.NewGuid()
                     }
                 };
+
+            Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
 
             roleRepo.UnitOfWork.TranscationMode = true;
 
@@ -1436,37 +1611,36 @@ namespace EdiuxTemplateWebApp.Models
 
                 CreateAsync(newApplication);
 
-                applicationInfo = newApplication;
+                Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
+                applicationInfo =
+                    appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
 
                 setToMemoryCache();
 
             }
             else
             {
-                applicationInfo = this.getApplicationGlobalVariable<aspnet_Applications>(ApplicationInfoKey);
+                Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
 
-                if (applicationInfo == null)
-                {
-                    applicationInfo = appRepo.FindByName(GetApplicationNameFromConfiguratinFileAsync().Result).Single();
-                    setToMemoryCache();
-                }
-                else
-                {
-                    applicationInfo = this.getApplicationInformationFromCache(GetApplicationNameFromConfiguratinFileAsync().Result);
-                }
-
-
+                applicationInfo = appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
             }
 
-            if (checkCurrentAppHasRoles() == false)
+            if (CheckCurrentAppHasRoles() == false)
             {
                 createDefaultRoles();
             }
 
-            if (checkCurrentAppHasRootUser() == false)
+            if (IsHasRootUser== false)
             {
-                createRootUser();
+                CreateRootUser();
             }
+
+            if (applicationInfo.aspnet_Users.Any(s => s.LoweredUserName == "guest") == false)
+            {
+                CreateAnonymousUser();
+            }
+
             if (checkRootUserHasAdminsRole() == false)
             {
                 addRootUserToAdminsRole();
@@ -1484,6 +1658,7 @@ namespace EdiuxTemplateWebApp.Models
             newApplication.Description = app.Description;
             newApplication.LoweredApplicationName = app.LoweredApplicationName;
 
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
             appRepo.Add(newApplication);
             appRepo.UnitOfWork.Commit();
 
@@ -1495,23 +1670,14 @@ namespace EdiuxTemplateWebApp.Models
 
         public Task DeleteAsync(aspnet_Applications app)
         {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
             appRepo.Delete(app);
-            appRepo.UnitOfWork.Commit();
-            return Task.CompletedTask;
-        }
-
-        Task<aspnet_Applications> IApplicationStore<aspnet_Applications, Guid>.FindByIdAsync(Guid appId)
-        {
-            return Task.FromResult(appRepo.Get(appId));
-        }
-
-        Task<aspnet_Applications> IApplicationStore<aspnet_Applications, Guid>.FindByNameAsync(string appName)
-        {
-            return Task.FromResult(appRepo.FindByName(appName).SingleOrDefault());
+            return appRepo.UnitOfWork.CommitAsync();
         }
 
         public Task UpdateAsync(aspnet_Applications app)
         {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
             var existapp = appRepo.Get(app.ApplicationId);
             existapp = appRepo.CopyTo<aspnet_Applications>(app);
             return appRepo.UnitOfWork.CommitAsync();
@@ -1521,6 +1687,38 @@ namespace EdiuxTemplateWebApp.Models
         {
             string appName = ConfigHelper.GetConfig(ApplicationName);
             return Task.FromResult(appName);
+        }
+
+        Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByIdAsync(Guid appId)
+        {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            return Task.FromResult(appRepo.FindById(appId));
+        }
+
+        Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByNameAsync(string appName)
+        {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            return Task.FromResult(appRepo.FindByName(appName));
+        }
+
+        public Task<aspnet_Applications> GetByIdAsync(Guid appId)
+        {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            return appRepo.GetAsync(appId);
+        }
+
+        public Task<aspnet_Applications> GetByNameAsync(string appName)
+        {
+            return Task.FromResult((from app in Applications
+                                    where app.ApplicationName == appName ||
+                                    app.LoweredApplicationName == appName
+                                    select app).ToList().SingleOrDefault());
+        }
+
+        public async Task<aspnet_Applications> GetCurrentApplicationInfoAsync()
+        {
+            string appName = await GetApplicationNameFromConfiguratinFileAsync();
+            return await GetByNameAsync(appName);
         }
 
         public const string ApplicationInfoKey = "ApplicationInfo";

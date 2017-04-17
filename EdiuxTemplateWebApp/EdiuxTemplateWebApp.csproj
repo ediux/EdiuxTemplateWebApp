@@ -399,6 +399,7 @@
     <Compile Include="Models\Identity\PageSettingsBaseModel.cs" />
     <Compile Include="Models\Shared\EdiuxAspNetSqlUserStore.cs" />
     <Compile Include="Models\Identity\ManageViewModels.cs" />
+    <Compile Include="Models\Shared\IEdiuxAspNetSqlUserStore.cs" />
     <Compile Include="Models\Shared\MyPagedList.cs" />
     <Compile Include="Models\Identity\RegisterForAdminsViewModel.cs" />
     <Compile Include="Models\Identity\UserProfileViewModel.cs" />

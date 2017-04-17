@@ -29,7 +29,14 @@ namespace EdiuxTemplateWebApp
             if (foundUser != null)
                 return foundUser.Id;
 
-            return Guid.Empty;
+            foundUser = userRepo.GetUserByName(identity.getApplicationInfo().ApplicationName, "guest", DateTime.UtcNow, false);
+
+            if (foundUser == null)
+            {
+                return Guid.Empty;
+            }
+
+            return foundUser.Id;
         }
 
         public static Guid GetUserId2(this IIdentity identity)

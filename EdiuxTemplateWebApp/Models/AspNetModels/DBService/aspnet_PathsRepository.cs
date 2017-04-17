@@ -13,12 +13,6 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             foundPath = CopyTo<aspnet_Paths>(entity);
             UnitOfWork.Commit();
         }
-
-        public override aspnet_Paths Reload(aspnet_Paths entity)
-        {
-            entity = ObjectSet.Attach(entity);
-            return base.Reload(entity);
-        }
     }
 
     public partial interface Iaspnet_PathsRepository : IRepositoryBase<aspnet_Paths>

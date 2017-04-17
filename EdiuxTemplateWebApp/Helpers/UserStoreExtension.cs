@@ -1,6 +1,7 @@
 ﻿using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Models.AspNetModels;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace EdiuxTemplateWebApp
             return UserProfileViewModel.Get(profileObject.Id);
         }
 
-        public static void SetProfile(this aspnet_Users user, UserProfileViewModel prop) 
+        public static void SetProfile(this aspnet_Users user, UserProfileViewModel prop)
         {
             UserProfileViewModel.Set(prop, user.Id);
         }
@@ -68,9 +69,11 @@ namespace EdiuxTemplateWebApp
             return ctr.ViewBag.ApplicationInfo as aspnet_Applications;
         }
 
-        public static aspnet_Applications getApplicationInfo(this object obj)
+        public static aspnet_Applications getApplicationInfo<T>(this T obj) where T : class
         {
-            return Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(obj, EdiuxAspNetSqlUserStore.ApplicationInfoKey);
+            IEdiuxAspNetSqlUserStore store = HttpContext.Current.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
+
+            return store.GetByNameAsync(store.GetApplicationNameFromConfiguratinFileAsync().Result).Result;
         }
 
         public static aspnet_Applications addApplicationInfotoServer(this object obj)

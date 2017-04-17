@@ -39,7 +39,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             get
             {
-                return _roleManager ?? new ApplicationRoleManager(new Models.EdiuxAspNetSqlUserStore(HttpContext.GetOwinContext().Get<Models.AspNetModels.IUnitOfWork>()));
+                return _roleManager ?? HttpContext.GetOwinContext().Get<ApplicationRoleManager>();
             }
             private set
             {
@@ -110,20 +110,16 @@ namespace EdiuxTemplateWebApp.Controllers
 
                 aspnet_Applications appInfo = ViewBag.ApplicationInfo as aspnet_Applications;
 
-                aspnet_Users user = new aspnet_Users();
+                aspnet_Users user = new aspnet_Users()
+                {
+                    UserName = registerViewModel.UserName,
+                    aspnet_Membership = new aspnet_Membership()
+                };
 
-
-                user.UserName = registerViewModel.UserName;
-                user.aspnet_Membership = new aspnet_Membership();
                 user.aspnet_Membership.Password = registerViewModel.Password;
                 user.aspnet_Membership.PasswordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
                 user.aspnet_Membership.Email = registerViewModel.Email;
-
-                //user.DisplayName = registerViewModel.DisplayName;
-                //user.EMail = registerViewModel.Email;
-                //user.Password = registerViewModel.Password;
-
-                //user.PasswordHash = UserManager.PasswordHasher.HashPassword(registerViewModel.Password);
+                user.aspnet_Membership.LoweredEmail = registerViewModel.Email.ToLowerInvariant();
 
                 IdentityResult result = UserManager.Create(user);
                 if (result.Succeeded)

@@ -1,7 +1,0 @@
-﻿@model bool
-@{
-    var name = ViewData.TemplateInfo.HtmlFieldPrefix;
-}
-@Html.DropDownList(name, new SelectListItem[] { new SelectListItem() {
-    Value =bool.TrueString, Text="啟用" },
-    new SelectListItem() { Value=bool.FalseString,Text="停用" } }, new { @class = "form-control" })

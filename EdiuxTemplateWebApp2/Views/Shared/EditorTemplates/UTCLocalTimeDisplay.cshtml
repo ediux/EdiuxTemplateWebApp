@@ -1,6 +1,0 @@
-﻿@model DateTime?
-@{ 
-    var updatetime = DateTime.UtcNow;
-}
-@Html.Hidden("", updatetime.ToString("yyyy/MM/dd tt hh:mm:ss"))
-@((Model != null && Model.HasValue) ? Model.Value.ToString("yyyy/MM/dd tt hh:mm") : "") 

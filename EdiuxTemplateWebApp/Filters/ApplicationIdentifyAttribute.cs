@@ -1,6 +1,7 @@
 ﻿using EdiuxTemplateWebApp.Helpers;
 using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using Microsoft.AspNet.Identity.Owin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,9 @@ namespace EdiuxTemplateWebApp.Filters
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            aspnet_Applications fromCache = this.getApplicationGlobalVariable<aspnet_Applications>(EdiuxAspNetSqlUserStore.ApplicationInfoKey);
+            IEdiuxAspNetSqlUserStore store = filterContext.HttpContext.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
+
+            aspnet_Applications fromCache = store.GetCurrentApplicationInfoAsync().Result;
 
             if (fromCache == null)
             {

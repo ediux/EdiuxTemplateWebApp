@@ -15,25 +15,14 @@ using EdiuxTemplateWebApp.Models;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
-    public class AccountsManageController : Controller
+    public class AccountsManageController : BaseController
     {
         private Iaspnet_ApplicationsRepository db;
-        // private IApplicationRoleRepository roleRepo;
 
         private ApplicationUserManager _userManager;
         private ApplicationRoleManager _roleManager;
         private aspnet_Applications appInfo;
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
-        }
+
 
         public ApplicationRoleManager RoleManager
         {
@@ -47,11 +36,10 @@ namespace EdiuxTemplateWebApp.Controllers
             }
         }
 
-        public AccountsManageController()
+        public AccountsManageController() : base()
         {
-            db = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            db = HttpContext.GetOwinContext().Get<Iaspnet_ApplicationsRepository>();
             appInfo = this.getApplicationInfo();
-            //roleRepo = RepositoryHelper.GetApplicationRoleRepository(db.UnitOfWork);
         }
 
         // GET: AccountsManage

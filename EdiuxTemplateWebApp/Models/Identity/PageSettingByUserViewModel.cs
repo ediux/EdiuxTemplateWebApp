@@ -16,23 +16,63 @@ namespace EdiuxTemplateWebApp.Models.Identity
             UserSettings = new Dictionary<string, object>();
         }
 
-        public PageSettingByUserViewModel(aspnet_PersonalizationPerUser userData) :
-            base(userData.aspnet_Paths.aspnet_PersonalizationAllUsers)
+        public PageSettingByUserViewModel(aspnet_PersonalizationAllUsers commonUserData,Guid userId) :
+            base(commonUserData)
         {
-            var currentdata = userData.PageSettings.Deserialize<PageSettingByUserViewModel>();
-            AllowAnonymous = currentdata.AllowAnonymous;
-            AllowExcpetionRoles = currentdata.AllowExcpetionRoles;
-            AllowExcpetionUsers = currentdata.AllowExcpetionUsers;
-            Title = currentdata.Title;
-            Description = currentdata.Description;
-            Area = currentdata.Area;
-            ControllerName = currentdata.ControllerName;
-            ActionName = currentdata.ActionName;
-            ArgumentObject = currentdata.ArgumentObject;
-            MenuId = currentdata.MenuId;
-            CSS = currentdata.CSS;
-            Permission = currentdata.Permission;
-            UserSettings = currentdata.UserSettings;
+            if (commonUserData.aspnet_Paths == null)
+            {
+                AllowAnonymous = true;
+                AllowExcpetionRoles = new Dictionary<string, bool>();
+                AllowExcpetionRoles.Add("Admins", true);
+                AllowExcpetionUsers = new Dictionary<string, bool>();
+                AllowExcpetionUsers.Add("root", true);
+                Title = "未命名";
+                Description = "";
+                Area = "";
+                ControllerName = "";
+                ActionName = "";
+                ArgumentObject = new object();
+                MenuId = Guid.Empty;
+                CSS = "";
+                CommonSettings = new Dictionary<string, object>();
+                Permission = new PagePermissionForUserModel();
+                UserSettings = new Dictionary<string, object>();
+            }
+            else
+            {
+                var currentdata = (from um in commonUserData.aspnet_Paths.aspnet_PersonalizationPerUser
+                                   where um.UserId == userId
+                                   select um).SingleOrDefault();
+
+                if (currentdata != null)
+                {
+                    PageSettingByUserViewModel userSettings = currentdata.PageSettings.Deserialize<PageSettingByUserViewModel>();
+
+                    Permission = userSettings.Permission;
+                    UserSettings = userSettings.UserSettings;
+                }
+                else
+                {
+                    AllowAnonymous = true;
+                    AllowExcpetionRoles = new Dictionary<string, bool>();
+                    AllowExcpetionRoles.Add("Admins", true);
+                    AllowExcpetionUsers = new Dictionary<string, bool>();
+                    AllowExcpetionUsers.Add("root", true);
+                    Title = "未命名";
+                    Description = "";
+                    Area = "";
+                    ControllerName = "";
+                    ActionName = "";
+                    ArgumentObject = new object();
+                    MenuId = Guid.Empty;
+                    CSS = "";
+                    CommonSettings = new Dictionary<string, object>();
+                    Permission = new PagePermissionForUserModel();
+                    UserSettings = new Dictionary<string, object>();
+                }
+
+            }
+
         }
 
         /// <summary>

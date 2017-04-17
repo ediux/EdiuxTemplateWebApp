@@ -9,7 +9,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
     {
         public void Update(aspnet_Paths entity)
         {
-            var foundPath = Get(entity.PathId, entity.Path, entity.ApplicationId);
+            var foundPath = Get(IdentifyPrimaryKey(entity));
             foundPath = CopyTo<aspnet_Paths>(entity);
             UnitOfWork.Commit();
         }

@@ -36,10 +36,15 @@ namespace EdiuxTemplateWebApp.Filters
 
                 if (filterContext.ActionDescriptor.ControllerDescriptor.ControllerName.ToLowerInvariant() == "elmah")
                 {
-                    if (filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.Name == "root")
+                    if (filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.GetUserName() == "root")
                     {
                         return;
                     }
+                }
+
+                if (filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.GetUserName() == "root")
+                {
+                    return;
                 }
 
                 aspnet_Applications appInfo = filterContext.Controller.getApplicationInfo();
@@ -74,63 +79,70 @@ namespace EdiuxTemplateWebApp.Filters
                         //當前使用者的設定檔
                         var pageUserSettings = pathInfo.aspnet_PersonalizationPerUser.Single(a => a.aspnet_Users.Id == loginUserId);
 
-                        PageSettingByUserViewModel userSettingModel = new PageSettingByUserViewModel(pageUserSettings);
+                        PageSettingByUserViewModel userSettingModel = null;
 
-                        #region 權限
-
-                        #region 檢查是否匿名存取
-                        if (userSettingModel.AllowAnonymous)
+                        if (pageUserSettings != null)
                         {
-                            return;
-                        }
-                        #endregion
+                            userSettingModel = pageUserSettings.PageSettings.Deserialize<PageSettingByUserViewModel>();
 
-                        #region 檢查是否可以執行
+                            #region 權限
 
-                        var UserPermission = userSettingModel.Permission;
-
-                        if (UserPermission != null)
-                        {
-                            if (UserPermission.ExecuteFeature)
+                            #region 檢查是否匿名存取
+                            if (userSettingModel.AllowAnonymous)
                             {
                                 return;
                             }
+                            #endregion
+
+                            #region 檢查是否可以執行
+
+                            var UserPermission = userSettingModel.Permission;
+
+                            if (UserPermission != null)
+                            {
+                                if (UserPermission.ExecuteFeature)
+                                {
+                                    return;
+                                }
+                            }
+                            #endregion
+
+                            #region 檢查是否在例外角色清單
+                            var allowRoles = Roles.ToLowerInvariant().Split(',');
+
+                            var checkIsInRoles = (from e in userSettingModel.AllowExcpetionRoles
+                                                  from a in allowRoles
+                                                  from r in appInfo.aspnet_Roles
+                                                  from u in r.aspnet_Users
+                                                  where e.Key == a && e.Key == r.LoweredRoleName
+                                                  && u.Id == loginUserId
+                                                  select e.Key);
+
+                            if (checkIsInRoles.Any())
+                            {
+                                return;
+                            }
+                            #endregion
+
+                            #region 檢查是否在例外使用者清單中
+                            var allowUsers = Users.ToLowerInvariant().Split(',');
+                            var checkIsInUsers = (from eu in userSettingModel.AllowExcpetionUsers
+                                                  from lu in allowUsers
+                                                  from au in appInfo.aspnet_Users
+                                                  where eu.Key == lu && au.LoweredUserName == eu.Key
+                                                  && au.Id == loginUserId
+                                                  select eu);
+
+                            if (checkIsInUsers.Any())
+                            {
+                                return;
+                            }
+                            #endregion
+
+                            #endregion
                         }
-                        #endregion
 
-                        #region 檢查是否在例外角色清單
-                        var allowRoles = Roles.ToLowerInvariant().Split(',');
 
-                        var checkIsInRoles = (from e in userSettingModel.AllowExcpetionRoles
-                                              from a in allowRoles
-                                              from r in appInfo.aspnet_Roles
-                                              from u in r.aspnet_Users
-                                              where e.Key == a && e.Key == r.LoweredRoleName
-                                              && u.Id == loginUserId
-                                              select e.Key);
-
-                        if (checkIsInRoles.Any())
-                        {
-                            return;
-                        }
-                        #endregion
-
-                        #region 檢查是否在例外使用者清單中
-                        var allowUsers = Users.ToLowerInvariant().Split(',');
-                        var checkIsInUsers = (from eu in userSettingModel.AllowExcpetionUsers
-                                              from lu in allowUsers
-                                              from au in appInfo.aspnet_Users
-                                              where eu.Key == lu && au.LoweredUserName == eu.Key
-                                              && au.Id == loginUserId
-                                              select eu);
-
-                        if (checkIsInUsers.Any())
-                        {
-                            return;
-                        } 
-                        #endregion
-                        
-                        #endregion
                     }
                     #endregion
 
@@ -141,18 +153,8 @@ namespace EdiuxTemplateWebApp.Filters
                             = pathInfo.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
 
                         var checkSettings = GlobalSettings.AllowExcpetionRoles
-                            .Select(s => s.Key)
+                            .Select(s => s.Key).Distinct()
                             .Except(Roles.Split(','));
-
-                        if (checkSettings.Any())
-                        {
-                            foreach (var adddiff in checkSettings)
-                            {
-                                GlobalSettings.AllowExcpetionRoles.Add(adddiff, true);
-                            }
-
-                            GlobalSettings.AllowAnonymous = false;
-                        }
 
                         if (GlobalSettings.AllowAnonymous)
                         {
@@ -161,9 +163,10 @@ namespace EdiuxTemplateWebApp.Filters
 
                         var username = filterContext.RequestContext.HttpContext.User.Identity.GetUserName();
 
-                        if (GlobalSettings.AllowExcpetionUsers[username])
+                        if (GlobalSettings.AllowExcpetionUsers.ContainsKey(username))
                         {
-                            return;
+                            if (GlobalSettings.AllowExcpetionUsers[username])
+                                return;
                         }
 
                         if (GlobalSettings.AllowExcpetionRoles.Any())
@@ -172,14 +175,15 @@ namespace EdiuxTemplateWebApp.Filters
                             var checkRoleCanAccess = (from r in UserInfo.aspnet_Roles
                                                       from e in GlobalSettings.AllowExcpetionRoles
                                                       where r.LoweredRoleName == e.Key.ToLowerInvariant()
-                                                      select r);
+                                                      select r).Distinct();
+
                             if (checkRoleCanAccess.Any())
                             {
                                 return;
                             }
                         }
                     }
-   
+
                     #endregion
 
                     #endregion

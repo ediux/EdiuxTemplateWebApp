@@ -17,6 +17,12 @@ namespace EdiuxTemplateWebApp.Filters
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class ComponentRegistrationAttribute : ActionFilterAttribute, IActionFilter
     {
+        public string Title { get; set; }
+
+        public string CSS { get; set; }
+
+        public string Description { get; set; }
+
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             try
@@ -29,7 +35,7 @@ namespace EdiuxTemplateWebApp.Filters
                 //5.1 如已存在，直接返回
                 //5.2 如不存在,新增資料到資料庫
                 IOwinContext ioc = filterContext.HttpContext.GetOwinContext();
-                EdiuxAspNetSqlUserStore store = ioc.Get<EdiuxAspNetSqlUserStore>();
+                IEdiuxAspNetSqlUserStore store = ioc.Get<IEdiuxAspNetSqlUserStore>();
 
                 var waitResult = store.GetCurrentApplicationInfoAsync();
 
@@ -50,7 +56,7 @@ namespace EdiuxTemplateWebApp.Filters
                 }
                 else
                 {
-                    pathInfo = GetPathInformation(appInfo, url, ioc);
+                    pathInfo = GetPathInformation(appInfo, url, filterContext, ioc);
                 }
 
                 filterContext.Controller.ViewBag.PathInfo = pathInfo;
@@ -71,7 +77,7 @@ namespace EdiuxTemplateWebApp.Filters
 
         }
 
-        private static aspnet_Paths RegisterPath(aspnet_Applications appInfo, string url, ActionExecutingContext filterContext, IOwinContext owin)
+        private aspnet_Paths RegisterPath(aspnet_Applications appInfo, string url, ActionExecutingContext filterContext, IOwinContext owin)
         {
             aspnet_Paths pathInfo = new aspnet_Paths()
             {
@@ -84,18 +90,22 @@ namespace EdiuxTemplateWebApp.Filters
             pathInfo.aspnet_PersonalizationAllUsers = new aspnet_PersonalizationAllUsers();
 
             PageSettingsBaseModel BaseSetting = new PageSettingsBaseModel()
-            {              
+            {
                 ActionName = filterContext.ActionDescriptor.ActionName,
                 ControllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName,
-                Area = filterContext.RouteData.DataTokens["area"].ToString(),
+                Area = filterContext.RouteData.DataTokens.ContainsKey("area") ? filterContext.RouteData.DataTokens["area"].ToString() : string.Empty,
                 ArgumentObject = filterContext.ActionParameters,
-                
-                AllowAnonymous = true
+                CommonSettings = new Dictionary<string, object>(),
+                CSS = CSS,
+                Description = Description,
+                MenuId = Guid.Empty,
+                Title = Title,
+                AllowAnonymous = true,
             };
 
             #region 尋找原始的授權屬性
             var auth = filterContext.ActionDescriptor.GetCustomAttributes(typeof(AuthorizeAttribute), true)
-          .Select(s => (AuthorizeAttribute)s).ToList().SingleOrDefault();
+                .Select(s => (AuthorizeAttribute)s).ToList().SingleOrDefault();
 
             if (auth != null)
             {
@@ -106,12 +116,19 @@ namespace EdiuxTemplateWebApp.Filters
                     BaseSetting.AllowExcpetionRoles.Add(r, true);
                 }
 
+                var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+                foreach (var u in allowUsers)
+                {
+                    BaseSetting.AllowExcpetionUsers.Add(u, true);
+                }
             }
+
             #endregion
 
             #region 尋找自訂的授權屬性
             var adbuth = filterContext.ActionDescriptor.GetCustomAttributes(typeof(DbAuthorizeAttribute), true)
-          .Select(s => (DbAuthorizeAttribute)s).ToList().SingleOrDefault();
+                .Select(s => (DbAuthorizeAttribute)s).ToList().SingleOrDefault();
 
             if (auth != null)
             {
@@ -122,103 +139,39 @@ namespace EdiuxTemplateWebApp.Filters
                     BaseSetting.AllowExcpetionRoles.Add(r, true);
                 }
 
+                var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+                foreach (var u in allowUsers)
+                {
+                    BaseSetting.AllowExcpetionUsers.Add(u, true);
+                }
             }
             #endregion
-
-            BaseSetting.AllowExcpetionUsers.Add("root", true);
-            BaseSetting.Area = filterContext.RouteData.DataTokens["area"].ToString();
-            BaseSetting.ArgumentObject = filterContext.ActionParameters;
-            BaseSetting.CommonSettings = new Dictionary<string, object>();
-            BaseSetting.ControllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
-            BaseSetting.CSS = string.Empty;
-            BaseSetting.Description = url;
 
             if (filterContext.Controller.ViewBag.Title != null)
             {
                 BaseSetting.Title = filterContext.Controller.ViewBag.Title as string;
             }
-            else
-            {
-                BaseSetting.Title = "未命名";
-            }
 
+            pathInfo.aspnet_PersonalizationAllUsers.PageSettings = BaseSetting.Serialize();
             pathInfo.aspnet_PersonalizationAllUsers.PathId = pathInfo.PathId;
             pathInfo.aspnet_PersonalizationAllUsers.LastUpdatedDate = DateTime.UtcNow;
-            pathInfo.aspnet_PersonalizationAllUsers.PageSettings = BaseSetting.Serialize();
 
             #region 建立頁面設定檔
-
-            if (filterContext.HttpContext.User.Identity.IsAuthenticated)
+            Guid userId = filterContext.HttpContext.User.Identity.GetUserId();
+            aspnet_PersonalizationPerUser perUserSetting = new aspnet_PersonalizationPerUser()
             {
-                aspnet_PersonalizationPerUser perUserSetting = new aspnet_PersonalizationPerUser();
+                Id = Guid.NewGuid(),
+                LastUpdatedDate = DateTime.UtcNow,
+                PathId = pathInfo.PathId,
+                UserId = userId
+            };
 
-                perUserSetting.Id = Guid.NewGuid();
-                perUserSetting.LastUpdatedDate = DateTime.UtcNow;
-                perUserSetting.PathId = pathInfo.PathId;
-                perUserSetting.UserId = filterContext.HttpContext.User.Identity.GetUserId();
+            PageSettingByUserViewModel perUserModel = new PageSettingByUserViewModel(pathInfo.aspnet_PersonalizationAllUsers, userId);
 
-                PageSettingByUserViewModel perUserModel = new PageSettingByUserViewModel();
-                perUserModel.ActionName = filterContext.ActionDescriptor.ActionName;
-                perUserModel.AllowAnonymous = false;
+            perUserSetting.PageSettings = perUserModel.Serialize();
 
-
-
-                var allowUsers = Users.ToLowerInvariant().Split(',');
-
-                foreach (var u in allowUsers)
-                {
-                    perUserModel.AllowExcpetionUsers.Add(u, true);
-                }
-
-                perUserModel.Area = filterContext.RouteData.DataTokens["area"].ToString();
-                perUserModel.ArgumentObject = null;
-                perUserModel.CommonSettings = new Dictionary<string, object>();
-                perUserModel.ControllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
-                perUserModel.CSS = "";
-                perUserModel.Description = pathInfo.Path;
-
-                perUserSetting.PageSettings = perUserModel.Serialize();
-
-                pathInfo.aspnet_PersonalizationPerUser.Add(perUserSetting);
-            }
-            else
-            {
-                aspnet_PersonalizationPerUser perUserSetting = new aspnet_PersonalizationPerUser();
-                perUserSetting.Id = Guid.NewGuid();
-                perUserSetting.LastUpdatedDate = DateTime.UtcNow;
-                perUserSetting.PathId = pathInfo.PathId;
-                perUserSetting.UserId = filterContext.HttpContext.User.Identity.GetUserId();
-
-                PageSettingByUserViewModel perUserModel = new PageSettingByUserViewModel();
-                perUserModel.ActionName = filterContext.ActionDescriptor.ActionName;
-                perUserModel.AllowAnonymous = false;
-
-                var allowRoles = Roles.ToLowerInvariant().Split(',');
-
-                foreach (var r in allowRoles)
-                {
-                    perUserModel.AllowExcpetionRoles.Add(r, true);
-                }
-
-
-                var allowUsers = Users.ToLowerInvariant().Split(',');
-
-                foreach (var u in allowUsers)
-                {
-                    perUserModel.AllowExcpetionUsers.Add(u, true);
-                }
-
-                perUserModel.Area = filterContext.RouteData.DataTokens["area"].ToString();
-                perUserModel.ArgumentObject = null;
-                perUserModel.CommonSettings = new Dictionary<string, object>();
-                perUserModel.ControllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
-                perUserModel.CSS = "";
-                perUserModel.Description = pathInfo.Path;
-
-                perUserSetting.PageSettings = perUserModel.Serialize();
-
-                pathInfo.aspnet_PersonalizationPerUser.Add(perUserSetting);
-            }
+            pathInfo.aspnet_PersonalizationPerUser.Add(perUserSetting);
 
             #endregion
 
@@ -230,13 +183,127 @@ namespace EdiuxTemplateWebApp.Filters
             return pathInfo;
         }
 
-        private static aspnet_Paths GetPathInformation(aspnet_Applications appInfo, string url, IOwinContext owin)
+        private aspnet_Paths GetPathInformation(aspnet_Applications appInfo, string url, ActionExecutingContext filterContext, IOwinContext owin)
         {
             aspnet_Paths pathInfo;
             string loweredUrl = url.ToLowerInvariant();
             var pathRepo = owin.Get<Iaspnet_PathsRepository>();
             pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
              && w.ApplicationId == appInfo.ApplicationId).SingleOrDefault();
+            if (pathInfo != null)
+            {
+                if (pathInfo.aspnet_PersonalizationAllUsers == null)
+                {
+                    pathInfo.aspnet_PersonalizationAllUsers = new aspnet_PersonalizationAllUsers()
+                    {
+                        PathId = pathInfo.PathId,
+                        LastUpdatedDate = DateTime.UtcNow,
+                    };
+
+                    PageSettingsBaseModel BaseSetting = new PageSettingsBaseModel()
+                    {
+                        ActionName = filterContext.ActionDescriptor.ActionName,
+                        ControllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName,
+                        Area = filterContext.RouteData.DataTokens.ContainsKey("area") ? filterContext.RouteData.DataTokens["area"].ToString() : string.Empty,
+                        ArgumentObject = filterContext.ActionParameters,
+                        CommonSettings = new Dictionary<string, object>(),
+                        CSS = CSS,
+                        Description = Description,
+                        MenuId = Guid.Empty,
+                        Title = Title,
+                        AllowAnonymous = true,
+                    };
+
+                    #region 尋找原始的授權屬性
+                    var auth = filterContext.ActionDescriptor.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+                        .Select(s => (AuthorizeAttribute)s).ToList().SingleOrDefault();
+
+                    if (auth != null)
+                    {
+                        var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
+
+                        foreach (var r in allowRoles)
+                        {
+                            BaseSetting.AllowExcpetionRoles.Add(r, true);
+                        }
+
+                        var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+                        foreach (var u in allowUsers)
+                        {
+                            BaseSetting.AllowExcpetionUsers.Add(u, true);
+                        }
+                    }
+
+                    #endregion
+
+                    #region 尋找自訂的授權屬性
+                    var adbuth = filterContext.ActionDescriptor.GetCustomAttributes(typeof(DbAuthorizeAttribute), true)
+                        .Select(s => (DbAuthorizeAttribute)s).ToList().SingleOrDefault();
+
+                    if (auth != null)
+                    {
+                        var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
+
+                        foreach (var r in allowRoles)
+                        {
+                            BaseSetting.AllowExcpetionRoles.Add(r, true);
+                        }
+
+                        var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+                        foreach (var u in allowUsers)
+                        {
+                            BaseSetting.AllowExcpetionUsers.Add(u, true);
+                        }
+                    }
+                    #endregion
+
+                    if (filterContext.Controller.ViewBag.Title != null)
+                    {
+                        BaseSetting.Title = filterContext.Controller.ViewBag.Title as string;
+                    }
+
+                    pathInfo.aspnet_PersonalizationAllUsers.PageSettings = BaseSetting.Serialize();
+
+
+                    pathRepo.Update(pathInfo);
+                    pathInfo = pathRepo.Reload(pathInfo);
+                }
+
+                Guid userId =
+                    filterContext.HttpContext.User.Identity.GetUserId();
+
+                if (!pathInfo.aspnet_PersonalizationPerUser.Any(w => w.UserId == userId))
+                {
+                    if (pathInfo.aspnet_PersonalizationAllUsers.PageSettings != null)
+                    {
+                        PageSettingsBaseModel BaseSetting = pathInfo.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
+
+                        if (BaseSetting != null)
+                        {
+                            aspnet_PersonalizationPerUser perUserSetting = new aspnet_PersonalizationPerUser()
+                            {
+                                Id = Guid.NewGuid(),
+                                LastUpdatedDate = DateTime.UtcNow,
+                                PathId = pathInfo.PathId,
+                                UserId = userId
+                            };
+
+                            PageSettingByUserViewModel perUserModel = new PageSettingByUserViewModel(pathInfo.aspnet_PersonalizationAllUsers, userId);
+
+                            perUserSetting.PageSettings = perUserModel.Serialize();
+
+                            pathInfo.aspnet_PersonalizationPerUser.Add(perUserSetting);
+
+                            pathRepo.Update(pathInfo);
+                            pathInfo = pathRepo.Reload(pathInfo);
+                        }
+                    }
+
+
+                }
+            }
             return pathInfo;
         }
 

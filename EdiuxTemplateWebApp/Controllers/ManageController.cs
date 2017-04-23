@@ -22,12 +22,24 @@ namespace EdiuxTemplateWebApp.Controllers
             appInfo = this.getApplicationInfo();
         }
 
-        public ManageController(ApplicationUserManager userManager, ApplicationSignInManager signInManager) : base(userManager, signInManager)
+        public ManageController(ApplicationUserManager userManager, ApplicationSignInManager signInManager) : base(userManager)
         {
-
+            _signInManager = signInManager;
         }
 
+        private ApplicationSignInManager _signInManager;
 
+        public ApplicationSignInManager SignInManager
+        {
+            get
+            {
+                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
+            }
+            private set
+            {
+                _signInManager = value;
+            }
+        }
 
         //
         // GET: /Manage/Index

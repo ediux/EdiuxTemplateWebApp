@@ -7,6 +7,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using Microsoft.AspNet.Identity.Owin;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
@@ -16,7 +17,7 @@ namespace EdiuxTemplateWebApp.Controllers
 
         public SystemApplicationsController()
         {
-            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            appRepo = OwinContext.Get<Iaspnet_ApplicationsRepository>();
         }
 
         // GET: SystemApplications

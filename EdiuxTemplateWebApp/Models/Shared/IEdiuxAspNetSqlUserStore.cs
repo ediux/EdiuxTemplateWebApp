@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using EdiuxTemplateWebApp.Models.AspNetModels;
-using Microsoft.AspNet.Identity;
+﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models.Identity;
 using EdiuxTemplateWebApp.Models.Shared;
+using Microsoft.AspNet.Identity;
+using System;
+using System.Threading.Tasks;
 
 namespace EdiuxTemplateWebApp.Models
 {
@@ -22,8 +20,11 @@ namespace EdiuxTemplateWebApp.Models
         IUserClaimStore<aspnet_Users, Guid>, 
         IQueryableUserStore<aspnet_Users, Guid>, 
         IQueryableRoleStore<aspnet_Roles, Guid>, 
-        IApplicationStore<aspnet_Applications, Guid>
+        IApplicationStore<aspnet_Applications, Guid>,
+        IProfileStore<PageSettingByUserViewModel,Guid>,
+        IPageStore<aspnet_Paths,Guid>
     {
-        Task<aspnet_Applications> GetCurrentApplicationInfoAsync();
+        
+        Task<aspnet_Users> GetUserByIdAsync(Guid userId);
     }
 }

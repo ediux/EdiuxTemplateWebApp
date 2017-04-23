@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 // =========================================
 // 產生額外資料庫回應物件
 // =========================================
@@ -8,60 +10,51 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 {
     public partial class AspNetDbEntities : IRepositoryCollection
     {
-        public int Count
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        private Collection<IRepositoryBase> innerSet = new Collection<IRepositoryBase>();
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public int Count => innerSet.Count;
+
+        public bool IsReadOnly => throw new NotImplementedException();
 
         public void Add(IRepositoryBase item)
         {
-            throw new NotImplementedException();
+            innerSet.Add(item);
         }
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            innerSet.Clear();
         }
 
         public bool Contains(IRepositoryBase item)
         {
-            throw new NotImplementedException();
+            return innerSet.Contains(item);
         }
 
         public void CopyTo(IRepositoryBase[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            innerSet.CopyTo(array, arrayIndex);
         }
+
 
         public IEnumerator<IRepositoryBase> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return innerSet.GetEnumerator();
         }
 
         public T GetRepository<T>() where T : IRepositoryBase
         {
-            throw new NotImplementedException();
+            return (T)innerSet.Where(w => typeof(T) == w.GetType()).SingleOrDefault();
         }
 
         public bool Remove(IRepositoryBase item)
         {
-            throw new NotImplementedException();
+            return innerSet.Remove(item);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return innerSet.GetEnumerator();
         }
     }
     public partial class aspnet_Membership_FindUsersByEmail_Result
@@ -78,6 +71,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         public Guid UserId { get; set; }
         public DateTime LastLockoutDate { get; set; }
     }
+
     public partial class aspnet_Membership_FindUsersByName_Result : aspnet_Membership_FindUsersByEmail_Result
     {
 

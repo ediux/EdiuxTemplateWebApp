@@ -16,21 +16,27 @@ namespace EdiuxTemplateWebApp.Filters
     public class ApplicationIdentifyAttribute : ActionFilterAttribute, IActionFilter
     {
         private Type _appType;
-        private Iaspnet_ApplicationsRepository appRepo;
 
         public ApplicationIdentifyAttribute(Type appType)
         {
-            _appType = appType;
-            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
+            _appType = appType; 
         }
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            IEdiuxAspNetSqlUserStore store = filterContext.HttpContext.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
+           
+            IApplicationStore<aspnet_Applications,Guid> store = filterContext.HttpContext.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
 
-            aspnet_Applications fromCache = store.GetCurrentApplicationInfoAsync().Result;
+            var getAppTask = store.GetCurrentApplicationInfoAsync();
 
-            if (fromCache == null)
+            if (!getAppTask.IsCompleted)
+            {
+                getAppTask.Wait();
+            }
+
+            aspnet_Applications fromStore = getAppTask.Result;
+
+            if (fromStore == null)
             {
                 filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
                     {
@@ -42,7 +48,7 @@ namespace EdiuxTemplateWebApp.Filters
                 return;
             }
 
-            filterContext.Controller.ViewBag.ApplicationInfo = fromCache;
+            filterContext.Controller.ViewBag.ApplicationInfo = fromStore;
         }
     }
 }

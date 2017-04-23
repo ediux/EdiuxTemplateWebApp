@@ -17,29 +17,10 @@ namespace EdiuxTemplateWebApp.Controllers
 {
     public class AccountsManageController : BaseController
     {
-        private Iaspnet_ApplicationsRepository db;
-
-        private ApplicationUserManager _userManager;
-        private ApplicationRoleManager _roleManager;
-        private aspnet_Applications appInfo;
-
-
-        public ApplicationRoleManager RoleManager
-        {
-            get
-            {
-                return _roleManager ?? HttpContext.GetOwinContext().Get<ApplicationRoleManager>();
-            }
-            private set
-            {
-                _roleManager = value;
-            }
-        }
 
         public AccountsManageController() : base()
         {
-            db = HttpContext.GetOwinContext().Get<Iaspnet_ApplicationsRepository>();
-            appInfo = this.getApplicationInfo();
+
         }
 
         // GET: AccountsManage
@@ -200,13 +181,6 @@ namespace EdiuxTemplateWebApp.Controllers
             }
             return RedirectToAction("UserProfile", "Manage", new { id = id });
         }
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+      
     }
 }

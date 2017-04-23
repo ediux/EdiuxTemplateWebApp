@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+using Microsoft.AspNet.Identity.Owin;
+using System;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using EdiuxTemplateWebApp.Models;
-using Microsoft.AspNet.Identity;
-using EdiuxTemplateWebApp.Models.AspNetModels;
-using EdiuxTemplateWebApp.Helpers;
 
 namespace EdiuxTemplateWebApp.Controllers
 {
@@ -21,8 +17,8 @@ namespace EdiuxTemplateWebApp.Controllers
      
         public NotificationsController()
         {
-            db = RepositoryHelper.Getaspnet_WebEvent_EventsRepository();
-            userRepo = RepositoryHelper.Getaspnet_UsersRepository(db.UnitOfWork);
+            db = OwinContext.Get<Iaspnet_WebEvent_EventsRepository>();
+            userRepo = OwinContext.Get<Iaspnet_UsersRepository>();
         }
         [AllowAnonymous]
         [ChildActionOnly]

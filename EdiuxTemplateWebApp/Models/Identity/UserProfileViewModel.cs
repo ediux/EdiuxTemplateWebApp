@@ -4,12 +4,23 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace EdiuxTemplateWebApp.Models
+namespace EdiuxTemplateWebApp.Models.Identity
 {
     [Serializable]
     public class UserProfileViewModel
     {
+        public static UserProfileViewModel Create()
+        {
+            UserProfileViewModel newProfileViewModel = new UserProfileViewModel()
+            {
+                AvatarFilePath = "/Content/images/user.jpg",
+                CompanyName = "Ediux Workshop",
+                PositionTitle = "PG",
+                CompanyWebSiteURL = "http://www.riaxe.com/"
+            };
 
+            return newProfileViewModel;
+        }
         public static UserProfileViewModel Get(Guid userId)
         {
             Iaspnet_ProfileRepository profileRepo = RepositoryHelper.Getaspnet_ProfileRepository();

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
-namespace EdiuxTemplateWebApp.Models
+namespace EdiuxTemplateWebApp.Models.Identity
 { 
     public class RegisterForAdminsViewModel: RegisterViewModel
     {

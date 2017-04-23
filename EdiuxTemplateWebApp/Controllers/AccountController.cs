@@ -15,13 +15,30 @@ namespace EdiuxTemplateWebApp.Controllers
     [Authorize]
     public class AccountController : BaseController
     {
+
         public AccountController() : base()
         {
+            _signInManager = OwinContext.Get<ApplicationSignInManager>();
         }
 
-        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager) 
-            : base(userManager, signInManager)
+        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
+            : base(userManager)
         {
+            _signInManager = signInManager;
+        }
+
+        private ApplicationSignInManager _signInManager;
+
+        public ApplicationSignInManager SignInManager
+        {
+            get
+            {
+                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
+            }
+            private set
+            {
+                _signInManager = value;
+            }
         }
 
         //

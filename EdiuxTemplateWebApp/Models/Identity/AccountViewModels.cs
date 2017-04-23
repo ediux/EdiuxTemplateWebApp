@@ -1,11 +1,8 @@
-﻿using EdiuxTemplateWebApp.Models.AspNetModels;
-using Newtonsoft.Json;
-using System;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace EdiuxTemplateWebApp.Models
+namespace EdiuxTemplateWebApp.Models.Identity
 {
     public class ExternalLoginConfirmationViewModel
     {

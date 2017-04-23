@@ -1,9 +1,11 @@
-﻿using EdiuxTemplateWebApp.Helpers;
+﻿using EdiuxTemplateWebApp.Filters;
+using EdiuxTemplateWebApp.Helpers;
 using EdiuxTemplateWebApp.Models.AspNetModels;
-using EdiuxTemplateWebApp.Models.Shared;
+using EdiuxTemplateWebApp.Models.Identity;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -12,6 +14,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Mvc;
 using System.Web.Security;
 
 namespace EdiuxTemplateWebApp.Models
@@ -118,39 +121,9 @@ namespace EdiuxTemplateWebApp.Models
 
             if (users == null)
             {
-                newUser.Id = Guid.NewGuid();
-                newUser.ApplicationId = user.ApplicationId;
-                newUser.aspnet_Applications = user.aspnet_Applications;
-                newUser.IsAnonymous = false;
-                newUser.LastActivityDate = DateTime.UtcNow;
-                if (string.IsNullOrEmpty(user.LoweredUserName))
-                {
-                    if (string.IsNullOrEmpty(user.UserName))
-                    {
-                        throw new ArgumentException("user.UserName 不能為空或Null.");
-                    }
-                    else
-                    {
-                        newUser.UserName = user.UserName;
-                        newUser.LoweredUserName = user.UserName.ToLowerInvariant();
-                    }
-                }
-                else
-                {
-                    newUser.LoweredUserName = user.LoweredUserName;
-                }
-                if (string.IsNullOrEmpty(user.UserName))
-                {
-                    throw new ArgumentException("user.UserName 不能為空或Null.");
-                }
-                else
-                {
-                    newUser.UserName = user.UserName;
-                }
-                if (!string.IsNullOrEmpty(user.MobileAlias))
-                {
-                    newUser.MobileAlias = user.MobileAlias;
-                }
+                newUser = aspnet_Users.Create(applicationInfo, Guid.Empty, user.UserName, user.aspnet_Membership.Password,
+                    isAnonymous: false, passwordSalt: user.aspnet_Membership.PasswordSalt, email: user.aspnet_Membership.Email,
+                     mobilePIN: user.aspnet_Membership.MobilePIN, mobileAlias: user.MobileAlias);
 
                 newUser = userRepo.CopyTo<aspnet_Users>(user);
             }
@@ -162,64 +135,68 @@ namespace EdiuxTemplateWebApp.Models
                 return Task.CompletedTask;
             }
 
+            if (user.aspnet_Membership != null)
+            {
+                newUser.aspnet_Membership.UserId = newUser.Id;
+            }
+            else
+            {
+                newUser.aspnet_Membership = new aspnet_Membership()
+                {
+                    AccessFailedCount = 0,
+                    ApplicationId = applicationInfo.ApplicationId,
+                    aspnet_Applications = applicationInfo,
+                    Comment = "",
+                    CreateDate = DateTime.Now.Date,
+                    Email = newUser.LoweredUserName + "@localhost.local",
+                    EmailConfirmed = true,
+                    FailedPasswordAnswerAttemptCount = 0,
+                    FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1),
+                    FailedPasswordAttemptCount = 0,
+                    FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1),
+                    IsApproved = true,
+                    IsLockedOut = false,
+                    LastLockoutDate = new DateTime(1754, 1, 1),
+                    LastLoginDate = new DateTime(1754, 1, 1),
+                    LastPasswordChangedDate = new DateTime(1754, 1, 1)
+                };
+                newUser.aspnet_Membership.LoweredEmail = newUser.aspnet_Membership.Email.ToLowerInvariant();
+                newUser.aspnet_Membership.MobilePIN = "123456";
+                newUser.aspnet_Membership.Password = Membership.GeneratePassword(Membership.MinRequiredPasswordLength, Membership.MinRequiredNonAlphanumericCharacters);
+                newUser.aspnet_Membership.PasswordAnswer = "(none)";
+                newUser.aspnet_Membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
+                newUser.aspnet_Membership.PasswordQuestion = "(none)";
+                newUser.aspnet_Membership.PasswordSalt = Path.GetRandomFileName();
+                newUser.aspnet_Membership.PhoneConfirmed = true;
+                newUser.aspnet_Membership.PhoneNumber = "0901123456";
+                newUser.aspnet_Membership.ResetPasswordToken = "";
+                newUser.aspnet_Membership.UserId = newUser.Id;
+
+                PasswordHasher pwdHasher = new PasswordHasher();
+
+                newUser.aspnet_Membership.Password =
+                    pwdHasher.HashPassword(newUser.aspnet_Membership.Password +
+                    newUser.aspnet_Membership.PasswordSalt);
+            }
+
             if (newUser.aspnet_Membership == null)
             {
-                if (user.aspnet_Membership != null)
-                {
-                    newUser.aspnet_Membership.UserId = newUser.Id;
-                }
-                else
-                {
-                    newUser.aspnet_Membership = new aspnet_Membership();
 
-                    newUser.aspnet_Membership.AccessFailedCount = 0;
-                    newUser.aspnet_Membership.ApplicationId = applicationInfo.ApplicationId;
-                    newUser.aspnet_Membership.aspnet_Applications = applicationInfo;
-                    newUser.aspnet_Membership.Comment = "";
-                    newUser.aspnet_Membership.CreateDate = DateTime.Now.Date;
-                    newUser.aspnet_Membership.Email = newUser.LoweredUserName + "@localhost.local";
-                    newUser.aspnet_Membership.EmailConfirmed = true;
-                    newUser.aspnet_Membership.FailedPasswordAnswerAttemptCount = 0;
-                    newUser.aspnet_Membership.FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1);
-                    newUser.aspnet_Membership.FailedPasswordAttemptCount = 0;
-                    newUser.aspnet_Membership.FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1);
-                    newUser.aspnet_Membership.IsApproved = true;
-                    newUser.aspnet_Membership.IsLockedOut = false;
-                    newUser.aspnet_Membership.LastLockoutDate = new DateTime(1754, 1, 1);
-                    newUser.aspnet_Membership.LastLoginDate = new DateTime(1754, 1, 1);
-                    newUser.aspnet_Membership.LastPasswordChangedDate = new DateTime(1754, 1, 1);
-                    newUser.aspnet_Membership.LoweredEmail = newUser.aspnet_Membership.Email.ToLowerInvariant();
-                    newUser.aspnet_Membership.MobilePIN = "123456";
-                    newUser.aspnet_Membership.Password = Membership.GeneratePassword(Membership.MinRequiredPasswordLength, Membership.MinRequiredNonAlphanumericCharacters);
-                    newUser.aspnet_Membership.PasswordAnswer = "(none)";
-                    newUser.aspnet_Membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
-                    newUser.aspnet_Membership.PasswordQuestion = "(none)";
-                    newUser.aspnet_Membership.PasswordSalt = Path.GetRandomFileName();
-                    newUser.aspnet_Membership.PhoneConfirmed = true;
-                    newUser.aspnet_Membership.PhoneNumber = "0901123456";
-                    newUser.aspnet_Membership.ResetPasswordToken = "";
-                    newUser.aspnet_Membership.UserId = newUser.Id;
-
-                    PasswordHasher pwdHasher = new PasswordHasher();
-
-                    newUser.aspnet_Membership.Password =
-                        pwdHasher.HashPassword(newUser.aspnet_Membership.Password +
-                        newUser.aspnet_Membership.PasswordSalt);
-                }
             }
 
             if (user.aspnet_Profile == null)
             {
-                newUser.aspnet_Profile = new aspnet_Profile();
-                newUser.aspnet_Profile.LastUpdatedDate = DateTime.UtcNow;
-
-                UserProfileViewModel newProfile = new UserProfileViewModel();
-
-                newProfile.AvatarFilePath = "/Content/images/user.jpg";
-                newProfile.CompanyName = "Ediux Workshop";
-                newProfile.PositionTitle = "PG";
-                newProfile.CompanyWebSiteURL = "http://www.riaxe.com/";
-
+                newUser.aspnet_Profile = new aspnet_Profile()
+                {
+                    LastUpdatedDate = DateTime.UtcNow
+                };
+                UserProfileViewModel newProfile = new UserProfileViewModel()
+                {
+                    AvatarFilePath = "/Content/images/user.jpg",
+                    CompanyName = "Ediux Workshop",
+                    PositionTitle = "PG",
+                    CompanyWebSiteURL = "http://www.riaxe.com/"
+                };
                 newUser.aspnet_Profile.PropertyValuesBinary = newProfile.Serialize();
                 newUser.aspnet_Profile.PropertyValuesString = "{}";
                 newUser.aspnet_Profile.PropertyNames = string.Join(",", newProfile.GetProperties().Keys.ToArray());
@@ -235,35 +212,37 @@ namespace EdiuxTemplateWebApp.Models
 
             if (!user.aspnet_UserClaims.Any())
             {
-                List<aspnet_UserClaims> claims = new List<aspnet_UserClaims>();
-                claims.Add(new aspnet_UserClaims()
+                List<aspnet_UserClaims> claims = new List<aspnet_UserClaims>
                 {
-                    UserId = newUser.Id,
-                    ClaimType = ClaimTypes.Email,
-                    ClaimValue = newUser.aspnet_Membership.LoweredEmail,
-                    Id = 0
-                });
-                claims.Add(new aspnet_UserClaims()
-                {
-                    UserId = newUser.Id,
-                    ClaimType = ClaimTypes.Name,
-                    ClaimValue = newUser.UserName,
-                    Id = 1
-                });
-                claims.Add(new aspnet_UserClaims()
-                {
-                    UserId = newUser.Id,
-                    ClaimType = ClaimTypes.NameIdentifier,
-                    ClaimValue = user.Id.ToString(),
-                    Id = 2
-                });
-                claims.Add(new aspnet_UserClaims()
-                {
-                    UserId = newUser.Id,
-                    ClaimType = ClaimTypes.Email,
-                    ClaimValue = "http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider",
-                    Id = 3
-                });
+                    new aspnet_UserClaims()
+                    {
+                        UserId = newUser.Id,
+                        ClaimType = ClaimTypes.Email,
+                        ClaimValue = newUser.aspnet_Membership.LoweredEmail,
+                        Id = 0
+                    },
+                    new aspnet_UserClaims()
+                    {
+                        UserId = newUser.Id,
+                        ClaimType = ClaimTypes.Name,
+                        ClaimValue = newUser.UserName,
+                        Id = 1
+                    },
+                    new aspnet_UserClaims()
+                    {
+                        UserId = newUser.Id,
+                        ClaimType = ClaimTypes.NameIdentifier,
+                        ClaimValue = user.Id.ToString(),
+                        Id = 2
+                    },
+                    new aspnet_UserClaims()
+                    {
+                        UserId = newUser.Id,
+                        ClaimType = ClaimTypes.Email,
+                        ClaimValue = "http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider",
+                        Id = 3
+                    }
+                };
             }
             else
             {
@@ -674,8 +653,7 @@ namespace EdiuxTemplateWebApp.Models
                 var founduser = membershipRepo.Get(user.aspnet_Membership.UserId);
                 return Task.FromResult(
                     new DateTimeOffset(
-                        founduser.LockoutEndDate.HasValue ?
-                        founduser.LockoutEndDate.Value : new DateTime(1754, 1, 1)));
+                        founduser.LockoutEndDate ?? new DateTime(1754, 1, 1)));
             }
             catch (Exception ex)
             {
@@ -760,7 +738,7 @@ namespace EdiuxTemplateWebApp.Models
                     userRepo.Update(founduser);
                     user = userRepo.Reload(founduser);
                 }
-                
+
 
                 return Task.CompletedTask;
             }
@@ -1237,43 +1215,44 @@ namespace EdiuxTemplateWebApp.Models
                 return Task.FromException(ex);
             }
         }
-        #endregion
 
-        #region Helper Functions
 
-        private bool checkCurrentAppIsRegistered()
+        private bool CheckCurrentAppIsRegistered
         {
-            try
+            get
             {
-                var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
-
-                string appName = getAppNameTask.Result;
-
-                Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-
-                if (!appRepo.FindByName(appName).Any())
+                try
                 {
-                    return false;
+                    var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
+
+                    string appName = getAppNameTask.Result;
+
+                    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
+                    if (!appRepo.FindByName(appName).Any())
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    WriteErrorLog(ex);
+                    throw;
                 }
 
-                return true;
             }
-            catch (Exception ex)
-            {
-                WriteErrorLog(ex);
-                throw;
-            }
-
         }
 
-        private void setToMemoryCache()
+        private void SetToMemoryCache()
         {
             this.setApplicationGlobalVariable(ApplicationInfoKey, applicationInfo);
         }
 
         protected virtual void WriteErrorLog(Exception ex)
         {
-            if (System.Web.HttpContext.Current == null)
+            if (HttpContext.Current == null)
             {
                 Elmah.ErrorLog.GetDefault(null).Log(new Elmah.Error(ex));
             }
@@ -1283,7 +1262,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        private bool checkRootUserHasAdminsRole()
+        private bool GetCheckRootUserHasAdminsRole()
         {
             Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
 
@@ -1303,7 +1282,7 @@ namespace EdiuxTemplateWebApp.Models
             throw new NullReferenceException(string.Format("The object of '{0}' is not found.", nameof(rootUser)));
         }
 
-        private void addRootUserToAdminsRole()
+        private void AddRootUserToAdminsRole()
         {
             if (applicationInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
                 throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
@@ -1336,80 +1315,107 @@ namespace EdiuxTemplateWebApp.Models
 
         private void CreateRootUser()
         {
-            aspnet_Users rootUser = new aspnet_Users();
-            rootUser.Id = Guid.NewGuid();
-            rootUser.ApplicationId = applicationInfo.ApplicationId;
-            rootUser.UserName = "root";
-            rootUser.LoweredUserName = "root";
-            rootUser.IsAnonymous = false;
-            rootUser.LastActivityDate = DateTime.Now;
-            rootUser.MobileAlias = "";
+            UserProfileViewModel defaultProfile = new UserProfileViewModel();
+            Guid userId = Guid.NewGuid();
 
-            rootUser.aspnet_Membership = new aspnet_Membership();
-            rootUser.aspnet_Membership.AccessFailedCount = 0;
-            rootUser.aspnet_Membership.ApplicationId = applicationInfo.ApplicationId;
-            rootUser.aspnet_Membership.aspnet_Applications = applicationInfo;
-            rootUser.aspnet_Membership.Comment = "";
-            rootUser.aspnet_Membership.CreateDate = DateTime.Now.Date;
-            rootUser.aspnet_Membership.Email = "root@localhost.local";
-            rootUser.aspnet_Membership.EmailConfirmed = true;
-            rootUser.aspnet_Membership.FailedPasswordAnswerAttemptCount = 0;
-            rootUser.aspnet_Membership.FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1);
-            rootUser.aspnet_Membership.FailedPasswordAttemptCount = 0;
-            rootUser.aspnet_Membership.FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1);
-            rootUser.aspnet_Membership.IsApproved = true;
-            rootUser.aspnet_Membership.IsLockedOut = false;
-            rootUser.aspnet_Membership.LastLockoutDate = new DateTime(1754, 1, 1);
-            rootUser.aspnet_Membership.LastLoginDate = new DateTime(1754, 1, 1);
-            rootUser.aspnet_Membership.LastPasswordChangedDate = new DateTime(1754, 1, 1);
-            rootUser.aspnet_Membership.LoweredEmail = rootUser.aspnet_Membership.Email.ToLowerInvariant();
-            rootUser.aspnet_Membership.MobilePIN = "123456";
-            rootUser.aspnet_Membership.Password = "!QAZ2wsx";
-            rootUser.aspnet_Membership.PasswordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            rootUser.aspnet_Membership.PasswordAnswer = "";
-            rootUser.aspnet_Membership.PasswordFormat = (int)MembershipPasswordFormat.Hashed;
-            rootUser.aspnet_Membership.PasswordQuestion = "";
-            rootUser.aspnet_Membership.PhoneConfirmed = true;
-            rootUser.aspnet_Membership.PhoneNumber = "0901123456";
-            rootUser.aspnet_Membership.ResetPasswordToken = "";
+            aspnet_Users rootUser = new aspnet_Users()
+            {
+                Id = userId,
+                ApplicationId = applicationInfo.ApplicationId,
+                UserName = "root",
+                LoweredUserName = "root",
+                IsAnonymous = false,
+                LastActivityDate = DateTime.Now,
+                MobileAlias = string.Empty,
+                aspnet_Membership = new aspnet_Membership()
+                {
+                    AccessFailedCount = 0,
+                    ApplicationId = applicationInfo.ApplicationId,
+                    aspnet_Applications = applicationInfo,
+                    Comment = string.Empty,
+                    CreateDate = DateTime.UtcNow,
+                    Email = "root@localhost.local",
+                    EmailConfirmed = true,
+                    FailedPasswordAnswerAttemptCount = 0,
+                    FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1),
+                    FailedPasswordAttemptCount = 0,
+                    FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1),
+                    IsApproved = true,
+                    IsLockedOut = false,
+                    LastLockoutDate = new DateTime(1754, 1, 1),
+                    LastLoginDate = new DateTime(1754, 1, 1),
+                    LastPasswordChangedDate = new DateTime(1754, 1, 1),
+                    LoweredEmail = "root@localhost.local",
+                    MobilePIN = string.Empty,
+                    Password = "!QAZ2wsx",
+                    PasswordSalt = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                    PasswordAnswer = string.Empty,
+                    PasswordFormat = (int)MembershipPasswordFormat.Hashed,
+                    PasswordQuestion = string.Empty,
+                    PhoneConfirmed = true,
+                    PhoneNumber = "0901123456",
+                    ResetPasswordToken = string.Empty,
+                    UserId = userId
+                },
+                aspnet_Profile = new aspnet_Profile()
+                {
+                    LastUpdatedDate = DateTime.UtcNow,
+                    PropertyNames = string.Join(",", defaultProfile.GetProperties().Select(s => s.Key).ToArray()),
+                    PropertyValuesString = JsonConvert.SerializeObject(defaultProfile),
+                    PropertyValuesBinary = defaultProfile.Serialize(),
+                    UserId = userId
+                }
+            };
 
             var asynctask = CreateAsync(rootUser);
-            asynctask.ContinueWith((x) =>
+
+            if (!asynctask.IsCompleted)
             {
-                var asynctaskb = AddToRoleAsync(rootUser, "Admins");
-                asynctaskb.Start();
-            });
+                asynctask.Wait();
+            }
+
+            var asynctask_addtoroleuser = AddToRoleAsync(rootUser, "Admins");
+
+            if (!asynctask_addtoroleuser.IsCompleted)
+            {
+                asynctask_addtoroleuser.Wait();
+            }
+
         }
 
         private void CreateAnonymousUser()
         {
-            aspnet_Users guestUser = new aspnet_Users();
-            guestUser.Id = Guid.NewGuid();
-            guestUser.ApplicationId = applicationInfo.ApplicationId;
-            guestUser.UserName = "guest";
-            guestUser.LoweredUserName = "guest";
-            guestUser.IsAnonymous = true;
-            guestUser.LastActivityDate = DateTime.Now;
-            guestUser.MobileAlias = "";
+            aspnet_Users guestUser = new aspnet_Users()
+            {
+                Id = Guid.NewGuid(),
+                ApplicationId = applicationInfo.ApplicationId,
+                UserName = "guest",
+                LoweredUserName = "guest",
+                IsAnonymous = true,
+                LastActivityDate = DateTime.Now,
+                MobileAlias = "",
 
 
-            guestUser.aspnet_Membership = new aspnet_Membership();
-            guestUser.aspnet_Membership.AccessFailedCount = 0;
-            guestUser.aspnet_Membership.ApplicationId = applicationInfo.ApplicationId;
-            guestUser.aspnet_Membership.aspnet_Applications = applicationInfo;
-            guestUser.aspnet_Membership.Comment = "";
-            guestUser.aspnet_Membership.CreateDate = DateTime.Now.Date;
-            guestUser.aspnet_Membership.Email = "anonymous@localhost.local";
-            guestUser.aspnet_Membership.EmailConfirmed = true;
-            guestUser.aspnet_Membership.FailedPasswordAnswerAttemptCount = 0;
-            guestUser.aspnet_Membership.FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1);
-            guestUser.aspnet_Membership.FailedPasswordAttemptCount = 0;
-            guestUser.aspnet_Membership.FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1);
-            guestUser.aspnet_Membership.IsApproved = true;
-            guestUser.aspnet_Membership.IsLockedOut = false;
-            guestUser.aspnet_Membership.LastLockoutDate = new DateTime(1754, 1, 1);
-            guestUser.aspnet_Membership.LastLoginDate = new DateTime(1754, 1, 1);
-            guestUser.aspnet_Membership.LastPasswordChangedDate = new DateTime(1754, 1, 1);
+                aspnet_Membership = new aspnet_Membership()
+                {
+                    AccessFailedCount = 0,
+                    ApplicationId = applicationInfo.ApplicationId,
+                    aspnet_Applications = applicationInfo,
+                    Comment = "",
+                    CreateDate = DateTime.Now.Date,
+                    Email = "anonymous@localhost.local",
+                    EmailConfirmed = true,
+                    FailedPasswordAnswerAttemptCount = 0,
+                    FailedPasswordAnswerAttemptWindowStart = new DateTime(1754, 1, 1),
+                    FailedPasswordAttemptCount = 0,
+                    FailedPasswordAttemptWindowStart = new DateTime(1754, 1, 1),
+                    IsApproved = true,
+                    IsLockedOut = false,
+                    LastLockoutDate = new DateTime(1754, 1, 1),
+                    LastLoginDate = new DateTime(1754, 1, 1),
+                    LastPasswordChangedDate = new DateTime(1754, 1, 1)
+                }
+            };
             guestUser.aspnet_Membership.LoweredEmail = guestUser.aspnet_Membership.Email.ToLowerInvariant();
             guestUser.aspnet_Membership.MobilePIN = "123456";
             guestUser.aspnet_Membership.Password =
@@ -1504,7 +1510,7 @@ namespace EdiuxTemplateWebApp.Models
             return false;
         }
 
-        private void createDefaultRoles()
+        private void CreateDefaultRoles()
         {
             aspnet_Applications appInfo = GetCurrentApplicationInfoAsync().Result;
 
@@ -1593,11 +1599,12 @@ namespace EdiuxTemplateWebApp.Models
         }
         #endregion
 
+        #region Application Store
         public Task createApplicationIfNotExisted()
         {
             //檢查Application是否已經註冊?
 
-            if (checkCurrentAppIsRegistered() == false)
+            if (CheckCurrentAppIsRegistered == false)
             {
                 aspnet_Applications newApplication = new aspnet_Applications();
 
@@ -1616,7 +1623,7 @@ namespace EdiuxTemplateWebApp.Models
                 applicationInfo =
                     appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
 
-                setToMemoryCache();
+                SetToMemoryCache();
 
             }
             else
@@ -1628,10 +1635,10 @@ namespace EdiuxTemplateWebApp.Models
 
             if (CheckCurrentAppHasRoles() == false)
             {
-                createDefaultRoles();
+                CreateDefaultRoles();
             }
 
-            if (IsHasRootUser== false)
+            if (IsHasRootUser == false)
             {
                 CreateRootUser();
             }
@@ -1641,9 +1648,9 @@ namespace EdiuxTemplateWebApp.Models
                 CreateAnonymousUser();
             }
 
-            if (checkRootUserHasAdminsRole() == false)
+            if (GetCheckRootUserHasAdminsRole() == false)
             {
-                addRootUserToAdminsRole();
+                AddRootUserToAdminsRole();
             }
 
             return Task.CompletedTask;
@@ -1651,12 +1658,13 @@ namespace EdiuxTemplateWebApp.Models
 
         public Task CreateAsync(aspnet_Applications app)
         {
-            aspnet_Applications newApplication = new aspnet_Applications();
-
-            newApplication.ApplicationId = app.ApplicationId;
-            newApplication.ApplicationName = app.ApplicationName;
-            newApplication.Description = app.Description;
-            newApplication.LoweredApplicationName = app.LoweredApplicationName;
+            aspnet_Applications newApplication = new aspnet_Applications()
+            {
+                ApplicationId = app.ApplicationId,
+                ApplicationName = app.ApplicationName,
+                Description = app.Description,
+                LoweredApplicationName = app.LoweredApplicationName
+            };
 
             Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
             appRepo.Add(newApplication);
@@ -1720,6 +1728,305 @@ namespace EdiuxTemplateWebApp.Models
             string appName = await GetApplicationNameFromConfiguratinFileAsync();
             return await GetByNameAsync(appName);
         }
+        #endregion
+
+        #region Store Shared Functions
+        public Task<aspnet_Users> GetUserByIdAsync(Guid userId)
+        {
+            return Task.FromResult((from app in Applications
+                                    from user in app.aspnet_Users
+                                    where user.Id == userId
+                                    select user).ToList().SingleOrDefault());
+        }
+        #endregion
+
+        #region Page Setting
+        public Task<PageSettingByUserViewModel> GetAsync(IController controller)
+        {
+            Task<aspnet_Paths> getPathTask = ((IPageStore<aspnet_Paths, Guid>)this).GetAsync(controller);
+
+            if (!getPathTask.IsCompleted)
+            {
+                getPathTask.Wait();
+            }
+
+            aspnet_Paths PathData = getPathTask.Result;
+
+            if (PathData != null)
+            {
+                var userId = (controller as Controller).User.Identity.GetUserId();
+
+                var PageSettingDatas = (from d in PathData.aspnet_PersonalizationPerUser
+                                        where d.UserId == userId
+                                        select d).ToList();
+
+                if (PageSettingDatas.Any())
+                {
+                    return Task.FromResult(PageSettingDatas.Single().PageSettings.Deserialize<PageSettingByUserViewModel>());
+                }
+
+            }
+
+            return Task.FromResult(default(PageSettingByUserViewModel));
+        }
+
+        public Task<bool> IsHasProfileAsync(IController controller)
+        {
+            IProfileStore<Page,Guid>
+            var GetProfileTask = ()
+            var GetPathTask = ((IPageStore<aspnet_Paths, Guid>)this).GetAsync(controller);
+
+            if (!GetPathTask.IsCompleted)
+            {
+                GetPathTask.Wait();
+            }
+
+            var pathInfo = GetPathTask.Result;
+
+            if (pathInfo != null)
+            {
+                if()
+            }
+        }
+
+        public Task<bool> IsHasBasePageSetting(IController controller)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> IsHasUserPageSetting(IController controller)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task InitializationProfileAsync(IController controller)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PageSettingByUserViewModel> UpdateAsync(PageSettingByUserViewModel model)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveAsync(IController controller, PageSettingByUserViewModel model)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<aspnet_Paths> IPageStore<aspnet_Paths, Guid>.GetAsync(IController controller)
+        {
+            Controller ctr = controller as Controller;
+            string cPath = ctr.Request.Path.ToLowerInvariant();
+
+            var pathDataTask = (from app in Applications
+                                from paths in app.aspnet_Paths
+                                where paths.LoweredPath == cPath
+                                select paths).ToListAsync();
+
+            if (!pathDataTask.IsCompleted)
+            {
+                pathDataTask.Wait();
+            }
+
+            var pathDatas = pathDataTask.Result;
+
+            if (pathDatas.Any())
+            {
+                return Task.FromResult(pathDatas.Single());
+            }
+
+            return Task.FromResult(default(aspnet_Paths));
+        }
+
+        public Task<bool> CheckPathHasRegisteredAsync(IController controller, ActionDescriptor ActionDescriptor)
+        {
+            Controller ctr = controller as Controller;
+            
+            aspnet_Paths pathInfo;
+            string url = ctr.Request.Path;
+            string loweredUrl = url.ToLowerInvariant();
+            var pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+
+            pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
+             && w.ApplicationId == applicationInfo.ApplicationId).SingleOrDefault();
+
+            if (pathInfo != null)
+            {
+                if (pathInfo.aspnet_PersonalizationAllUsers == null)
+                {
+                    pathInfo.aspnet_PersonalizationAllUsers = aspnet_PersonalizationAllUsers.Create(pathInfo);
+                    //    new aspnet_PersonalizationAllUsers()
+                    //{
+                    //    PathId = pathInfo.PathId,
+                    //    LastUpdatedDate = DateTime.UtcNow,
+                    //};
+
+                    PageSettingsBaseModel BaseSetting = PageSettingsBaseModel.Create(
+                        ctr.RouteData.DataTokens.ContainsKey("area") ? ctr.RouteData.DataTokens["area"].ToString() : string.Empty,
+                        ActionDescriptor.ActionName,
+                        ActionDescriptor.ControllerDescriptor.ControllerName,
+                        ActionDescriptor.GetParameters().ToDictionary(s=>s.ParameterName,v=>v.DefaultValue));
+                    
+                    #region 尋找原始的授權屬性
+                    var auth = ActionDescriptor.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+                        .Select(s => (AuthorizeAttribute)s).ToList().SingleOrDefault();
+
+                    if (auth != null)
+                    {
+                        var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
+
+                        foreach (var r in allowRoles)
+                        {
+                            BaseSetting.AllowExcpetionRoles.Add(r, true);
+                        }
+
+                        var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+                        foreach (var u in allowUsers)
+                        {
+                            BaseSetting.AllowExcpetionUsers.Add(u, true);
+                        }
+                    }
+
+                    #endregion
+
+                    #region 尋找自訂的授權屬性
+                    var adbuth = ActionDescriptor.GetCustomAttributes(typeof(DbAuthorizeAttribute), true)
+                        .Select(s => (DbAuthorizeAttribute)s).ToList().SingleOrDefault();
+
+                    if (auth != null)
+                    {
+                        var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
+
+                        foreach (var r in allowRoles)
+                        {
+                            BaseSetting.AllowExcpetionRoles.Add(r, true);
+                        }
+
+                        var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+                        foreach (var u in allowUsers)
+                        {
+                            BaseSetting.AllowExcpetionUsers.Add(u, true);
+                        }
+                    }
+                    #endregion
+
+                    if (ctr.ViewBag.Title != null)
+                    {
+                        BaseSetting.Title = ctr.ViewBag.Title as string;
+                    }
+
+                    pathInfo.aspnet_PersonalizationAllUsers.PageSettings = BaseSetting.Serialize();
+
+
+                    pathRepo.Update(pathInfo);
+                    pathInfo = pathRepo.Reload(pathInfo);
+                }
+
+                Guid userId =
+                    ctr.HttpContext.User.Identity.GetUserId();
+
+                if (!pathInfo.aspnet_PersonalizationPerUser.Any(w => w.UserId == userId))
+                {
+                    if (pathInfo.aspnet_PersonalizationAllUsers.PageSettings != null)
+                    {
+                        PageSettingsBaseModel BaseSetting = pathInfo.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
+
+                        if (BaseSetting != null)
+                        {
+                            aspnet_PersonalizationPerUser perUserSetting = new aspnet_PersonalizationPerUser()
+                            {
+                                Id = Guid.NewGuid(),
+                                LastUpdatedDate = DateTime.UtcNow,
+                                PathId = pathInfo.PathId,
+                                UserId = userId
+                            };
+
+                            PageSettingByUserViewModel perUserModel = new PageSettingByUserViewModel(pathInfo.aspnet_PersonalizationAllUsers, userId);
+
+                            perUserSetting.PageSettings = perUserModel.Serialize();
+
+                            pathInfo.aspnet_PersonalizationPerUser.Add(perUserSetting);
+
+                            pathRepo.Update(pathInfo);
+                            pathInfo = pathRepo.Reload(pathInfo);
+                        }
+                    }
+
+
+                }
+            }
+            return pathInfo;
+
+            Controller ctr = controller as Controller;
+            string cPath = ctr.Request.Path.ToLowerInvariant();
+
+            var pathDataTask = (from app in Applications
+                                from paths in app.aspnet_Paths
+                                where paths.LoweredPath == cPath
+                                select paths).ToListAsync();
+
+            if (!pathDataTask.IsCompleted)
+            {
+                pathDataTask.Wait();
+            }
+
+            var pathDatas = pathDataTask.Result;
+
+            return Task.FromResult(pathDatas.Any());
+        }
+
+        public Task RegisterControllerAsync(IController controller)
+        {
+            Controller ctr = controller as Controller;
+
+            if (ctr == null)
+            {
+                throw new ArgumentException("{0} casted failed.", nameof(controller));
+            }
+            aspnet_Applications appInfo = ctr.ViewBag.ApplicationInfo;
+
+            if (appInfo == null)
+            {
+                throw new Exception("System not found.");
+            }
+
+            aspnet_Users loginedUser = ctr.ViewBag.LoginedUser as aspnet_Users;
+            aspnet_Paths newPath = aspnet_Paths.Create(ctr, appInfo);
+            newPath.aspnet_PersonalizationAllUsers = aspnet_PersonalizationAllUsers.Create(newPath);
+            newPath.aspnet_PersonalizationPerUser = aspnet_PersonalizationPerUser.CreateCollection(loginedUser,
+                newPath.aspnet_PersonalizationAllUsers);
+            Iaspnet_PathsRepository PathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            PathRepo.Add(newPath);
+
+            return PathRepo.UnitOfWork.CommitAsync();
+        }
+
+        public Task UnRegisterControllerAsync(IController controller)
+        {
+            Iaspnet_PathsRepository PathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            var TaskGetPath = ((IPageStore<aspnet_Paths, Guid>)this).GetAsync(controller);
+
+            if (!TaskGetPath.IsCompleted)
+            {
+                TaskGetPath.Wait();
+            }
+
+            PathRepo.Delete(TaskGetPath.Result);
+
+            return PathRepo.UnitOfWork.CommitAsync();
+        }
+
+        public Task ReRegisterControllerAsync(IController controller, aspnet_Paths entity)
+        {
+            UnRegisterControllerAsync(controller);
+            RegisterControllerAsync(controller);
+            return Task.CompletedTask;
+        }
+        #endregion
+
 
         public const string ApplicationInfoKey = "ApplicationInfo";
         internal const string ApplicationName = "ApplicationName";

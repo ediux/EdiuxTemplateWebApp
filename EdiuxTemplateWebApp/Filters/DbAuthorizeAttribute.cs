@@ -1,9 +1,11 @@
 ﻿using EdiuxTemplateWebApp.Models.AspNetModels;
 using EdiuxTemplateWebApp.Models.Identity;
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
 using System;
 using System.Data.Entity.Validation;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
@@ -16,18 +18,16 @@ namespace EdiuxTemplateWebApp.Filters
 
         private Iaspnet_ApplicationsRepository appRepo;
 
-        public DbAuthorizeAttribute()
-        {
-            appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
-            roleRepo = RepositoryHelper.Getaspnet_RolesRepository(appRepo.UnitOfWork);
-            userRepo = RepositoryHelper.Getaspnet_UsersRepository(roleRepo.UnitOfWork);
-
-        }
-
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             try
             {
+                appRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_ApplicationsRepository>();
+                roleRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_RolesRepository>();
+                userRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_UsersRepository>();
+
+                roleRepo.UnitOfWork = userRepo.UnitOfWork = appRepo.UnitOfWork;
+
                 #region 檢核
                 if (filterContext.ActionDescriptor.ControllerDescriptor.ControllerName.ToLowerInvariant() == "error")
                 {
@@ -72,6 +72,8 @@ namespace EdiuxTemplateWebApp.Filters
 
                     var loginUserId = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
 
+                    filterContext.Controller.ViewBag.LoginedUser = appInfo.aspnet_Users.Where(w => w.Id == loginUserId).ToList().Single();
+                    
                     #region 檢查是否有目前使用者對應的設定紀錄
                     if (pathInfo.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUserId))
                     {

@@ -18,6 +18,7 @@ namespace EdiuxTemplateWebApp.Controllers
         private Iaspnet_PathsRepository pathRepo;
 
         private aspnet_Applications appInfo;
+
         public MenusController()
         {
             appInfo = this.getApplicationInfo();

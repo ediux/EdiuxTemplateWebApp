@@ -402,6 +402,7 @@
     <Compile Include="Models\Shared\IEdiuxAspNetSqlUserStore.cs" />
     <Compile Include="Models\Shared\IPageStore.cs" />
     <Compile Include="Models\Shared\IProfileStore.cs" />
+    <Compile Include="Models\Shared\IStoreBase.cs" />
     <Compile Include="Models\Shared\MyPagedList.cs" />
     <Compile Include="Models\Identity\RegisterForAdminsViewModel.cs" />
     <Compile Include="Models\Identity\UserProfileViewModel.cs" />

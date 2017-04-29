@@ -238,6 +238,22 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             // GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// 執行Join查詢
+        /// </summary>
+        /// <typeparam name="TOuterSet"></typeparam>
+        /// <typeparam name="TJoinResult"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="OuterSet"></param>
+        /// <param name="leftKeySelector"></param>
+        /// <param name="rightKeySelector"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public IQueryable<TJoinResult> Join<TOuterSet, TJoinResult, TKey>(IEnumerable<TOuterSet> OuterSet, Expression< Func<T, TKey>> leftKeySelector, Expression<Func<TOuterSet, TKey>> rightKeySelector, Expression<Func<T, TOuterSet, TJoinResult>> result)
+        {
+            return All().Join(OuterSet ,leftKeySelector, rightKeySelector, result);
+        }
+
 
         #endregion
     }

@@ -49,5 +49,9 @@ namespace EdiuxTemplateWebApp.Models
         /// <param name="entity"></param>
         /// <returns></returns>
         Task ReRegisterControllerAsync(IController controller, TEntity entity);
+
+        Task<bool> IsHasBasePageSetting(IController controller);
+
+        Task<bool> IsHasUserPageSetting(IController controller);
     }
 }

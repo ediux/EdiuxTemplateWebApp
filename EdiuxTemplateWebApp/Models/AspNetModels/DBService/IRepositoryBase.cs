@@ -116,5 +116,14 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 		/// <typeparam name="R">The 1st type parameter.</typeparam>
 		R CopyTo<R>(T entity);
 
+        /// <summary>
+        /// Join其他表格集合
+        /// </summary>
+        /// <typeparam name="TOuterSet"></typeparam>
+        /// <typeparam name="TJoinResult"></typeparam>
+        /// <param name="OuterSet"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        IQueryable<TJoinResult> Join<TOuterSet, TJoinResult,TKey>(IEnumerable<TOuterSet> OuterSet, Expression<Func<T, TKey>> leftKeySelector, Expression<Func<TOuterSet, TKey>> rightKeySelector, Expression<Func<T, TOuterSet, TJoinResult>> result);
 	}
 }

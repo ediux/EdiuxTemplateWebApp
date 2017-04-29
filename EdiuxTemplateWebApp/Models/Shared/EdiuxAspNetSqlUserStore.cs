@@ -1772,8 +1772,11 @@ namespace EdiuxTemplateWebApp.Models
 
         public Task<bool> IsHasProfileAsync(IController controller)
         {
-            IProfileStore<Page,Guid>
-            var GetProfileTask = ()
+            IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> profilestore = (IProfileStore<UserProfileViewModel, aspnet_Profile, Guid>)this;
+            IPageStore<aspnet_PersonalizationPerUser, Guid> PageSettingsViaUser = (IPageStore<aspnet_PersonalizationPerUser, Guid>)this;
+
+            var GetProfileTask = profilestore.GetAsync(controller);
+
             var GetPathTask = ((IPageStore<aspnet_Paths, Guid>)this).GetAsync(controller);
 
             if (!GetPathTask.IsCompleted)
@@ -1785,7 +1788,7 @@ namespace EdiuxTemplateWebApp.Models
 
             if (pathInfo != null)
             {
-                if()
+                
             }
         }
 
@@ -1842,7 +1845,7 @@ namespace EdiuxTemplateWebApp.Models
         public Task<bool> CheckPathHasRegisteredAsync(IController controller, ActionDescriptor ActionDescriptor)
         {
             Controller ctr = controller as Controller;
-            
+
             aspnet_Paths pathInfo;
             string url = ctr.Request.Path;
             string loweredUrl = url.ToLowerInvariant();
@@ -1866,8 +1869,8 @@ namespace EdiuxTemplateWebApp.Models
                         ctr.RouteData.DataTokens.ContainsKey("area") ? ctr.RouteData.DataTokens["area"].ToString() : string.Empty,
                         ActionDescriptor.ActionName,
                         ActionDescriptor.ControllerDescriptor.ControllerName,
-                        ActionDescriptor.GetParameters().ToDictionary(s=>s.ParameterName,v=>v.DefaultValue));
-                    
+                        ActionDescriptor.GetParameters().ToDictionary(s => s.ParameterName, v => v.DefaultValue));
+
                     #region 尋找原始的授權屬性
                     var auth = ActionDescriptor.GetCustomAttributes(typeof(AuthorizeAttribute), true)
                         .Select(s => (AuthorizeAttribute)s).ToList().SingleOrDefault();
@@ -2025,9 +2028,16 @@ namespace EdiuxTemplateWebApp.Models
             RegisterControllerAsync(controller);
             return Task.CompletedTask;
         }
+
+        public Task<bool> CheckPathHasRegisteredAsync(IController controller)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
+        #region Profile Store
 
+        #endregion
         public const string ApplicationInfoKey = "ApplicationInfo";
         internal const string ApplicationName = "ApplicationName";
     }

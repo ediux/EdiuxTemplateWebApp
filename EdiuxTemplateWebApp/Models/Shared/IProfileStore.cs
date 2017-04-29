@@ -17,10 +17,6 @@ namespace EdiuxTemplateWebApp.Models
 
         Task<bool> IsHasProfileAsync(IController controller);
 
-        Task<bool> IsHasBasePageSetting(IController controller);
-
-        Task<bool> IsHasUserPageSetting(IController controller);
-
         Task InitializationProfileAsync(IController controller, TEntity entity, TModel viewmodel);
 
         Task<TModel> UpdateAsync(TModel model);

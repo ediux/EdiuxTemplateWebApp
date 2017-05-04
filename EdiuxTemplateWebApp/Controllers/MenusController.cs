@@ -21,7 +21,7 @@ namespace EdiuxTemplateWebApp.Controllers
 
         public MenusController()
         {
-            appInfo = this.getApplicationInfo();
+            appInfo = this.GetApplicationInfo();
             appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
             menuRepo = RepositoryHelper.GetMenusRepository(appRepo.UnitOfWork);
             pathRepo = RepositoryHelper.Getaspnet_PathsRepository(appRepo.UnitOfWork);

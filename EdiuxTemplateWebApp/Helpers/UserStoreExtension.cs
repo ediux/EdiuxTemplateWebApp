@@ -1,5 +1,6 @@
 ﻿using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models.Identity;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Newtonsoft.Json;
@@ -56,7 +57,7 @@ namespace EdiuxTemplateWebApp
         {
             if (ctr.ViewBag.ApplicationInfo == null)
             {
-                aspnet_Applications appInfo = Helpers.WebHelper.getApplicationGlobalVariable<aspnet_Applications>(ctr, EdiuxAspNetSqlUserStore.ApplicationInfoKey);
+                aspnet_Applications appInfo = Helpers.WebHelper.GetApplicationGlobalVariable<aspnet_Applications>(ctr, EdiuxAspNetSqlUserStore.ApplicationInfoKey);
 
                 if (appInfo == null)
                 {
@@ -69,11 +70,11 @@ namespace EdiuxTemplateWebApp
             return ctr.ViewBag.ApplicationInfo as aspnet_Applications;
         }
 
-        public static aspnet_Applications getApplicationInfo<T>(this T obj) where T : class
+        public static aspnet_Applications GetApplicationInfo<T>(this T obj) where T : class
         {
             IEdiuxAspNetSqlUserStore store = HttpContext.Current.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
 
-            return store.GetByNameAsync(store.GetApplicationNameFromConfiguratinFileAsync().Result).Result;
+            return store.GetEntityByQuery( store.GetApplicationNameFromConfiguratinFile());
         }
 
         public static aspnet_Applications addApplicationInfotoServer(this object obj)

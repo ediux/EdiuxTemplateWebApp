@@ -1,0 +1,30 @@
+﻿[
+  {
+    "ApplicationId": "{00000000-0000-0000-0000-000000000000}",
+    "Description": "系統管理員",
+    "Id": "{00000000-0000-0000-0000-000000000000}",
+    "LoweredRoleName": "admins",
+    "Name": "Admins"
+  },
+  {
+    "ApplicationId": "{00000000-0000-0000-0000-000000000000}",
+    "Description": "次要管理員",
+    "Id": "{00000000-0000-0000-0000-000000000000}",
+    "LoweredRoleName": "coadmins",
+    "Name": "CoAdmins"
+  },
+  {
+    "ApplicationId": "{00000000-0000-0000-0000-000000000000}",
+    "Description": "使用者",
+    "Id": "{00000000-0000-0000-0000-000000000000}",
+    "LoweredRoleName": "users",
+    "Name": "Users"
+  },
+  {
+    "ApplicationId": "{00000000-0000-0000-0000-000000000000}",
+    "Description": "訪客",
+    "Id": "{00000000-0000-0000-0000-000000000000}",
+    "LoweredRoleName": "guests",
+    "Name": "Guests"
+  }
+]

@@ -5,28 +5,50 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EdiuxTemplateWebApp.Models.Shared
+namespace EdiuxTemplateWebApp.Models
 {
-    public interface IStoreBase
+    public interface IStoreBase<T,in TKey> where T : class
     {
-        bool IsExisted<T>(Expression<Func<T, bool>> filiter) where T : class;
+        bool IsExisted(Expression<Func<T, bool>> filiter);
 
-        Task<bool> IsExistedAsync<T>(Expression<Func<T, bool>> filiter) where T : class;
+        Task<bool> IsExistedAsync(Expression<Func<T, bool>> filiter);
 
-        T CreateDataEntityInstance<T>() where T : class;
+        T CreateDataEntityInstance();
 
-        Task<T> CreateDataEntityInstanceAsync<T>() where T : class;
+        Task<T> CreateDataEntityInstanceAsync();
 
-        T GetDataEntityInstanceByQuery<T, TKey>(TKey key) where T : class;
+        IEnumerable<T> FindDataEntitiesByQuery(TKey key);
 
-        Task<T> GetDataEntityInstanceByQueryAsync<T, TKey>(TKey key) where T : class;
+        void Add(T entity);
 
-        IEnumerable<T> FindDataEntitiesByQuery<T, TKey>(TKey key) where T : class;
+        Task AddAsync(T entity);
 
-        void AddToStore<T>(T entity) where T : class;
+        T GetEntityByQuery(TKey key);
 
-        Task AddToStoreAsync<T>(T entity) where T : class;
+        IEnumerable<TResult> FindEntitiesByQuery<TResult>(TKey key, Expression<Func<T, TResult>> selector = null);
 
+        bool Update(T entity);
 
+        bool Update(IEnumerable<T> entities);
+
+        bool Delete(T entity);
+
+        bool Delete(IEnumerable<T> entities);
+
+        void Initialization();
+
+        Task InitializationAsync();
+
+        Task<T> GetEntityByQueryAsync(TKey key);
+
+        Task<IEnumerable<TResult>> FindEntitiesByQueryAsync<TResult>(TKey key, Expression<Func<T, TResult>> selector = null);
+
+        Task<bool> UpdateAsync(T entity);
+
+        Task<bool> UpdateAsync(IEnumerable<T> entities);
+
+        Task<bool> DeleteAsync(T entity);
+
+        Task<bool> DeleteAsync(IEnumerable<T> entities);
     }
 }

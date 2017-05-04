@@ -47,7 +47,7 @@ namespace EdiuxTemplateWebApp.Filters
                     return;
                 }
 
-                aspnet_Applications appInfo = filterContext.Controller.getApplicationInfo();
+                aspnet_Applications appInfo = filterContext.Controller.GetApplicationInfo();
 
                 if (appInfo == null)
                 {

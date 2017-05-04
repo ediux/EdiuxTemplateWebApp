@@ -16,19 +16,29 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
+using System.Linq.Expressions;
 
 namespace EdiuxTemplateWebApp.Models
 {
     public class EdiuxAspNetSqlUserStore : IEdiuxAspNetSqlUserStore
     {
         #region 變數宣告區
-        //protected IUnitOfWork UnitOfWork;
-        //private Iaspnet_ApplicationsRepository appRepo;
-        //private Iaspnet_UsersRepository userRepo;
-        //private Iaspnet_RolesRepository roleRepo;
-        //private Iaspnet_UserLoginRepository userloginRepo;
-        //private Iaspnet_MembershipRepository membershipRepo;
-        private aspnet_Applications applicationInfo;
+        private static string AppName;
+
+        private aspnet_Applications ApplicationInfo
+        {
+            get
+            {
+                IApplicationStore<aspnet_Applications, Guid> store = this;
+
+                if (string.IsNullOrEmpty(AppName))
+                {
+                    AppName = store.GetApplicationNameFromConfiguratinFile();
+                }
+
+                return store.GetEntityByQuery(AppName);
+            }
+        }
 
         private IOwinContext pcontext;
 
@@ -41,21 +51,9 @@ namespace EdiuxTemplateWebApp.Models
         {
             pcontext = context;
 
-            //UnitOfWork = pcontext.Get<IUnitOfWork>();
+            IApplicationStore<aspnet_Applications, Guid> store = this;
 
-            //appRepo = context.Get<Iaspnet_ApplicationsRepository>();
-            //userRepo = context.Get<Iaspnet_UsersRepository>();
-            //membershipRepo = context.Get<Iaspnet_MembershipRepository>();
-            //roleRepo = context.Get<Iaspnet_RolesRepository>();
-            //userloginRepo = context.Get<Iaspnet_UserLoginRepository>();
-
-            //appRepo.UnitOfWork = UnitOfWork;
-            //userRepo.UnitOfWork = UnitOfWork;
-            //membershipRepo.UnitOfWork = UnitOfWork;
-            //roleRepo.UnitOfWork = UnitOfWork;
-            //userloginRepo.UnitOfWork = UnitOfWork;
-
-            var asynctask = createApplicationIfNotExisted();
+            var asynctask = store.InitializationAsync();
 
             if (asynctask.Status != TaskStatus.RanToCompletion)
             {
@@ -70,7 +68,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             get
             {
-                return applicationInfo.aspnet_Users.AsQueryable();
+                return ApplicationInfo.aspnet_Users.AsQueryable();
             }
         }
         #endregion
@@ -80,7 +78,7 @@ namespace EdiuxTemplateWebApp.Models
         {
             get
             {
-                return applicationInfo.aspnet_Roles.AsQueryable();
+                return ApplicationInfo.aspnet_Roles.AsQueryable();
             }
         }
 
@@ -106,13 +104,13 @@ namespace EdiuxTemplateWebApp.Models
 
             if (user.ApplicationId == null || user.ApplicationId == Guid.Empty)
             {
-                user.ApplicationId = applicationInfo.ApplicationId;
-                user.aspnet_Applications = applicationInfo;
+                user.ApplicationId = ApplicationInfo.ApplicationId;
+                user.aspnet_Applications = ApplicationInfo;
             }
 
             Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
 
-            var users = userRepo.GetUserByName(applicationInfo.ApplicationName,
+            var users = userRepo.GetUserByName(ApplicationInfo.ApplicationName,
                                                user.UserName,
                                                DateTime.UtcNow,
                                                true);
@@ -121,7 +119,7 @@ namespace EdiuxTemplateWebApp.Models
 
             if (users == null)
             {
-                newUser = aspnet_Users.Create(applicationInfo, Guid.Empty, user.UserName, user.aspnet_Membership.Password,
+                newUser = aspnet_Users.Create(ApplicationInfo, Guid.Empty, user.UserName, user.aspnet_Membership.Password,
                     isAnonymous: false, passwordSalt: user.aspnet_Membership.PasswordSalt, email: user.aspnet_Membership.Email,
                      mobilePIN: user.aspnet_Membership.MobilePIN, mobileAlias: user.MobileAlias);
 
@@ -144,8 +142,8 @@ namespace EdiuxTemplateWebApp.Models
                 newUser.aspnet_Membership = new aspnet_Membership()
                 {
                     AccessFailedCount = 0,
-                    ApplicationId = applicationInfo.ApplicationId,
-                    aspnet_Applications = applicationInfo,
+                    ApplicationId = ApplicationInfo.ApplicationId,
+                    aspnet_Applications = ApplicationInfo,
                     Comment = "",
                     CreateDate = DateTime.Now.Date,
                     Email = newUser.LoweredUserName + "@localhost.local",
@@ -282,7 +280,7 @@ namespace EdiuxTemplateWebApp.Models
             {
                 Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 var _user = userRepo.Where(w => w.Id == userId &&
-                                           w.ApplicationId == applicationInfo.ApplicationId)
+                                           w.ApplicationId == ApplicationInfo.ApplicationId)
                                     .SingleAsync();
 
                 return _user;
@@ -303,7 +301,7 @@ namespace EdiuxTemplateWebApp.Models
                 var _user =
                     userRepo.Where(w => (w.UserName == userName
                                          || w.LoweredUserName == userName)
-                                   && w.ApplicationId == applicationInfo
+                                   && w.ApplicationId == ApplicationInfo
                                    .ApplicationId)
                             .SingleOrDefaultAsync();
                 return _user;
@@ -325,7 +323,7 @@ namespace EdiuxTemplateWebApp.Models
                 membershipRepo.UnitOfWork = userRepo.UnitOfWork;
 
                 aspnet_Users _existedUser = userRepo
-                    .Where(x => x.ApplicationId == applicationInfo.ApplicationId
+                    .Where(x => x.ApplicationId == ApplicationInfo.ApplicationId
                            && (x.UserName == user.UserName
                                || x.LoweredUserName == user.LoweredUserName))
                     .SingleOrDefault();
@@ -346,6 +344,14 @@ namespace EdiuxTemplateWebApp.Models
                 WriteErrorLog(ex);
                 throw;
             }
+        }
+
+        public Task<aspnet_Users> GetUserByIdAsync(Guid userId)
+        {
+            return Task.FromResult((from app in Applications
+                                    from user in app.aspnet_Users
+                                    where user.Id == userId
+                                    select user).ToList().SingleOrDefault());
         }
         #endregion
 
@@ -371,8 +377,8 @@ namespace EdiuxTemplateWebApp.Models
             {
                 if (user.ApplicationId == null || user.ApplicationId == Guid.Empty)
                 {
-                    user.ApplicationId = applicationInfo.ApplicationId;
-                    user.aspnet_Applications = applicationInfo;
+                    user.ApplicationId = ApplicationInfo.ApplicationId;
+                    user.aspnet_Applications = ApplicationInfo;
                 }
                 Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
 
@@ -403,8 +409,8 @@ namespace EdiuxTemplateWebApp.Models
         {
             try
             {
-                user.ApplicationId = applicationInfo.ApplicationId;
-                user.aspnet_Applications = applicationInfo;
+                user.ApplicationId = ApplicationInfo.ApplicationId;
+                user.aspnet_Applications = ApplicationInfo;
 
                 Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 var isinrole = userRepo.IsInRole(user, roleName);
@@ -502,7 +508,7 @@ namespace EdiuxTemplateWebApp.Models
             {
                 Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
                 return Task.FromResult(roleRepo.FindByName(
-                    applicationInfo.ApplicationId, roleName)
+                    ApplicationInfo.ApplicationId, roleName)
                                        .SingleOrDefault());
             }
             catch (Exception ex)
@@ -625,7 +631,7 @@ namespace EdiuxTemplateWebApp.Models
 
                 return Task.FromResult(
                     userRepo.GetUserByEmail(
-                        applicationInfo.ApplicationName,
+                        ApplicationInfo.ApplicationName,
                         email,
                         DateTime.UtcNow,
                     false));
@@ -1223,18 +1229,17 @@ namespace EdiuxTemplateWebApp.Models
             {
                 try
                 {
-                    var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
+                    IApplicationStore<aspnet_Applications, Guid> appStore = this;
+                    var getAppNameTask = appStore.GetApplicationNameFromConfiguratinFileAsync();
 
-                    string appName = getAppNameTask.Result;
-
-                    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-
-                    if (!appRepo.FindByName(appName).Any())
+                    if (getAppNameTask.Status != TaskStatus.RanToCompletion)
                     {
-                        return false;
+                        getAppNameTask.Wait();
                     }
 
-                    return true;
+                    string appName = getAppNameTask.Result.ToLowerInvariant();
+
+                    return appStore.IsExisted(w => w.LoweredApplicationName == appName);
                 }
                 catch (Exception ex)
                 {
@@ -1247,7 +1252,7 @@ namespace EdiuxTemplateWebApp.Models
 
         private void SetToMemoryCache()
         {
-            this.setApplicationGlobalVariable(ApplicationInfoKey, applicationInfo);
+            this.SetApplicationGlobalVariable(ApplicationInfoKey, ApplicationInfo);
         }
 
         protected virtual void WriteErrorLog(Exception ex)
@@ -1284,12 +1289,12 @@ namespace EdiuxTemplateWebApp.Models
 
         private void AddRootUserToAdminsRole()
         {
-            if (applicationInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
+            if (ApplicationInfo.aspnet_Roles.Any(s => s.Name.Equals("Admins", StringComparison.InvariantCultureIgnoreCase)) == false)
                 throw new NullReferenceException(string.Format("The role of name, '{0}', is not found.", "Admins"));
 
             Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
 
-            aspnet_Users rootUser = userRepo.GetUserByName(applicationInfo.ApplicationName, "root", DateTime.UtcNow, false);
+            aspnet_Users rootUser = userRepo.GetUserByName(ApplicationInfo.ApplicationName, "root", DateTime.UtcNow, false);
 
             if (rootUser != null)
             {
@@ -1304,9 +1309,9 @@ namespace EdiuxTemplateWebApp.Models
         {
             get
             {
-                if (applicationInfo != null)
+                if (ApplicationInfo != null)
                 {
-                    return applicationInfo.aspnet_Users.Any(s => s.UserName.Equals("root", StringComparison.InvariantCultureIgnoreCase));
+                    return ApplicationInfo.aspnet_Users.Any(s => s.UserName.Equals("root", StringComparison.InvariantCultureIgnoreCase));
                 }
 
                 return false;
@@ -1321,7 +1326,7 @@ namespace EdiuxTemplateWebApp.Models
             aspnet_Users rootUser = new aspnet_Users()
             {
                 Id = userId,
-                ApplicationId = applicationInfo.ApplicationId,
+                ApplicationId = ApplicationInfo.ApplicationId,
                 UserName = "root",
                 LoweredUserName = "root",
                 IsAnonymous = false,
@@ -1330,8 +1335,8 @@ namespace EdiuxTemplateWebApp.Models
                 aspnet_Membership = new aspnet_Membership()
                 {
                     AccessFailedCount = 0,
-                    ApplicationId = applicationInfo.ApplicationId,
-                    aspnet_Applications = applicationInfo,
+                    ApplicationId = ApplicationInfo.ApplicationId,
+                    aspnet_Applications = ApplicationInfo,
                     Comment = string.Empty,
                     CreateDate = DateTime.UtcNow,
                     Email = "root@localhost.local",
@@ -1388,7 +1393,7 @@ namespace EdiuxTemplateWebApp.Models
             aspnet_Users guestUser = new aspnet_Users()
             {
                 Id = Guid.NewGuid(),
-                ApplicationId = applicationInfo.ApplicationId,
+                ApplicationId = ApplicationInfo.ApplicationId,
                 UserName = "guest",
                 LoweredUserName = "guest",
                 IsAnonymous = true,
@@ -1399,8 +1404,8 @@ namespace EdiuxTemplateWebApp.Models
                 aspnet_Membership = new aspnet_Membership()
                 {
                     AccessFailedCount = 0,
-                    ApplicationId = applicationInfo.ApplicationId,
-                    aspnet_Applications = applicationInfo,
+                    ApplicationId = ApplicationInfo.ApplicationId,
+                    aspnet_Applications = ApplicationInfo,
                     Comment = "",
                     CreateDate = DateTime.Now.Date,
                     Email = "anonymous@localhost.local",
@@ -1445,60 +1450,26 @@ namespace EdiuxTemplateWebApp.Models
 
         private bool CheckCurrentAppHasRoles()
         {
-            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            IRoleStore<aspnet_Roles, Guid> roleStore = this;
 
-            if (appRepo == null)
-                appRepo = RepositoryHelper.Getaspnet_ApplicationsRepository();
-
-            if (applicationInfo != null)
+            if (ApplicationInfo != null)
             {
-                if (applicationInfo.aspnet_Roles.Count == 0)
+                if (ApplicationInfo.aspnet_Roles.Count == 0)
                 {
                     return false;
                 }
 
-                aspnet_Roles[] defaultRoles = new aspnet_Roles[] {
-                    new aspnet_Roles() {
-                        ApplicationId = applicationInfo.ApplicationId,
-                         aspnet_Applications = applicationInfo,
-                        Description = "系統管理員",
-                        LoweredRoleName = "admins",
-                        Name = "Admins",
-                        Id = Guid.NewGuid()
-                    },
-                    new aspnet_Roles() {
-                        ApplicationId = applicationInfo.ApplicationId,
-                        aspnet_Applications = applicationInfo,
-                        Description = "次要管理員",
-                        LoweredRoleName = "coadmins",
-                        Name = "CoAdmins",
-                        Id = Guid.NewGuid()
-                    },
-                    new aspnet_Roles() {
-                        ApplicationId = applicationInfo.ApplicationId,
-                        aspnet_Applications = applicationInfo,
-                        Description = "使用者",
-                        LoweredRoleName = "users",
-                        Name = "Users",
-                        Id = Guid.NewGuid()
-                    },
-                    new aspnet_Roles() {
-                        ApplicationId = applicationInfo.ApplicationId,
-                        aspnet_Applications = applicationInfo,
-                        Description = "訪客",
-                        LoweredRoleName = "guests",
-                        Name = "Guests",
-                        Id = Guid.NewGuid()
-                    }
-                };
-
-                Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
+                aspnet_Roles[] defaultRoles =
+                    JsonConvert.DeserializeObject<aspnet_Roles[]>(
+                        this.ReadTextFile(HttpContext.Current.Server.MapPath("~/Files/Sys_Init/DefaultRoles.json")));
 
                 bool roleexisted = true;
 
                 foreach (var checkRole in defaultRoles)
                 {
-                    if (!roleRepo.IsExists(checkRole))
+                    var checkTask = roleStore.FindByNameAsync(checkRole.Name);
+
+                    if (checkTask.Result == null)
                     {
                         roleexisted = false;
                         break;
@@ -1512,54 +1483,34 @@ namespace EdiuxTemplateWebApp.Models
 
         private void CreateDefaultRoles()
         {
-            aspnet_Applications appInfo = GetCurrentApplicationInfoAsync().Result;
+            aspnet_Applications appInfo = ApplicationInfo;
+            string jsonInitContext = this.ReadTextFile(HttpContext.Current.Server.MapPath("~/Files/Sys_Init/DefaultRoles.json"));
 
-            aspnet_Roles[] defaultRoles = new aspnet_Roles[] {
-                    new aspnet_Roles() {
-                        ApplicationId = appInfo.ApplicationId,
-                        Description = "系統管理員",
-                        LoweredRoleName = "admins",
-                        Name = "Admins",
-                        Id = Guid.NewGuid()
-                    },
-                    new aspnet_Roles() {
-                        ApplicationId = appInfo.ApplicationId,
-                        Description = "次要管理員",
-                        LoweredRoleName = "coadmins",
-                        Name = "CoAdmins",
-                        Id = Guid.NewGuid()
-                    },
-                    new aspnet_Roles() {
-                        ApplicationId = appInfo.ApplicationId,
-                        Description = "使用者",
-                        LoweredRoleName = "users",
-                        Name = "Users",
-                        Id = Guid.NewGuid()
-                    },
-                    new aspnet_Roles() {
-                        ApplicationId = applicationInfo.ApplicationId,
-                        aspnet_Applications = applicationInfo,
-                        Description = "訪客",
-                        LoweredRoleName = "guests",
-                        Name = "Guests",
-                        Id = Guid.NewGuid()
-                    }
-                };
+            aspnet_Roles[] defaultRoles = JsonConvert.DeserializeObject<aspnet_Roles[]>(jsonInitContext);
 
-            Iaspnet_RolesRepository roleRepo = pcontext.Get<Iaspnet_RolesRepository>();
-
-            roleRepo.UnitOfWork.TranscationMode = true;
-
-            foreach (var checkRole in defaultRoles)
+            if (defaultRoles.Any())
             {
-                if (!roleRepo.IsExists(checkRole))
+                foreach (var role in defaultRoles)
                 {
-                    roleRepo.Add(checkRole);
+                    role.ApplicationId = ApplicationInfo.ApplicationId;
+                    role.Id = Guid.NewGuid();
                 }
             }
 
-            roleRepo.UnitOfWork.TranscationMode = false;
-            roleRepo.UnitOfWork.Commit();
+            IRoleStore<aspnet_Roles, Guid> RoleStore = this;
+
+            foreach (var checkRole in defaultRoles)
+            {
+                if (!Roles.Where(w => w.LoweredRoleName == checkRole.LoweredRoleName).Any())
+                {
+                    var task = RoleStore.CreateAsync(checkRole);
+
+                    if (task.Status != TaskStatus.RanToCompletion)
+                    {
+                        task.Wait();
+                    }
+                }
+            }
 
         }
         #endregion
@@ -1600,38 +1551,85 @@ namespace EdiuxTemplateWebApp.Models
         #endregion
 
         #region Application Store
-        public Task createApplicationIfNotExisted()
+        public bool IsExisted(Expression<Func<aspnet_Applications, bool>> filiter)
         {
             //檢查Application是否已經註冊?
+            IApplicationStore<aspnet_Applications, Guid> appStore = this;
 
-            if (CheckCurrentAppIsRegistered == false)
+            var getAppNameTask = appStore.GetApplicationNameFromConfiguratinFileAsync();
+
+            if (getAppNameTask.Status != TaskStatus.RanToCompletion)
             {
-                aspnet_Applications newApplication = new aspnet_Applications();
-
-                var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
-
-                string applicationName = getAppNameTask.Result;
-
-                newApplication.ApplicationName = applicationName;
-                newApplication.Description = applicationName;
-                newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
-
-                CreateAsync(newApplication);
-
-                Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-
-                applicationInfo =
-                    appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
-
-                SetToMemoryCache();
-
+                getAppNameTask.Wait();
             }
-            else
+
+            string appName = getAppNameTask.Result.ToLowerInvariant();
+
+            return appStore.Applications.Where(filiter).Any();
+
+        }
+
+        public Task<bool> IsExistedAsync(Expression<Func<aspnet_Applications, bool>> filiter)
+        {
+            try
             {
-                Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-
-                applicationInfo = appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
+                return Task.FromResult(IsExisted(filiter));
             }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        public aspnet_Applications CreateDataEntityInstance()
+        {
+            return aspnet_Applications.Create(GetApplicationNameFromConfiguratinFile());
+        }
+
+        public Task<aspnet_Applications> CreateDataEntityInstanceAsync()
+        {
+            try
+            {
+                return Task.FromResult(CreateDataEntityInstance());
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<aspnet_Applications>(ex);
+            }
+        }
+
+        public aspnet_Applications GetDataEntityInstanceByQuery(Guid key)
+        {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            return appRepo.Get(key);
+        }
+
+        public Task<aspnet_Applications> GetDataEntityInstanceByQueryAsync(Guid key)
+        {
+            try
+            {
+                return Task.FromResult(GetDataEntityInstanceByQuery(key));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<aspnet_Applications>(ex);
+            }
+        }
+
+        public IEnumerable<aspnet_Applications> FindDataEntitiesByQuery(Guid key)
+        {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            return appRepo.Where(w => w.ApplicationId == key).ToList();
+        }
+
+        public void Add(aspnet_Applications entity)
+        {
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
+            appRepo.Add(entity);
+            appRepo.UnitOfWork.Commit();
+
+            entity = appRepo.Reload(entity);
 
             if (CheckCurrentAppHasRoles() == false)
             {
@@ -1643,7 +1641,7 @@ namespace EdiuxTemplateWebApp.Models
                 CreateRootUser();
             }
 
-            if (applicationInfo.aspnet_Users.Any(s => s.LoweredUserName == "guest") == false)
+            if (ApplicationInfo.aspnet_Users.Any(s => s.LoweredUserName == "guest") == false)
             {
                 CreateAnonymousUser();
             }
@@ -1652,393 +1650,602 @@ namespace EdiuxTemplateWebApp.Models
             {
                 AddRootUserToAdminsRole();
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task CreateAsync(aspnet_Applications app)
+        public Task AddAsync(aspnet_Applications entity)
         {
-            aspnet_Applications newApplication = new aspnet_Applications()
+            try
             {
-                ApplicationId = app.ApplicationId,
-                ApplicationName = app.ApplicationName,
-                Description = app.Description,
-                LoweredApplicationName = app.LoweredApplicationName
-            };
-
-            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-            appRepo.Add(newApplication);
-            appRepo.UnitOfWork.Commit();
-
-            newApplication = appRepo.Reload(newApplication);
-            app = appRepo.CopyTo<aspnet_Applications>(newApplication);
-
-            return Task.CompletedTask;
+                Add(entity);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
         }
 
-        public Task DeleteAsync(aspnet_Applications app)
+        public aspnet_Applications GetEntityByQuery(Guid key)
         {
             Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-            appRepo.Delete(app);
-            return appRepo.UnitOfWork.CommitAsync();
+            return appRepo.Get(key);
         }
 
-        public Task UpdateAsync(aspnet_Applications app)
+        public IEnumerable<TResult> FindEntitiesByQuery<TResult>(Guid key, Expression<Func<aspnet_Applications, TResult>> selector = null)
         {
             Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-            var existapp = appRepo.Get(app.ApplicationId);
-            existapp = appRepo.CopyTo<aspnet_Applications>(app);
-            return appRepo.UnitOfWork.CommitAsync();
+            if (selector != null)
+            {
+                List<TResult> result = appRepo.All().Where(w => w.ApplicationId == key).Select(selector).ToList();
+                return result;
+            }
+            else
+            {
+                List<aspnet_Applications> result = appRepo.All().Where(w => w.ApplicationId == key).ToList();
+                return result.Cast<TResult>();
+            }
+        }
+
+        public bool Update(aspnet_Applications entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Update(IEnumerable<aspnet_Applications> entities)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Delete(aspnet_Applications entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Delete(IEnumerable<aspnet_Applications> entities)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<aspnet_Applications> GetEntityByQueryAsync(Guid key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<TResult>> FindEntitiesByQueryAsync<TResult>(Guid key, Expression<Func<aspnet_Applications, TResult>> selector = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateAsync(aspnet_Applications entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateAsync(IEnumerable<aspnet_Applications> entities)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteAsync(aspnet_Applications entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteAsync(IEnumerable<aspnet_Applications> entities)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetApplicationNameFromConfiguratinFile()
+        {
+            string appName = ConfigHelper.GetConfig(ApplicationName);
+            return appName;
         }
 
         public Task<string> GetApplicationNameFromConfiguratinFileAsync()
         {
-            string appName = ConfigHelper.GetConfig(ApplicationName);
-            return Task.FromResult(appName);
-        }
-
-        Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByIdAsync(Guid appId)
-        {
-            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-            return Task.FromResult(appRepo.FindById(appId));
-        }
-
-        Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByNameAsync(string appName)
-        {
-            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-            return Task.FromResult(appRepo.FindByName(appName));
-        }
-
-        public Task<aspnet_Applications> GetByIdAsync(Guid appId)
-        {
-            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-            return appRepo.GetAsync(appId);
-        }
-
-        public Task<aspnet_Applications> GetByNameAsync(string appName)
-        {
-            return Task.FromResult((from app in Applications
-                                    where app.ApplicationName == appName ||
-                                    app.LoweredApplicationName == appName
-                                    select app).ToList().SingleOrDefault());
-        }
-
-        public async Task<aspnet_Applications> GetCurrentApplicationInfoAsync()
-        {
-            string appName = await GetApplicationNameFromConfiguratinFileAsync();
-            return await GetByNameAsync(appName);
-        }
-        #endregion
-
-        #region Store Shared Functions
-        public Task<aspnet_Users> GetUserByIdAsync(Guid userId)
-        {
-            return Task.FromResult((from app in Applications
-                                    from user in app.aspnet_Users
-                                    where user.Id == userId
-                                    select user).ToList().SingleOrDefault());
-        }
-        #endregion
-
-        #region Page Setting
-        public Task<PageSettingByUserViewModel> GetAsync(IController controller)
-        {
-            Task<aspnet_Paths> getPathTask = ((IPageStore<aspnet_Paths, Guid>)this).GetAsync(controller);
-
-            if (!getPathTask.IsCompleted)
+            try
             {
-                getPathTask.Wait();
+                return Task.FromResult(GetApplicationNameFromConfiguratinFile());
             }
-
-            aspnet_Paths PathData = getPathTask.Result;
-
-            if (PathData != null)
+            catch (Exception ex)
             {
-                var userId = (controller as Controller).User.Identity.GetUserId();
+                return Task.FromException<string>(ex);
+            }
+        }
 
-                var PageSettingDatas = (from d in PathData.aspnet_PersonalizationPerUser
-                                        where d.UserId == userId
-                                        select d).ToList();
+        public aspnet_Applications GetEntityByQuery(string ApplicationName)
+        {
+            throw new NotImplementedException();
+        }
 
-                if (PageSettingDatas.Any())
+        public Task<aspnet_Applications> GetEntityByQueryAsync(string ApplicationName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Initialization()
+        {
+            IApplicationStore<aspnet_Applications, Guid> applicationStore = this;
+
+            if (CheckCurrentAppIsRegistered == false)
+            {
+                aspnet_Applications newApplication = applicationStore.CreateDataEntityInstance();
+
+                var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
+
+                if (getAppNameTask.Status == TaskStatus.Running)
                 {
-                    return Task.FromResult(PageSettingDatas.Single().PageSettings.Deserialize<PageSettingByUserViewModel>());
+                    getAppNameTask.Wait();
                 }
 
-            }
+                string applicationName = getAppNameTask.Result;
 
-            return Task.FromResult(default(PageSettingByUserViewModel));
-        }
+                newApplication.ApplicationName = applicationName;
+                newApplication.Description = applicationName;
+                newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
 
-        public Task<bool> IsHasProfileAsync(IController controller)
-        {
-            IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> profilestore = (IProfileStore<UserProfileViewModel, aspnet_Profile, Guid>)this;
-            IPageStore<aspnet_PersonalizationPerUser, Guid> PageSettingsViaUser = (IPageStore<aspnet_PersonalizationPerUser, Guid>)this;
+                var AddApplicationTask = applicationStore.AddAsync(newApplication);
 
-            var GetProfileTask = profilestore.GetAsync(controller);
-
-            var GetPathTask = ((IPageStore<aspnet_Paths, Guid>)this).GetAsync(controller);
-
-            if (!GetPathTask.IsCompleted)
-            {
-                GetPathTask.Wait();
-            }
-
-            var pathInfo = GetPathTask.Result;
-
-            if (pathInfo != null)
-            {
-                
-            }
-        }
-
-        public Task<bool> IsHasBasePageSetting(IController controller)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> IsHasUserPageSetting(IController controller)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task InitializationProfileAsync(IController controller)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<PageSettingByUserViewModel> UpdateAsync(PageSettingByUserViewModel model)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RemoveAsync(IController controller, PageSettingByUserViewModel model)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<aspnet_Paths> IPageStore<aspnet_Paths, Guid>.GetAsync(IController controller)
-        {
-            Controller ctr = controller as Controller;
-            string cPath = ctr.Request.Path.ToLowerInvariant();
-
-            var pathDataTask = (from app in Applications
-                                from paths in app.aspnet_Paths
-                                where paths.LoweredPath == cPath
-                                select paths).ToListAsync();
-
-            if (!pathDataTask.IsCompleted)
-            {
-                pathDataTask.Wait();
-            }
-
-            var pathDatas = pathDataTask.Result;
-
-            if (pathDatas.Any())
-            {
-                return Task.FromResult(pathDatas.Single());
-            }
-
-            return Task.FromResult(default(aspnet_Paths));
-        }
-
-        public Task<bool> CheckPathHasRegisteredAsync(IController controller, ActionDescriptor ActionDescriptor)
-        {
-            Controller ctr = controller as Controller;
-
-            aspnet_Paths pathInfo;
-            string url = ctr.Request.Path;
-            string loweredUrl = url.ToLowerInvariant();
-            var pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
-
-            pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
-             && w.ApplicationId == applicationInfo.ApplicationId).SingleOrDefault();
-
-            if (pathInfo != null)
-            {
-                if (pathInfo.aspnet_PersonalizationAllUsers == null)
+                if (AddApplicationTask.Status == TaskStatus.Running)
                 {
-                    pathInfo.aspnet_PersonalizationAllUsers = aspnet_PersonalizationAllUsers.Create(pathInfo);
-                    //    new aspnet_PersonalizationAllUsers()
-                    //{
-                    //    PathId = pathInfo.PathId,
-                    //    LastUpdatedDate = DateTime.UtcNow,
-                    //};
-
-                    PageSettingsBaseModel BaseSetting = PageSettingsBaseModel.Create(
-                        ctr.RouteData.DataTokens.ContainsKey("area") ? ctr.RouteData.DataTokens["area"].ToString() : string.Empty,
-                        ActionDescriptor.ActionName,
-                        ActionDescriptor.ControllerDescriptor.ControllerName,
-                        ActionDescriptor.GetParameters().ToDictionary(s => s.ParameterName, v => v.DefaultValue));
-
-                    #region 尋找原始的授權屬性
-                    var auth = ActionDescriptor.GetCustomAttributes(typeof(AuthorizeAttribute), true)
-                        .Select(s => (AuthorizeAttribute)s).ToList().SingleOrDefault();
-
-                    if (auth != null)
-                    {
-                        var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
-
-                        foreach (var r in allowRoles)
-                        {
-                            BaseSetting.AllowExcpetionRoles.Add(r, true);
-                        }
-
-                        var allowUsers = auth.Users.ToLowerInvariant().Split(',');
-
-                        foreach (var u in allowUsers)
-                        {
-                            BaseSetting.AllowExcpetionUsers.Add(u, true);
-                        }
-                    }
-
-                    #endregion
-
-                    #region 尋找自訂的授權屬性
-                    var adbuth = ActionDescriptor.GetCustomAttributes(typeof(DbAuthorizeAttribute), true)
-                        .Select(s => (DbAuthorizeAttribute)s).ToList().SingleOrDefault();
-
-                    if (auth != null)
-                    {
-                        var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
-
-                        foreach (var r in allowRoles)
-                        {
-                            BaseSetting.AllowExcpetionRoles.Add(r, true);
-                        }
-
-                        var allowUsers = auth.Users.ToLowerInvariant().Split(',');
-
-                        foreach (var u in allowUsers)
-                        {
-                            BaseSetting.AllowExcpetionUsers.Add(u, true);
-                        }
-                    }
-                    #endregion
-
-                    if (ctr.ViewBag.Title != null)
-                    {
-                        BaseSetting.Title = ctr.ViewBag.Title as string;
-                    }
-
-                    pathInfo.aspnet_PersonalizationAllUsers.PageSettings = BaseSetting.Serialize();
-
-
-                    pathRepo.Update(pathInfo);
-                    pathInfo = pathRepo.Reload(pathInfo);
+                    AddApplicationTask.Wait();
                 }
 
-                Guid userId =
-                    ctr.HttpContext.User.Identity.GetUserId();
+                SetToMemoryCache();
 
-                if (!pathInfo.aspnet_PersonalizationPerUser.Any(w => w.UserId == userId))
-                {
-                    if (pathInfo.aspnet_PersonalizationAllUsers.PageSettings != null)
-                    {
-                        PageSettingsBaseModel BaseSetting = pathInfo.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
-
-                        if (BaseSetting != null)
-                        {
-                            aspnet_PersonalizationPerUser perUserSetting = new aspnet_PersonalizationPerUser()
-                            {
-                                Id = Guid.NewGuid(),
-                                LastUpdatedDate = DateTime.UtcNow,
-                                PathId = pathInfo.PathId,
-                                UserId = userId
-                            };
-
-                            PageSettingByUserViewModel perUserModel = new PageSettingByUserViewModel(pathInfo.aspnet_PersonalizationAllUsers, userId);
-
-                            perUserSetting.PageSettings = perUserModel.Serialize();
-
-                            pathInfo.aspnet_PersonalizationPerUser.Add(perUserSetting);
-
-                            pathRepo.Update(pathInfo);
-                            pathInfo = pathRepo.Reload(pathInfo);
-                        }
-                    }
-
-
-                }
-            }
-            return pathInfo;
-
-            Controller ctr = controller as Controller;
-            string cPath = ctr.Request.Path.ToLowerInvariant();
-
-            var pathDataTask = (from app in Applications
-                                from paths in app.aspnet_Paths
-                                where paths.LoweredPath == cPath
-                                select paths).ToListAsync();
-
-            if (!pathDataTask.IsCompleted)
-            {
-                pathDataTask.Wait();
             }
 
-            var pathDatas = pathDataTask.Result;
 
-            return Task.FromResult(pathDatas.Any());
+
         }
 
-        public Task RegisterControllerAsync(IController controller)
+        public Task InitializationAsync()
         {
-            Controller ctr = controller as Controller;
-
-            if (ctr == null)
+            try
             {
-                throw new ArgumentException("{0} casted failed.", nameof(controller));
+                Initialization();
+                return Task.CompletedTask;
             }
-            aspnet_Applications appInfo = ctr.ViewBag.ApplicationInfo;
-
-            if (appInfo == null)
+            catch (Exception ex)
             {
-                throw new Exception("System not found.");
+                return Task.FromException(ex);
             }
 
-            aspnet_Users loginedUser = ctr.ViewBag.LoginedUser as aspnet_Users;
-            aspnet_Paths newPath = aspnet_Paths.Create(ctr, appInfo);
-            newPath.aspnet_PersonalizationAllUsers = aspnet_PersonalizationAllUsers.Create(newPath);
-            newPath.aspnet_PersonalizationPerUser = aspnet_PersonalizationPerUser.CreateCollection(loginedUser,
-                newPath.aspnet_PersonalizationAllUsers);
-            Iaspnet_PathsRepository PathRepo = pcontext.Get<Iaspnet_PathsRepository>();
-            PathRepo.Add(newPath);
-
-            return PathRepo.UnitOfWork.CommitAsync();
         }
 
-        public Task UnRegisterControllerAsync(IController controller)
-        {
-            Iaspnet_PathsRepository PathRepo = pcontext.Get<Iaspnet_PathsRepository>();
-            var TaskGetPath = ((IPageStore<aspnet_Paths, Guid>)this).GetAsync(controller);
 
-            if (!TaskGetPath.IsCompleted)
-            {
-                TaskGetPath.Wait();
-            }
+        //public Task CreateApplicationIfNotExisted()
+        //{
+        //    //檢查Application是否已經註冊?
 
-            PathRepo.Delete(TaskGetPath.Result);
+        //    if (CheckCurrentAppIsRegistered == false)
+        //    {
+        //        aspnet_Applications newApplication = new aspnet_Applications();
 
-            return PathRepo.UnitOfWork.CommitAsync();
-        }
+        //        var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
 
-        public Task ReRegisterControllerAsync(IController controller, aspnet_Paths entity)
-        {
-            UnRegisterControllerAsync(controller);
-            RegisterControllerAsync(controller);
-            return Task.CompletedTask;
-        }
+        //        string applicationName = getAppNameTask.Result;
 
-        public Task<bool> CheckPathHasRegisteredAsync(IController controller)
-        {
-            throw new NotImplementedException();
-        }
+        //        newApplication.ApplicationName = applicationName;
+        //        newApplication.Description = applicationName;
+        //        newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
+
+        //        CreateAsync(newApplication);
+
+        //        Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
+        //        applicationInfo =
+        //            appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
+
+        //        SetToMemoryCache();
+
+        //    }
+        //    else
+        //    {
+        //        Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
+        //        applicationInfo = appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
+        //    }
+
+        //    if (CheckCurrentAppHasRoles() == false)
+        //    {
+        //        CreateDefaultRoles();
+        //    }
+
+        //    if (IsHasRootUser == false)
+        //    {
+        //        CreateRootUser();
+        //    }
+
+        //    if (applicationInfo.aspnet_Users.Any(s => s.LoweredUserName == "guest") == false)
+        //    {
+        //        CreateAnonymousUser();
+        //    }
+
+        //    if (GetCheckRootUserHasAdminsRole() == false)
+        //    {
+        //        AddRootUserToAdminsRole();
+        //    }
+
+        //    return Task.CompletedTask;
+        //}
+
+        //public Task CreateAsync(aspnet_Applications app)
+        //{
+        //    aspnet_Applications newApplication = new aspnet_Applications()
+        //    {
+        //        ApplicationId = app.ApplicationId,
+        //        ApplicationName = app.ApplicationName,
+        //        Description = app.Description,
+        //        LoweredApplicationName = app.LoweredApplicationName
+        //    };
+
+        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+        //    appRepo.Add(newApplication);
+        //    appRepo.UnitOfWork.Commit();
+
+        //    newApplication = appRepo.Reload(newApplication);
+        //    app = appRepo.CopyTo<aspnet_Applications>(newApplication);
+
+        //    return Task.CompletedTask;
+        //}
+
+        //public Task DeleteAsync(aspnet_Applications app)
+        //{
+        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+        //    appRepo.Delete(app);
+        //    return appRepo.UnitOfWork.CommitAsync();
+        //}
+
+        //public Task UpdateAsync(aspnet_Applications app)
+        //{
+        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+        //    var existapp = appRepo.Get(app.ApplicationId);
+        //    existapp = appRepo.CopyTo<aspnet_Applications>(app);
+        //    return appRepo.UnitOfWork.CommitAsync();
+        //}
+
+        //public Task<string> GetApplicationNameFromConfiguratinFileAsync()
+        //{
+        //    string appName = ConfigHelper.GetConfig(ApplicationName);
+        //    return Task.FromResult(appName);
+        //}
+
+        //Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByIdAsync(Guid appId)
+        //{
+        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+        //    return Task.FromResult(appRepo.FindById(appId));
+        //}
+
+        //Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByNameAsync(string appName)
+        //{
+        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+        //    return Task.FromResult(appRepo.FindByName(appName));
+        //}
+
+        //public Task<aspnet_Applications> GetByIdAsync(Guid appId)
+        //{
+        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+        //    return appRepo.GetAsync(appId);
+        //}
+
+        //public Task<aspnet_Applications> GetByNameAsync(string appName)
+        //{
+        //    return Task.FromResult((from app in Applications
+        //                            where app.ApplicationName == appName ||
+        //                            app.LoweredApplicationName == appName
+        //                            select app).ToList().SingleOrDefault());
+        //}
+
+        //public async Task<aspnet_Applications> GetCurrentApplicationInfoAsync()
+        //{
+        //    string appName = await GetApplicationNameFromConfiguratinFileAsync();
+        //    return await GetByNameAsync(appName);
+        //}
         #endregion
 
-        #region Profile Store
+        //#region Page Setting
+        //public Task<PageSettingByUserViewModel> GetAsync(IController controller)
+        //{
+        //    Task<aspnet_Paths> getPathTask = ((IPageSettingsBaseStore<aspnet_Paths, Guid>)this).GetAsync(controller);
 
-        #endregion
+        //    if (!getPathTask.IsCompleted)
+        //    {
+        //        getPathTask.Wait();
+        //    }
+
+        //    aspnet_Paths PathData = getPathTask.Result;
+
+        //    if (PathData != null)
+        //    {
+        //        var userId = (controller as Controller).User.Identity.GetUserId();
+
+        //        var PageSettingDatas = (from d in PathData.aspnet_PersonalizationPerUser
+        //                                where d.UserId == userId
+        //                                select d).ToList();
+
+        //        if (PageSettingDatas.Any())
+        //        {
+        //            return Task.FromResult(PageSettingDatas.Single().PageSettings.Deserialize<PageSettingByUserViewModel>());
+        //        }
+
+        //    }
+
+        //    return Task.FromResult(default(PageSettingByUserViewModel));
+        //}
+
+        //public Task<bool> IsHasProfileAsync(IController controller)
+        //{
+        //    IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> profilestore = (IProfileStore<UserProfileViewModel, aspnet_Profile, Guid>)this;
+        //    IPageSettingsBaseStore<aspnet_PersonalizationPerUser, Guid> PageSettingsViaUser = (IPageSettingsBaseStore<aspnet_PersonalizationPerUser, Guid>)this;
+
+        //    var GetProfileTask = profilestore.GetAsync(controller);
+
+        //    var GetPathTask = ((IPageSettingsBaseStore<aspnet_Paths, Guid>)this).GetAsync(controller);
+
+        //    if (!GetPathTask.IsCompleted)
+        //    {
+        //        GetPathTask.Wait();
+        //    }
+
+        //    var pathInfo = GetPathTask.Result;
+
+        //    if (pathInfo != null)
+        //    {
+
+        //    }
+        //}
+
+        //public Task<bool> IsHasBasePageSetting(IController controller)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public Task<bool> IsHasUserPageSetting(IController controller)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public Task InitializationProfileAsync(IController controller)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public Task<PageSettingByUserViewModel> UpdateAsync(PageSettingByUserViewModel model)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public Task RemoveAsync(IController controller, PageSettingByUserViewModel model)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //Task<aspnet_Paths> IPageSettingsBaseStore<aspnet_Paths, Guid>.GetAsync(IController controller)
+        //{
+        //    Controller ctr = controller as Controller;
+        //    string cPath = ctr.Request.Path.ToLowerInvariant();
+
+        //    var pathDataTask = (from app in Applications
+        //                        from paths in app.aspnet_Paths
+        //                        where paths.LoweredPath == cPath
+        //                        select paths).ToListAsync();
+
+        //    if (!pathDataTask.IsCompleted)
+        //    {
+        //        pathDataTask.Wait();
+        //    }
+
+        //    var pathDatas = pathDataTask.Result;
+
+        //    if (pathDatas.Any())
+        //    {
+        //        return Task.FromResult(pathDatas.Single());
+        //    }
+
+        //    return Task.FromResult(default(aspnet_Paths));
+        //}
+
+        //public Task<bool> CheckPathHasRegisteredAsync(IController controller, ActionDescriptor ActionDescriptor)
+        //{
+        //    Controller ctr = controller as Controller;
+
+        //    aspnet_Paths pathInfo;
+        //    string url = ctr.Request.Path;
+        //    string loweredUrl = url.ToLowerInvariant();
+        //    var pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+
+        //    pathInfo = pathRepo.Where(w => (w.Path == url || w.LoweredPath == loweredUrl)
+        //     && w.ApplicationId == applicationInfo.ApplicationId).SingleOrDefault();
+
+        //    if (pathInfo != null)
+        //    {
+        //        if (pathInfo.aspnet_PersonalizationAllUsers == null)
+        //        {
+        //            pathInfo.aspnet_PersonalizationAllUsers = aspnet_PersonalizationAllUsers.Create(pathInfo);
+        //            //    new aspnet_PersonalizationAllUsers()
+        //            //{
+        //            //    PathId = pathInfo.PathId,
+        //            //    LastUpdatedDate = DateTime.UtcNow,
+        //            //};
+
+        //            PageSettingsBaseModel BaseSetting = PageSettingsBaseModel.Create(
+        //                ctr.RouteData.DataTokens.ContainsKey("area") ? ctr.RouteData.DataTokens["area"].ToString() : string.Empty,
+        //                ActionDescriptor.ActionName,
+        //                ActionDescriptor.ControllerDescriptor.ControllerName,
+        //                ActionDescriptor.GetParameters().ToDictionary(s => s.ParameterName, v => v.DefaultValue));
+
+        //            #region 尋找原始的授權屬性
+        //            var auth = ActionDescriptor.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+        //                .Select(s => (AuthorizeAttribute)s).ToList().SingleOrDefault();
+
+        //            if (auth != null)
+        //            {
+        //                var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
+
+        //                foreach (var r in allowRoles)
+        //                {
+        //                    BaseSetting.AllowExcpetionRoles.Add(r, true);
+        //                }
+
+        //                var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+        //                foreach (var u in allowUsers)
+        //                {
+        //                    BaseSetting.AllowExcpetionUsers.Add(u, true);
+        //                }
+        //            }
+
+        //            #endregion
+
+        //            #region 尋找自訂的授權屬性
+        //            var adbuth = ActionDescriptor.GetCustomAttributes(typeof(DbAuthorizeAttribute), true)
+        //                .Select(s => (DbAuthorizeAttribute)s).ToList().SingleOrDefault();
+
+        //            if (auth != null)
+        //            {
+        //                var allowRoles = auth.Roles.ToLowerInvariant().Split(',');
+
+        //                foreach (var r in allowRoles)
+        //                {
+        //                    BaseSetting.AllowExcpetionRoles.Add(r, true);
+        //                }
+
+        //                var allowUsers = auth.Users.ToLowerInvariant().Split(',');
+
+        //                foreach (var u in allowUsers)
+        //                {
+        //                    BaseSetting.AllowExcpetionUsers.Add(u, true);
+        //                }
+        //            }
+        //            #endregion
+
+        //            if (ctr.ViewBag.Title != null)
+        //            {
+        //                BaseSetting.Title = ctr.ViewBag.Title as string;
+        //            }
+
+        //            pathInfo.aspnet_PersonalizationAllUsers.PageSettings = BaseSetting.Serialize();
+
+
+        //            pathRepo.Update(pathInfo);
+        //            pathInfo = pathRepo.Reload(pathInfo);
+        //        }
+
+        //        Guid userId =
+        //            ctr.HttpContext.User.Identity.GetUserId();
+
+        //        if (!pathInfo.aspnet_PersonalizationPerUser.Any(w => w.UserId == userId))
+        //        {
+        //            if (pathInfo.aspnet_PersonalizationAllUsers.PageSettings != null)
+        //            {
+        //                PageSettingsBaseModel BaseSetting = pathInfo.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
+
+        //                if (BaseSetting != null)
+        //                {
+        //                    aspnet_PersonalizationPerUser perUserSetting = new aspnet_PersonalizationPerUser()
+        //                    {
+        //                        Id = Guid.NewGuid(),
+        //                        LastUpdatedDate = DateTime.UtcNow,
+        //                        PathId = pathInfo.PathId,
+        //                        UserId = userId
+        //                    };
+
+        //                    PageSettingByUserViewModel perUserModel = new PageSettingByUserViewModel(pathInfo.aspnet_PersonalizationAllUsers, userId);
+
+        //                    perUserSetting.PageSettings = perUserModel.Serialize();
+
+        //                    pathInfo.aspnet_PersonalizationPerUser.Add(perUserSetting);
+
+        //                    pathRepo.Update(pathInfo);
+        //                    pathInfo = pathRepo.Reload(pathInfo);
+        //                }
+        //            }
+
+
+        //        }
+        //    }
+        //    return pathInfo;
+
+        //    Controller ctr = controller as Controller;
+        //    string cPath = ctr.Request.Path.ToLowerInvariant();
+
+        //    var pathDataTask = (from app in Applications
+        //                        from paths in app.aspnet_Paths
+        //                        where paths.LoweredPath == cPath
+        //                        select paths).ToListAsync();
+
+        //    if (!pathDataTask.IsCompleted)
+        //    {
+        //        pathDataTask.Wait();
+        //    }
+
+        //    var pathDatas = pathDataTask.Result;
+
+        //    return Task.FromResult(pathDatas.Any());
+        //}
+
+        //public Task RegisterControllerAsync(IController controller)
+        //{
+        //    Controller ctr = controller as Controller;
+
+        //    if (ctr == null)
+        //    {
+        //        throw new ArgumentException("{0} casted failed.", nameof(controller));
+        //    }
+        //    aspnet_Applications appInfo = ctr.ViewBag.ApplicationInfo;
+
+        //    if (appInfo == null)
+        //    {
+        //        throw new Exception("System not found.");
+        //    }
+
+        //    aspnet_Users loginedUser = ctr.ViewBag.LoginedUser as aspnet_Users;
+        //    aspnet_Paths newPath = aspnet_Paths.Create(ctr, appInfo);
+        //    newPath.aspnet_PersonalizationAllUsers = aspnet_PersonalizationAllUsers.Create(newPath);
+        //    newPath.aspnet_PersonalizationPerUser = aspnet_PersonalizationPerUser.CreateCollection(loginedUser,
+        //        newPath.aspnet_PersonalizationAllUsers);
+        //    Iaspnet_PathsRepository PathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+        //    PathRepo.Add(newPath);
+
+        //    return PathRepo.UnitOfWork.CommitAsync();
+        //}
+
+        //public Task UnRegisterControllerAsync(IController controller)
+        //{
+        //    Iaspnet_PathsRepository PathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+        //    var TaskGetPath = ((IPageSettingsBaseStore<aspnet_Paths, Guid>)this).GetAsync(controller);
+
+        //    if (!TaskGetPath.IsCompleted)
+        //    {
+        //        TaskGetPath.Wait();
+        //    }
+
+        //    PathRepo.Delete(TaskGetPath.Result);
+
+        //    return PathRepo.UnitOfWork.CommitAsync();
+        //}
+
+        //public Task ReRegisterControllerAsync(IController controller, aspnet_Paths entity)
+        //{
+        //    UnRegisterControllerAsync(controller);
+        //    RegisterControllerAsync(controller);
+        //    return Task.CompletedTask;
+        //}
+
+        //public Task<bool> CheckPathHasRegisteredAsync(IController controller)
+        //{
+        //    throw new NotImplementedException();
+        //}
+        //#endregion
+
+        //#region Profile Store
+
+        //#endregion
         public const string ApplicationInfoKey = "ApplicationInfo";
         internal const string ApplicationName = "ApplicationName";
+
+
     }
 }

@@ -19,7 +19,7 @@ namespace EdiuxTemplateWebApp.Controllers
         private aspnet_Applications appInfo;
         public ManageController()
         {
-            appInfo = this.getApplicationInfo();
+            appInfo = this.GetApplicationInfo();
         }
 
         public ManageController(ApplicationUserManager userManager, ApplicationSignInManager signInManager) : base(userManager)

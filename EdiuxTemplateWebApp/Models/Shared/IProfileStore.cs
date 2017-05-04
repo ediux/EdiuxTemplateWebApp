@@ -9,18 +9,17 @@ namespace EdiuxTemplateWebApp.Models
     /// </summary>
     /// <typeparam name="TModel">儲存設定的物件模型</typeparam>
     /// <typeparam name="TKey">主索引鍵</typeparam>
-    public interface IProfileStore<TModel,TEntity,in TKey> 
-        where TModel: UserProfileViewModel 
-        where TEntity : class 
+    public interface IProfileStore<TModel, in TKey> : IStoreBase<TModel, TKey>
+        where TModel : class
     {
-        Task<TModel> GetAsync(IController controller);
+        //Task<TModel> GetAsync(IController controller);
 
-        Task<bool> IsHasProfileAsync(IController controller);
+        //Task<bool> IsHasProfileAsync(IController controller);
 
-        Task InitializationProfileAsync(IController controller, TEntity entity, TModel viewmodel);
+        Task InitializationProfileAsync(IController controller, TModel viewmodel);
 
-        Task<TModel> UpdateAsync(TModel model);
+        //Task<TModel> UpdateAsync(TModel model);
 
-        Task RemoveAsync(IController controller, TModel model);
+        //Task RemoveAsync(IController controller, TModel model);
     }
 }

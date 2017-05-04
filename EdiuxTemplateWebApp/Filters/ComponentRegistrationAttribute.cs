@@ -37,7 +37,7 @@ namespace EdiuxTemplateWebApp.Filters
                 IOwinContext ioc = filterContext.HttpContext.GetOwinContext();
                 IEdiuxAspNetSqlUserStore store = ioc.Get<IEdiuxAspNetSqlUserStore>();
                 IApplicationStore<aspnet_Applications, Guid> AppStore = store;
-                IPageStore<aspnet_Paths, Guid> PathStore = store;
+                IPageSettingsBaseStore<aspnet_Paths, Guid> PathStore = store;
                 IProfileStore<PageSettingByUserViewModel, Guid> ProfileStore = store;
 
                 var waitResult = AppStore.GetCurrentApplicationInfoAsync();

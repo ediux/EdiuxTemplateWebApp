@@ -247,7 +247,7 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             }
         }
 
-        public aspnet_Users Update(aspnet_Users entity)
+        public aspnet_Users Update2(aspnet_Users entity)
         {
             var appId = entity.ApplicationId;
             var appName = entity?.aspnet_Applications.ApplicationName;
@@ -418,6 +418,8 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         /// </summary>
         /// <returns>The update.</returns>
         /// <param name="entity">Entity.</param>
-        aspnet_Users Update(aspnet_Users entity);
+        aspnet_Users Update2(aspnet_Users entity);
+
+        void Update(aspnet_Users entity);
     }
 }

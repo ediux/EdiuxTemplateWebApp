@@ -45,12 +45,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
 			}
 		}
 
-		public void Update(aspnet_Applications entity)
-		{
-			var foundApp = Get(entity.ApplicationId,entity.ApplicationName,entity.LoweredApplicationName);
-			foundApp = CopyTo<aspnet_Applications>(entity);
-			UnitOfWork.Commit();
-		}
+		//public void Update(aspnet_Applications entity)
+		//{
+		//	var foundApp = Get(entity.ApplicationId,entity.ApplicationName,entity.LoweredApplicationName);
+		//	foundApp = CopyTo<aspnet_Applications>(entity);
+		//	UnitOfWork.Commit();
+		//}
 	}
 
 	public partial interface Iaspnet_ApplicationsRepository : IRepositoryBase<aspnet_Applications>

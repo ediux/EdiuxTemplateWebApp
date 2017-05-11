@@ -29,12 +29,12 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             ).Any();
         }
 
-        public void Update(aspnet_Roles entity)
-		{
-			var foundPath = Get(entity.Id, entity.ApplicationId);
-			foundPath = CopyTo<aspnet_Roles>(entity);
-			UnitOfWork.Commit();
-		}
+  //      public void Update(aspnet_Roles entity)
+		//{
+		//	var foundPath = Get(entity.Id, entity.ApplicationId);
+		//	foundPath = CopyTo<aspnet_Roles>(entity);
+		//	UnitOfWork.Commit();
+		//}
 
 	}
 

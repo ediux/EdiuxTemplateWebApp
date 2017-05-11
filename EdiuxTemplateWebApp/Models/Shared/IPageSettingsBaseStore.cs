@@ -1,9 +1,4 @@
-﻿using EdiuxTemplateWebApp.Models.AspNetModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace EdiuxTemplateWebApp.Models
@@ -13,15 +8,22 @@ namespace EdiuxTemplateWebApp.Models
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <typeparam name="TKey"></typeparam>
-    public interface IPageSettingsBaseStore<TEntity, in TKey> : IStoreBase<TEntity,TKey>
+    public interface IPageSettingsBaseStore<TModel,TEntity, in TKey> : IStoreBase<TEntity,TKey>
         where TEntity : class
+        where TModel : class
     {
         /// <summary>
         /// 依據目前控制器物件取得註冊的資訊
         /// </summary>
         /// <param name="controller"></param>
         /// <returns></returns>
-        Task<TEntity> GetAsync(IController controller);
+        TModel GetEntityByQuery(IController controller);
+        /// <summary>
+        /// 依據目前控制器物件取得註冊的資訊
+        /// </summary>
+        /// <param name="controller"></param>
+        /// <returns></returns>
+        Task<TModel> GetEntityByQueryAsync(IController controller);
 
         ///// <summary>
         ///// 確認目前控制器的路徑物件註冊了沒?

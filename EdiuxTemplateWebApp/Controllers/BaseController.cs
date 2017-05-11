@@ -4,11 +4,11 @@ using EdiuxTemplateWebApp.Models.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using OriginalHttpContext = System.Web.HttpContext;
+
 namespace EdiuxTemplateWebApp.Controllers
 {
     public abstract class BaseController : Controller
@@ -26,6 +26,7 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             owin = OriginalHttpContext.Current.GetOwinContext();
             store = owin.Get<IEdiuxAspNetSqlUserStore>();
+            
         }
 
         public BaseController(ApplicationUserManager userManager, ApplicationRoleManager roleManager) : this()
@@ -59,7 +60,8 @@ namespace EdiuxTemplateWebApp.Controllers
 
                 if (applicationData == null)
                 {
-                    applicationData = store.GetCurrentApplicationInfoAsync().Result;
+                    IApplicationStore<aspnet_Applications, Guid> appStore = store;
+                    applicationData = appStore.GetEntityByQuery(store.GetApplicationNameFromConfiguratinFile());
                 }
 
                 return applicationData;
@@ -73,14 +75,13 @@ namespace EdiuxTemplateWebApp.Controllers
         {
             get
             {
+                IPathStore<aspnet_Paths, Guid> pathStote = store;
+
                 var currentPathInfo = ViewBag.PathInfo as aspnet_Paths;
 
                 if (currentPathInfo == null)
                 {
-                    currentPathInfo = (from path in ApplicationInformation.aspnet_Paths
-                                       where path.LoweredPath == Request.Path
-                                       select path).SingleOrDefault();
-                    
+                    ViewBag.PathInfo = currentPathInfo = pathStote.GetEntityByQuery(Request.Path);
                 }
 
                 return currentPathInfo;
@@ -165,33 +166,69 @@ namespace EdiuxTemplateWebApp.Controllers
             }
         }
 
-        public virtual void SaveProfile()
+        public new UserProfileViewModel Profile
+        {
+            get
+            {
+                IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> ProfileStore = store;
+                return ProfileStore.GetEntityByQuery(LoginedUser.Id);
+            }
+        }
+        public virtual void SaveSettings()
         {
             var settingData = (from settings in PagePathInformation.aspnet_PersonalizationPerUser
                                where settings.UserId == _loginUser.Id
                                select settings).SingleOrDefault();
 
-            if (settingData != null)
+            if (settingData == null)
             {
-                settingData.PageSettings = pageSettings.Serialize();
-                settingData.LastUpdatedDate = DateTime.UtcNow;
+                var newpageSetting = aspnet_PersonalizationPerUser.Create(LoginedUser,
+                    PagePathInformation.aspnet_PersonalizationAllUsers,
+                    PageSettings);
 
-                store.UpdateAsync(ApplicationInformation);
+                PagePathInformation.aspnet_PersonalizationPerUser.Add(newpageSetting);
+
+                IPathStore<aspnet_Paths, Guid> pathStote = store;
+                pathStote.Update(PagePathInformation);
             }
             else
             {
-                settingData = new aspnet_PersonalizationPerUser();
-                settingData.Id = Guid.NewGuid();
-                settingData.LastUpdatedDate = DateTime.UtcNow;
-                settingData.PageSettings = PageSettings.Serialize();
-                settingData.PathId = PagePathInformation.PathId;
-                settingData.UserId = _loginUser.Id;
-
-                PagePathInformation.aspnet_PersonalizationPerUser.Add(settingData);
-
-                Iaspnet_PathsRepository pathRepo = owin.Get<Iaspnet_PathsRepository>();
-                pathRepo.Update(PagePathInformation); 
+                settingData.Settings = PageSettings;
+                IPathStore<aspnet_Paths, Guid> pathStote = store;
+                pathStote.Update(PagePathInformation);
             }
+        }
+
+        public virtual void SaveProfile()
+        {
+            IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> ProfileStore = store;
+
+            ProfileStore.InitializationProfile(this, Profile);
+            //var settingData = (from settings in PagePathInformation.aspnet_PersonalizationPerUser
+            //                   where settings.UserId == _loginUser.Id
+            //                   select settings).SingleOrDefault();
+
+            //if (settingData != null)
+            //{
+            //    settingData.PageSettings = pageSettings.Serialize();
+            //    settingData.LastUpdatedDate = DateTime.UtcNow;
+
+            //    store.UpdateAsync(ApplicationInformation);
+            //}
+            //else
+            //{
+            //    settingData = new aspnet_PersonalizationPerUser();
+            //    settingData.Id = Guid.NewGuid();
+            //    settingData.LastUpdatedDate = DateTime.UtcNow;
+            //    settingData.PageSettings = PageSettings.Serialize();
+            //    settingData.PathId = PagePathInformation.PathId;
+            //    settingData.UserId = _loginUser.Id;
+
+            //    PagePathInformation.aspnet_PersonalizationPerUser.Add(settingData);
+
+            //    IPathStore<aspnet_Paths, Guid> pathStote = store;
+            //    pathStote.Update(PagePathInformation);
+            //}
         }
 
         protected override void OnException(ExceptionContext filterContext)

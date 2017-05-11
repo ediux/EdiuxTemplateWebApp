@@ -43,7 +43,7 @@ namespace EdiuxTemplateWebApp
         {
 
         }
-
+      
         public override Task<ClaimsIdentity> CreateIdentityAsync(aspnet_Users user, string authenticationType)
         {
             if (user.aspnet_UserClaims.Any())
@@ -173,6 +173,7 @@ namespace EdiuxTemplateWebApp
 
         public override Task<SignInStatus> PasswordSignInAsync(string userName, string password, bool isPersistent, bool shouldLockout)
         {
+           
             aspnet_Users foundUser = UserManager.FindByName(userName);
 
             if (foundUser == null)

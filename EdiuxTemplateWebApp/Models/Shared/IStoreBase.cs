@@ -13,10 +13,6 @@ namespace EdiuxTemplateWebApp.Models
 
         Task<bool> IsExistedAsync(Expression<Func<T, bool>> filiter);
 
-        T CreateDataEntityInstance();
-
-        Task<T> CreateDataEntityInstanceAsync();
-
         IEnumerable<T> FindDataEntitiesByQuery(TKey key);
 
         void Add(T entity);

@@ -1,5 +1,4 @@
-﻿using EdiuxTemplateWebApp.Filters;
-using EdiuxTemplateWebApp.Helpers;
+﻿using EdiuxTemplateWebApp.Helpers;
 using EdiuxTemplateWebApp.Models.AspNetModels;
 using EdiuxTemplateWebApp.Models.Identity;
 using Microsoft.AspNet.Identity;
@@ -8,15 +7,15 @@ using Microsoft.Owin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using System.Data.Entity.Core.Objects;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
-using System.Linq.Expressions;
 
 namespace EdiuxTemplateWebApp.Models
 {
@@ -129,7 +128,7 @@ namespace EdiuxTemplateWebApp.Models
             {
                 newUser = userRepo.GetUserByName(user.aspnet_Applications.ApplicationName, user.UserName, DateTime.UtcNow, true);
                 newUser = userRepo.CopyTo<aspnet_Users>(user);
-                user = userRepo.Update(newUser);
+                user = userRepo.Update2(newUser);
                 return Task.CompletedTask;
             }
 
@@ -281,9 +280,9 @@ namespace EdiuxTemplateWebApp.Models
                 Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
                 var _user = userRepo.Where(w => w.Id == userId &&
                                            w.ApplicationId == ApplicationInfo.ApplicationId)
-                                    .SingleAsync();
+                                    .Single();
 
-                return _user;
+                return Task.FromResult(_user);
 
             }
             catch (Exception ex)
@@ -298,13 +297,16 @@ namespace EdiuxTemplateWebApp.Models
             try
             {
                 Iaspnet_UsersRepository userRepo = pcontext.Get<Iaspnet_UsersRepository>();
+
                 var _user =
                     userRepo.Where(w => (w.UserName == userName
                                          || w.LoweredUserName == userName)
                                    && w.ApplicationId == ApplicationInfo
                                    .ApplicationId)
-                            .SingleOrDefaultAsync();
-                return _user;
+                            .SingleOrDefault();
+
+
+                return Task.FromResult(_user);
             }
             catch (Exception ex)
             {
@@ -329,7 +331,7 @@ namespace EdiuxTemplateWebApp.Models
                     .SingleOrDefault();
 
                 _existedUser = userRepo.CopyTo<aspnet_Users>(user);
-                _existedUser = userRepo.Update(_existedUser);
+                _existedUser = userRepo.Update2(_existedUser);
 
                 _existedUser.aspnet_Membership =
                                 membershipRepo.CopyTo<aspnet_Membership>(
@@ -1223,21 +1225,15 @@ namespace EdiuxTemplateWebApp.Models
         }
 
 
-        private bool CheckCurrentAppIsRegistered
+        private bool IsApplicationRegistered
         {
             get
             {
                 try
                 {
                     IApplicationStore<aspnet_Applications, Guid> appStore = this;
-                    var getAppNameTask = appStore.GetApplicationNameFromConfiguratinFileAsync();
 
-                    if (getAppNameTask.Status != TaskStatus.RanToCompletion)
-                    {
-                        getAppNameTask.Wait();
-                    }
-
-                    string appName = getAppNameTask.Result.ToLowerInvariant();
+                    string appName = appStore.GetApplicationNameFromConfiguratinFile();
 
                     return appStore.IsExisted(w => w.LoweredApplicationName == appName);
                 }
@@ -1515,6 +1511,47 @@ namespace EdiuxTemplateWebApp.Models
         }
         #endregion
 
+        #region Helper Functions
+        protected object[] IdentifyPrimaryKey<T, TRepository>(T entity, TRepository repository) where T : class where TRepository : IRepositoryBase<T>
+        {
+
+            ObjectContext objectContext = repository.UnitOfWork.Context.ObjectContext;
+            ObjectSet<T> set = objectContext.CreateObjectSet<T>();
+            IEnumerable<string> keyNames = set.EntitySet.ElementType
+                                                        .KeyMembers
+                                                        .Select(k => k.Name);
+
+            Type entityreflection = typeof(T);
+
+            var pkeys = entityreflection.GetProperties()
+                .Join(keyNames, (x) => x.Name, (y) => y, (k, t) => k)
+                .Select(s => s.GetValue(entity));
+
+            return pkeys.ToArray();
+        }
+
+        protected void ScanAndUpdate<T>(T entity, T originalEntity) where T : class
+        {
+            var oriprops = originalEntity.GetProperties();
+
+            var props = entity.GetProperties();
+
+            if (oriprops.Any())
+            {
+                foreach (var k in oriprops)
+                {
+                    if (props[k.Key] != null)
+                    {
+                        if (!props[k.Key].Equals(k.Value))
+                        {
+                            k.Value.SetValue(entity, props[k.Key]);
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
         #region IDisposable Support
         private bool disposedValue = false; // 偵測多餘的呼叫
 
@@ -1554,26 +1591,16 @@ namespace EdiuxTemplateWebApp.Models
         public bool IsExisted(Expression<Func<aspnet_Applications, bool>> filiter)
         {
             //檢查Application是否已經註冊?
-            IApplicationStore<aspnet_Applications, Guid> appStore = this;
-
-            var getAppNameTask = appStore.GetApplicationNameFromConfiguratinFileAsync();
-
-            if (getAppNameTask.Status != TaskStatus.RanToCompletion)
-            {
-                getAppNameTask.Wait();
-            }
-
-            string appName = getAppNameTask.Result.ToLowerInvariant();
-
-            return appStore.Applications.Where(filiter).Any();
-
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            return appRepo.Where(filiter).Any();
         }
 
         public Task<bool> IsExistedAsync(Expression<Func<aspnet_Applications, bool>> filiter)
         {
             try
             {
-                return Task.FromResult(IsExisted(filiter));
+                IApplicationStore<aspnet_Applications, Guid> Store = this;
+                return Task.FromResult(Store.IsExisted(filiter));
             }
             catch (Exception ex)
             {
@@ -1581,7 +1608,7 @@ namespace EdiuxTemplateWebApp.Models
             }
         }
 
-        public aspnet_Applications CreateDataEntityInstance()
+        public aspnet_Applications CreateDataEntityInstance(params object[] InParams)
         {
             return aspnet_Applications.Create(GetApplicationNameFromConfiguratinFile());
         }
@@ -1688,52 +1715,133 @@ namespace EdiuxTemplateWebApp.Models
 
         public bool Update(aspnet_Applications entity)
         {
-            throw new NotImplementedException();
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+
+            aspnet_Applications originalvalue = appRepo.Get(IdentifyPrimaryKey(entity, appRepo));
+
+            ScanAndUpdate(entity, originalvalue);
+
+            appRepo.Update(entity);
+
+            return true;
+
         }
 
         public bool Update(IEnumerable<aspnet_Applications> entities)
         {
-            throw new NotImplementedException();
+            bool issuccess = false;
+
+            if (entities.Any())
+            {
+                foreach (var entity in entities)
+                {
+                    try
+                    {
+                        issuccess &= Update(entity);
+                    }
+                    catch (Exception ex)
+                    {
+                        WriteErrorLog(ex);
+                        issuccess = false;
+                        break;
+                    }
+                }
+            }
+
+            return issuccess;
         }
 
         public bool Delete(aspnet_Applications entity)
         {
-            throw new NotImplementedException();
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            appRepo.Delete(entity);
+            return !appRepo.Where(w => w.ApplicationId == entity.ApplicationId).Any();
         }
 
         public bool Delete(IEnumerable<aspnet_Applications> entities)
         {
-            throw new NotImplementedException();
+            bool issuccess = false;
+            if (entities.Any())
+            {
+                foreach (var entity in entities)
+                {
+                    issuccess &= Delete(entity);
+                }
+            }
+
+            return issuccess;
         }
 
         public Task<aspnet_Applications> GetEntityByQueryAsync(Guid key)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(GetEntityByQuery(key));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<aspnet_Applications>(ex);
+            }
         }
 
         public Task<IEnumerable<TResult>> FindEntitiesByQueryAsync<TResult>(Guid key, Expression<Func<aspnet_Applications, TResult>> selector = null)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(FindEntitiesByQuery(key, selector));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<IEnumerable<TResult>>(ex);
+            }
         }
 
         public Task<bool> UpdateAsync(aspnet_Applications entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(Update(entity));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
         }
 
         public Task<bool> UpdateAsync(IEnumerable<aspnet_Applications> entities)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(Update(entities));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
         }
 
         public Task<bool> DeleteAsync(aspnet_Applications entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(Delete(entity));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
         }
 
         public Task<bool> DeleteAsync(IEnumerable<aspnet_Applications> entities)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(Delete(entities));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
         }
 
         public string GetApplicationNameFromConfiguratinFile()
@@ -1756,21 +1864,31 @@ namespace EdiuxTemplateWebApp.Models
 
         public aspnet_Applications GetEntityByQuery(string ApplicationName)
         {
-            throw new NotImplementedException();
+            Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
+            ApplicationName = ApplicationName.ToLowerInvariant();
+            return appRepo.Where(w => w.LoweredApplicationName == ApplicationName).SingleOrDefault();
         }
 
         public Task<aspnet_Applications> GetEntityByQueryAsync(string ApplicationName)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return Task.FromResult(GetEntityByQuery(ApplicationName));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<aspnet_Applications>(ex);
+            }
+
         }
 
         public void Initialization()
         {
             IApplicationStore<aspnet_Applications, Guid> applicationStore = this;
 
-            if (CheckCurrentAppIsRegistered == false)
+            if (IsApplicationRegistered == false)
             {
-                aspnet_Applications newApplication = applicationStore.CreateDataEntityInstance();
+                aspnet_Applications newApplication = aspnet_Applications.Create(applicationStore.GetApplicationNameFromConfiguratinFile());
 
                 var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
 
@@ -1795,9 +1913,6 @@ namespace EdiuxTemplateWebApp.Models
                 SetToMemoryCache();
 
             }
-
-
-
         }
 
         public Task InitializationAsync()
@@ -1814,137 +1929,498 @@ namespace EdiuxTemplateWebApp.Models
 
         }
 
+        public aspnet_Applications GetApplicationFromConfiguratinFile()
+        {
+            IApplicationStore<aspnet_Applications, Guid> applicationStore = this;
+            return applicationStore.GetEntityByQuery(applicationStore.GetApplicationNameFromConfiguratinFile());
+        }
 
-        //public Task CreateApplicationIfNotExisted()
-        //{
-        //    //檢查Application是否已經註冊?
+        public void Initialization(ActionExecutingContext filterContext)
+        {
+            IApplicationStore<aspnet_Applications, Guid> applicationStore = this;
+            applicationStore.Initialization();
+            filterContext.Controller.ViewBag.ApplicationInfo = applicationStore.GetApplicationFromConfiguratinFile();
+        }
 
-        //    if (CheckCurrentAppIsRegistered == false)
-        //    {
-        //        aspnet_Applications newApplication = new aspnet_Applications();
-
-        //        var getAppNameTask = GetApplicationNameFromConfiguratinFileAsync();
-
-        //        string applicationName = getAppNameTask.Result;
-
-        //        newApplication.ApplicationName = applicationName;
-        //        newApplication.Description = applicationName;
-        //        newApplication.LoweredApplicationName = applicationName.ToLowerInvariant();
-
-        //        CreateAsync(newApplication);
-
-        //        Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-
-        //        applicationInfo =
-        //            appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
-
-        //        SetToMemoryCache();
-
-        //    }
-        //    else
-        //    {
-        //        Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-
-        //        applicationInfo = appRepo.CopyTo<aspnet_Applications>(GetCurrentApplicationInfoAsync().Result);
-        //    }
-
-        //    if (CheckCurrentAppHasRoles() == false)
-        //    {
-        //        CreateDefaultRoles();
-        //    }
-
-        //    if (IsHasRootUser == false)
-        //    {
-        //        CreateRootUser();
-        //    }
-
-        //    if (applicationInfo.aspnet_Users.Any(s => s.LoweredUserName == "guest") == false)
-        //    {
-        //        CreateAnonymousUser();
-        //    }
-
-        //    if (GetCheckRootUserHasAdminsRole() == false)
-        //    {
-        //        AddRootUserToAdminsRole();
-        //    }
-
-        //    return Task.CompletedTask;
-        //}
-
-        //public Task CreateAsync(aspnet_Applications app)
-        //{
-        //    aspnet_Applications newApplication = new aspnet_Applications()
-        //    {
-        //        ApplicationId = app.ApplicationId,
-        //        ApplicationName = app.ApplicationName,
-        //        Description = app.Description,
-        //        LoweredApplicationName = app.LoweredApplicationName
-        //    };
-
-        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-        //    appRepo.Add(newApplication);
-        //    appRepo.UnitOfWork.Commit();
-
-        //    newApplication = appRepo.Reload(newApplication);
-        //    app = appRepo.CopyTo<aspnet_Applications>(newApplication);
-
-        //    return Task.CompletedTask;
-        //}
-
-        //public Task DeleteAsync(aspnet_Applications app)
-        //{
-        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-        //    appRepo.Delete(app);
-        //    return appRepo.UnitOfWork.CommitAsync();
-        //}
-
-        //public Task UpdateAsync(aspnet_Applications app)
-        //{
-        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-        //    var existapp = appRepo.Get(app.ApplicationId);
-        //    existapp = appRepo.CopyTo<aspnet_Applications>(app);
-        //    return appRepo.UnitOfWork.CommitAsync();
-        //}
-
-        //public Task<string> GetApplicationNameFromConfiguratinFileAsync()
-        //{
-        //    string appName = ConfigHelper.GetConfig(ApplicationName);
-        //    return Task.FromResult(appName);
-        //}
-
-        //Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByIdAsync(Guid appId)
-        //{
-        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-        //    return Task.FromResult(appRepo.FindById(appId));
-        //}
-
-        //Task<IEnumerable<aspnet_Applications>> IApplicationStore<aspnet_Applications, Guid>.FindByNameAsync(string appName)
-        //{
-        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-        //    return Task.FromResult(appRepo.FindByName(appName));
-        //}
-
-        //public Task<aspnet_Applications> GetByIdAsync(Guid appId)
-        //{
-        //    Iaspnet_ApplicationsRepository appRepo = pcontext.Get<Iaspnet_ApplicationsRepository>();
-        //    return appRepo.GetAsync(appId);
-        //}
-
-        //public Task<aspnet_Applications> GetByNameAsync(string appName)
-        //{
-        //    return Task.FromResult((from app in Applications
-        //                            where app.ApplicationName == appName ||
-        //                            app.LoweredApplicationName == appName
-        //                            select app).ToList().SingleOrDefault());
-        //}
-
-        //public async Task<aspnet_Applications> GetCurrentApplicationInfoAsync()
-        //{
-        //    string appName = await GetApplicationNameFromConfiguratinFileAsync();
-        //    return await GetByNameAsync(appName);
-        //}
+        public Task InitializationAsync(ActionExecutingContext filterContext)
+        {
+            try
+            {
+                IApplicationStore<aspnet_Applications, Guid> applicationStore = this;
+                applicationStore.Initialization(filterContext);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
         #endregion
 
+        #region Path Store
+        public bool IsExisted(Expression<Func<aspnet_Paths, bool>> filiter)
+        {
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            return pathRepo.Where(filiter).Any();
+        }
+
+        public Task<bool> IsExistedAsync(Expression<Func<aspnet_Paths, bool>> filiter)
+        {
+            try
+            {
+                return Task.FromResult(IsExisted(filiter));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        IEnumerable<aspnet_Paths> IStoreBase<aspnet_Paths, Guid>.FindDataEntitiesByQuery(Guid key)
+        {
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            return pathRepo.Where(w => w.PathId == key).AsEnumerable();
+        }
+
+        public void Add(aspnet_Paths entity)
+        {
+            aspnet_Paths pathInfo = aspnet_Paths.Create(entity.Path, ApplicationInfo, entity.aspnet_PersonalizationAllUsers, entity.aspnet_PersonalizationPerUser, entity.Menus);
+
+            ScanAndUpdate(entity, pathInfo);
+
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            pathRepo.Add(entity);
+            pathRepo.UnitOfWork.Commit();
+        }
+
+        public Task AddAsync(aspnet_Paths entity)
+        {
+            try
+            {
+                Add(entity);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
+
+        aspnet_Paths IStoreBase<aspnet_Paths, Guid>.GetEntityByQuery(Guid key)
+        {
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            return pathRepo.Get(key);
+        }
+
+        public IEnumerable<TResult> FindEntitiesByQuery<TResult>(Guid key, Expression<Func<aspnet_Paths, TResult>> selector = null)
+        {
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            if (selector != null)
+            {
+                return pathRepo.Where(w => w.PathId == key).Select(selector);
+            }
+            else
+            {
+                var result = pathRepo.Where(w => w.PathId == key).Cast<TResult>().AsEnumerable();
+                return result;
+            }
+        }
+
+        aspnet_Paths IPathStore<aspnet_Paths, Guid>.GetEntityByQuery(string URL)
+        {
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            return pathRepo.Where(w => w.ApplicationId == ApplicationInfo.ApplicationId && w.LoweredPath == URL).SingleOrDefault();
+        }
+
+        Task<aspnet_Paths> IPathStore<aspnet_Paths, Guid>.GetEntityByQueryAsync(string URL)
+        {
+            try
+            {
+                return Task.FromResult(((IPathStore<aspnet_Paths, Guid>)this).GetEntityByQuery(URL));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<aspnet_Paths>(ex);
+            }
+        }
+
+        public bool Update(aspnet_Paths entity)
+        {
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            var original = pathRepo.Get(IdentifyPrimaryKey(entity, pathRepo));
+            ScanAndUpdate(entity, original);
+            pathRepo.Update(entity);
+            return true;
+        }
+
+        public bool Update(IEnumerable<aspnet_Paths> entities)
+        {
+            if (entities.Any())
+            {
+                Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+
+                pathRepo.UnitOfWork.TranscationMode = true;
+
+                bool issuccess = false;
+
+                foreach (var entity in entities)
+                {
+                    try
+                    {
+                        pathRepo.Update(entity);
+                        issuccess = true;
+                    }
+                    catch
+                    {
+                        issuccess = false;
+                        break;
+                    }
+
+                }
+
+                if (issuccess)
+                {
+                    pathRepo.UnitOfWork.TranscationMode = false;
+                    pathRepo.UnitOfWork.Commit();
+                }
+
+                return issuccess;
+            }
+
+            return true;
+        }
+
+        public bool Delete(aspnet_Paths entity)
+        {
+            Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+            object[] pkeys = IdentifyPrimaryKey(entity, pathRepo);
+            pathRepo.Delete(entity);
+            return pathRepo.Get(pkeys) == null;
+        }
+
+        public bool Delete(IEnumerable<aspnet_Paths> entities)
+        {
+            bool issuccess = false;
+
+            if (entities.Any())
+            {
+                Iaspnet_PathsRepository pathRepo = pcontext.Get<Iaspnet_PathsRepository>();
+                pathRepo.UnitOfWork.TranscationMode = true;
+
+                foreach (var entity in entities)
+                {
+                    try
+                    {
+                        pathRepo.Delete(entity);
+                        issuccess = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        WriteErrorLog(ex);
+                        issuccess = false;
+                        break;
+                    }
+                }
+
+                if (issuccess)
+                {
+                    pathRepo.UnitOfWork.TranscationMode = false;
+                    pathRepo.UnitOfWork.Commit();
+                }
+
+                return issuccess;
+            }
+
+            issuccess = true;
+            return issuccess;
+
+        }
+
+        Task<aspnet_Paths> IStoreBase<aspnet_Paths, Guid>.GetEntityByQueryAsync(Guid key)
+        {
+            try
+            {
+                IPathStore<aspnet_Paths, Guid> Store = this;
+                return Task.FromResult(Store.GetEntityByQuery(key));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<aspnet_Paths>(ex);
+            }
+        }
+
+        public Task<IEnumerable<TResult>> FindEntitiesByQueryAsync<TResult>(Guid key, Expression<Func<aspnet_Paths, TResult>> selector = null)
+        {
+            try
+            {
+                IPathStore<aspnet_Paths, Guid> Store = this;
+                return Task.FromResult(Store.FindEntitiesByQuery(key, selector));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<IEnumerable<TResult>>(ex);
+            }
+        }
+
+        public Task<bool> UpdateAsync(aspnet_Paths entity)
+        {
+            try
+            {
+                IPathStore<aspnet_Paths, Guid> Store = this;
+                return Task.FromResult(Store.Update(entity));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        public Task<bool> UpdateAsync(IEnumerable<aspnet_Paths> entities)
+        {
+            try
+            {
+                IPathStore<aspnet_Paths, Guid> Store = this;
+                return Task.FromResult(Store.Update(entities));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        public Task<bool> DeleteAsync(aspnet_Paths entity)
+        {
+
+            try
+            {
+                IPathStore<aspnet_Paths, Guid> Store = this;
+                return Task.FromResult(Store.Delete(entity));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        public Task<bool> DeleteAsync(IEnumerable<aspnet_Paths> entities)
+        {
+            try
+            {
+                IPathStore<aspnet_Paths, Guid> Store = this;
+                return Task.FromResult(Store.Delete(entities));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        void IStoreBase<aspnet_Paths, Guid>.Initialization()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPathStore<aspnet_Paths, Guid>.Initialization(ActionExecutingContext filterContext)
+        {
+            IPathStore<aspnet_Paths, Guid> Store = this;
+
+            string LoweredPath = HttpContext.Current.Request.Path.ToLowerInvariant();
+
+            if (!Store.IsExisted(w => w.ApplicationId == ApplicationInfo.ApplicationId
+              && w.Path == LoweredPath))
+            {
+                aspnet_Paths commonSetting = aspnet_Paths.Create(filterContext, ApplicationInfo);
+                Store.Add(commonSetting);
+            }
+            else
+            {
+                aspnet_Paths commonSetting = Store.GetEntityByQuery(filterContext.RequestContext.HttpContext.Request.Path);
+                filterContext.Controller.ViewBag.PathInfo = commonSetting;
+                //filterContext.Controller.ViewBag.Menus = commonSetting.Menus;
+            }
+
+
+        }
+
+        Task IPathStore<aspnet_Paths, Guid>.InitializationAsync(ActionExecutingContext filterContext)
+        {
+            try
+            {
+                IPathStore<aspnet_Paths, Guid> store = this;
+                store.Initialization(filterContext);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
+
+
+        #endregion
+
+        #region Profile Store
+
+        public bool IsExisted(Expression<Func<aspnet_Profile, bool>> filiter)
+        {
+            Iaspnet_ProfileRepository profileRepo = pcontext.Get<Iaspnet_ProfileRepository>();
+            return profileRepo.Where(filiter).Any();
+        }
+
+        public Task<bool> IsExistedAsync(Expression<Func<aspnet_Profile, bool>> filiter)
+        {
+            try
+            {
+                return Task.FromResult(IsExisted(filiter));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        public void Add(UserProfileViewModel entity, Guid Key)
+        {
+            var loginedUser = this.GetUserByIdAsync(Key);
+            if (loginedUser.IsCompleted == false)
+            {
+                loginedUser.Wait();
+            }
+
+            aspnet_Profile profile = aspnet_Profile.Create(loginedUser.Result);
+            Iaspnet_ProfileRepository profileRepo = pcontext.Get<Iaspnet_ProfileRepository>();
+            profileRepo.Add(profile);
+            profile = profileRepo.Reload(profile);
+            entity = profile.Profile;
+        }
+
+        public Task AddAsync(UserProfileViewModel entity, Guid Key)
+        {
+            try
+            {
+                IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> Store = this;
+                var task = Task.Run(() => Store.Add(entity, Key));
+                task.Start();
+                return task;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
+
+        UserProfileViewModel IProfileStore<UserProfileViewModel, aspnet_Profile, Guid>.GetEntityByQuery(Guid key)
+        {
+            Iaspnet_ProfileRepository profileRepo = pcontext.Get<Iaspnet_ProfileRepository>();
+            return profileRepo.Where(w => w.UserId == key).SingleOrDefault()?.Profile;
+        }
+
+        public bool Update(UserProfileViewModel entity, Guid Key)
+        {
+            Iaspnet_ProfileRepository profileRepo = pcontext.Get<Iaspnet_ProfileRepository>();
+            var current = profileRepo.Where(w => w.UserId == Key).SingleOrDefault();
+
+            if (current != null)
+            {
+                current.Profile = entity;
+                profileRepo.Update(current);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Delete(UserProfileViewModel entity, Guid Key)
+        {
+            Iaspnet_ProfileRepository profileRepo = pcontext.Get<Iaspnet_ProfileRepository>();
+            var current = profileRepo.Where(w => w.UserId == Key).SingleOrDefault();
+
+            if (current != null)
+            {
+                current.Profile = entity;
+                profileRepo.Delete(current);
+                IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> Store = this;
+                return !Store.IsExisted(w => w.UserId == Key);
+            }
+
+            return false;
+        }
+
+        Task<UserProfileViewModel> IProfileStore<UserProfileViewModel, aspnet_Profile, Guid>.GetEntityByQueryAsync(Guid key)
+        {
+            try
+            {
+                IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> Store = this;
+                return Task.FromResult(Store.GetEntityByQuery(key));
+            }
+            catch (Exception ex)
+            {
+
+                return Task.FromException<UserProfileViewModel>(ex);
+            }
+        }
+
+        public Task<bool> UpdateAsync(UserProfileViewModel entity, Guid Key)
+        {
+            try
+            {
+                IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> Store = this;
+                return Task.FromResult(Store.Update(entity, Key));
+            }
+            catch (Exception ex)
+            {
+
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        public Task<bool> DeleteAsync(UserProfileViewModel entity, Guid Key)
+        {
+            try
+            {
+                IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> Store = this;
+                return Task.FromResult(Store.Delete(entity, Key));
+            }
+            catch (Exception ex)
+            {
+
+                return Task.FromException<bool>(ex);
+            }
+        }
+
+        public Task InitializationProfileAsync(IController controller, UserProfileViewModel viewmodel)
+        {
+            try
+            {
+                IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> Store = this;
+                var task = Task.Run(() => Store.InitializationProfile(controller, viewmodel));
+                task.Start();
+                return task;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
+
+        public void InitializationProfile(IController controller, UserProfileViewModel viewmodel)
+        {
+            IProfileStore<UserProfileViewModel, aspnet_Profile, Guid> Store = this;
+            Controller ctr = (Controller)controller;
+
+            var UserId = ctr.User.Identity.GetUserId();
+
+            if (!Store.IsExisted(w => w.UserId == UserId))
+            {
+                Store.Add(viewmodel, UserId);
+            }
+            else
+            {
+                Store.Update(viewmodel, UserId);
+            }
+        }
+
+        #endregion
         //#region Page Setting
         //public Task<PageSettingByUserViewModel> GetAsync(IController controller)
         //{

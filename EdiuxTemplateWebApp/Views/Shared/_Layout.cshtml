@@ -25,23 +25,28 @@
             <form class="pull-right">
                 <input type="search" placeholder="Search..." class="search" id="search-input">
             </form>
-
         </div>
     </div>
+    
     <div class="wrapper">
-        <div class="left-nav">
-            <div id="side-nav">
-                @Html.Action("MenuBar", "Menus")
-               
-            </div>
-        </div>
+        @if (ViewBag.PathInfo != null)
+        {
+            if (((System.Collections.Generic.HashSet<Menus>)ViewBag.PathInfo.Menus).Any())
+            {
+                <div class="left-nav">
+                    <div id="side-nav">
+                        @Html.Action("MenuBar", "Menus")
+                    </div>
+                </div>
+            }
+        }
         <div class="page-content">
             <div class="content container">
                 @RenderBody()
             </div>
         </div>
     </div>
-    <div class="bottom-nav footer"> @DateTime.Now.Year &copy; 我的 ASP.NET 應用程式 - Thin Admin by Riaxe Systems. </div>
+    <div class="bottom-nav footer"> @DateTime.Now.Year &copy; @ViewBag.WebSiteName - Thin Admin by Riaxe Systems. </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/Content/js/jquery.js"></script>

@@ -1,15 +1,15 @@
-﻿using System;
+﻿using EdiuxTemplateWebApp.Filters;
+using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models.Identity;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin.Security;
-using EdiuxTemplateWebApp.Models;
-using EdiuxTemplateWebApp.Helpers;
-using EdiuxTemplateWebApp.Models.AspNetModels;
-using EdiuxTemplateWebApp.Filters;
 
 namespace EdiuxTemplateWebApp.Controllers
 {

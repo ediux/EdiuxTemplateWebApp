@@ -72,9 +72,8 @@ namespace EdiuxTemplateWebApp
 
         public static aspnet_Applications GetApplicationInfo<T>(this T obj) where T : class
         {
-            IEdiuxAspNetSqlUserStore store = HttpContext.Current.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
-
-            return store.GetEntityByQuery( store.GetApplicationNameFromConfiguratinFile());
+            IApplicationStore<aspnet_Applications, Guid> store = HttpContext.Current.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
+            return store.GetEntityByQuery(store.GetApplicationNameFromConfiguratinFile());
         }
 
         public static aspnet_Applications addApplicationInfotoServer(this object obj)

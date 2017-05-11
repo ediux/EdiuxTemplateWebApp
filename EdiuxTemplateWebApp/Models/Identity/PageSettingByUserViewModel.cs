@@ -16,14 +16,21 @@ namespace EdiuxTemplateWebApp.Models.Identity
             UserSettings = new Dictionary<string, object>();
         }
 
-        public PageSettingByUserViewModel(aspnet_PersonalizationAllUsers commonUserData,Guid userId) :
-            base(commonUserData)
+        /// <summary>
+        /// 帶有共用設定參數的建構式
+        /// </summary>
+        /// <param name="commonUserData">要繼承的共用設定頁面物件</param>
+        /// <param name="userId"></param>
+        public PageSettingByUserViewModel(aspnet_PersonalizationAllUsers commonUserData, Guid userId) :
+            base()
         {
             if (commonUserData.aspnet_Paths == null)
             {
                 AllowAnonymous = true;
-                AllowExcpetionRoles = new Dictionary<string, bool>();
-                AllowExcpetionRoles.Add("Admins", true);
+                AllowExcpetionRoles = new Dictionary<string, bool>
+                {
+                    { "Admins", true }
+                };
                 AllowExcpetionUsers = new Dictionary<string, bool>();
                 AllowExcpetionUsers.Add("root", true);
                 Title = "未命名";
@@ -85,6 +92,6 @@ namespace EdiuxTemplateWebApp.Models.Identity
         /// 使用者設定檔
         /// </summary>
         [DisplayName("使用者設定檔")]
-        public Dictionary<string,object> UserSettings { get; set; }
+        public Dictionary<string, object> UserSettings { get; set; }
     }
 }

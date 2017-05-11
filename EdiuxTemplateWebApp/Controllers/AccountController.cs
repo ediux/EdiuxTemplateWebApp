@@ -1,5 +1,6 @@
 ﻿using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Models.AspNetModels;
+using EdiuxTemplateWebApp.Models.Identity;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;

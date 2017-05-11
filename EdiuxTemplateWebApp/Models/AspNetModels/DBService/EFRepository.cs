@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Core.Objects;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -203,6 +202,43 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
             return pkeys.ToArray();
         }
 
+        //      /// <summary>
+        ///// Update the specified aspnet_Membership.
+        ///// </summary>
+        ///// <returns>The update.</returns>
+        ///// <param name="entity">Aspnet membership.</param>
+
+        /// <summary>
+        /// Update the specified <paramref name="entity"/>.
+        /// </summary>
+        /// <param name="entity">要更新的資料實體。</param>
+        public virtual void Update(T entity)
+        {
+            var source = Get(IdentifyPrimaryKey(entity));
+            var sourceprops = source.GetProperties();
+            var targetprops = entity.GetProperties();
+
+            foreach(var targetprop in targetprops)
+            {
+                if (sourceprops.ContainsKey(targetprop.Key))
+                {
+                    var sourcevalue = sourceprops[targetprop.Key].GetValue(source);
+                    var targetvalue = targetprop.Value.GetValue(entity);
+
+                    if (!sourcevalue.Equals(targetvalue))
+                    {
+                        sourcevalue = targetvalue;
+                        sourceprops[targetprop.Key].SetValue(source, sourcevalue);
+                    }
+                }
+            }
+
+            if (!UnitOfWork.TranscationMode)
+            {
+                UnitOfWork.Commit();
+            }
+        }
+
         #region IDisposable Support
         private bool disposedValue = false; // 偵測多餘的呼叫
 
@@ -249,9 +285,9 @@ namespace EdiuxTemplateWebApp.Models.AspNetModels
         /// <param name="rightKeySelector"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public IQueryable<TJoinResult> Join<TOuterSet, TJoinResult, TKey>(IEnumerable<TOuterSet> OuterSet, Expression< Func<T, TKey>> leftKeySelector, Expression<Func<TOuterSet, TKey>> rightKeySelector, Expression<Func<T, TOuterSet, TJoinResult>> result)
+        public IQueryable<TJoinResult> Join<TOuterSet, TJoinResult, TKey>(IEnumerable<TOuterSet> OuterSet, Expression<Func<T, TKey>> leftKeySelector, Expression<Func<TOuterSet, TKey>> rightKeySelector, Expression<Func<T, TOuterSet, TJoinResult>> result)
         {
-            return All().Join(OuterSet ,leftKeySelector, rightKeySelector, result);
+            return All().Join(OuterSet, leftKeySelector, rightKeySelector, result);
         }
 
 

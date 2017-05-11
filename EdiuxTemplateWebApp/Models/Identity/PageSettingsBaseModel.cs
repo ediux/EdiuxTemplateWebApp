@@ -7,7 +7,7 @@ using System.Linq;
 namespace EdiuxTemplateWebApp.Models.Identity
 {
     [Serializable]
-    public class PageSettingsBaseModel
+    public class PageSettingsBaseModel : INotifyPropertyChanged
     {
         public PageSettingsBaseModel()
         {
@@ -27,26 +27,33 @@ namespace EdiuxTemplateWebApp.Models.Identity
             CommonSettings = new Dictionary<string, object>();
         }
 
-        public PageSettingsBaseModel(aspnet_PersonalizationAllUsers pagebaseData) : this()
+        //public PageSettingsBaseModel(aspnet_PersonalizationAllUsers pagebaseData) : this()
+        //{
+        //    var data = pagebaseData.PageSettings.Deserialize<PageSettingsBaseModel>();
+
+        //    if (data != null)
+        //    {
+        //        AllowAnonymous = data.AllowAnonymous;
+        //        AllowExcpetionRoles = data.AllowExcpetionRoles;
+        //        AllowExcpetionUsers = data.AllowExcpetionUsers;
+        //        Title = data.Title;
+        //        Description = data.Description;
+        //        Area = data.Area;
+        //        ControllerName = data.ControllerName;
+        //        ActionName = data.ActionName;
+        //        ArgumentObject = data.ArgumentObject;
+        //        MenuId = data.MenuId;
+        //        CSS = data.CSS;
+        //        CommonSettings = data.CommonSettings;
+
+        //    }
+        //}
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void PropertyValueChanged(string Name)
         {
-            var data = pagebaseData.PageSettings.Deserialize<PageSettingsBaseModel>();
-
-            if (data != null)
-            {
-                AllowAnonymous = data.AllowAnonymous;
-                AllowExcpetionRoles = data.AllowExcpetionRoles;
-                AllowExcpetionUsers = data.AllowExcpetionUsers;
-                Title = data.Title;
-                Description = data.Description;
-                Area = data.Area;
-                ControllerName = data.ControllerName;
-                ActionName = data.ActionName;
-                ArgumentObject = data.ArgumentObject;
-                MenuId = data.MenuId;
-                CSS = data.CSS;
-                CommonSettings = data.CommonSettings;
-
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(Name));
         }
 
         public static PageSettingsBaseModel Get(Guid pathId)
@@ -96,8 +103,13 @@ namespace EdiuxTemplateWebApp.Models.Identity
 
         }
 
+        private bool _AllowAnonymous = false;
+
         [DisplayName("允許匿名存取")]
-        public bool AllowAnonymous { get; set; }
+        public bool AllowAnonymous { get { return _AllowAnonymous; } set {
+                _AllowAnonymous = value;
+                PropertyValueChanged("AllowAnonymous");
+            } }
 
         [DisplayName("允許例外存取的角色列表")]
         public Dictionary<string, bool> AllowExcpetionRoles { get; set; }

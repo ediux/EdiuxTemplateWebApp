@@ -5,6 +5,8 @@
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
+    using System.Runtime.Serialization;
+    using System.Web.Script.Serialization;
 
     [MetadataType(typeof(aspnet_PersonalizationPerUserMetaData))]
     public partial class aspnet_PersonalizationPerUser
@@ -45,19 +47,42 @@
             }
             return appPool;
         }
+
+
+        [ScriptIgnore]
+        [IgnoreDataMember]
+        public PageSettingByUserViewModel Settings
+        {
+            get
+            {
+                return PageSettings.Deserialize<PageSettingByUserViewModel>();
+            }
+
+            set
+            {
+                PageSettings = value.Serialize();
+            }
+        }
     }
 
     public partial class aspnet_PersonalizationPerUserMetaData
     {
+        [Display(Name = "識別碼")]
         [Required]
         public System.Guid Id { get; set; }
+        [Display(Name = "路徑識別碼")]
         public Nullable<System.Guid> PathId { get; set; }
+        [Display(Name = "使用者帳號識別碼")]
         public Nullable<System.Guid> UserId { get; set; }
+        [Display(Name = "頁面設定")]
         [Required]
         public byte[] PageSettings { get; set; }
+        [Display(Name = "最後更新日期")]
         [Required]
         public System.DateTime LastUpdatedDate { get; set; }
+        [Display(Name = "路徑清單")]
         public virtual aspnet_Paths aspnet_Paths { get; set; }
+        [Display(Name = "使用者清單")]
         public virtual aspnet_Users aspnet_Users { get; set; }
     }
 }

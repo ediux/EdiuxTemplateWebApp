@@ -18,7 +18,9 @@ namespace EdiuxTemplateWebApp.Models
         IRoleStore<aspnet_Roles, Guid>,
         IQueryableUserStore<aspnet_Users, Guid>,
         IQueryableRoleStore<aspnet_Roles, Guid>,
-        IApplicationStore<aspnet_Applications, Guid>
+        IApplicationStore<aspnet_Applications, Guid>,
+        IPathStore<aspnet_Paths, Guid>,
+        IProfileStore<UserProfileViewModel, aspnet_Profile, Guid>
     {
 
 

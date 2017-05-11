@@ -1,4 +1,5 @@
-﻿using EdiuxTemplateWebApp.Models.AspNetModels;
+﻿using EdiuxTemplateWebApp.Models;
+using EdiuxTemplateWebApp.Models.AspNetModels;
 using EdiuxTemplateWebApp.Models.Identity;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
@@ -13,41 +14,64 @@ namespace EdiuxTemplateWebApp.Filters
 {
     public class DbAuthorizeAttribute : AuthorizeAttribute
     {
-        private Iaspnet_RolesRepository roleRepo;
-        private Iaspnet_UsersRepository userRepo;
+        private IEdiuxAspNetSqlUserStore Store;
 
-        private Iaspnet_ApplicationsRepository appRepo;
+        private IPathStore<aspnet_Paths, Guid> PathStore;
+        private ICustomUserStore UserStore;
+        private IRoleStore<aspnet_Roles, Guid> RoleStore;
+        private IApplicationStore<aspnet_Applications, Guid> AppStore;
 
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             try
             {
-                appRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_ApplicationsRepository>();
-                roleRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_RolesRepository>();
-                userRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_UsersRepository>();
+                Store = filterContext.HttpContext.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
 
-                roleRepo.UnitOfWork = userRepo.UnitOfWork = appRepo.UnitOfWork;
+                PathStore = Store;
+                UserStore = Store;
+                RoleStore = Store;
+                AppStore = Store;
 
+                //appRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_ApplicationsRepository>();
+                //roleRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_RolesRepository>();
+                //userRepo = filterContext.HttpContext.GetOwinContext().Get<Iaspnet_UsersRepository>();
+
+                //roleRepo.UnitOfWork = userRepo.UnitOfWork = appRepo.UnitOfWork;
+
+                string LoweredControllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName.ToLowerInvariant();
+                string LoweredCurrentLoginedUserName = filterContext.HttpContext.User.Identity.GetUserName().ToLowerInvariant();
+                bool IsAuthenticated = filterContext.HttpContext.User.Identity.IsAuthenticated;
+                var loginUserId = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
+
+                var GetUserTask = UserStore.GetUserByIdAsync(loginUserId);
+
+                if (GetUserTask.Status != System.Threading.Tasks.TaskStatus.RanToCompletion)
+                {
+                    GetUserTask.Wait();
+                }
+
+                filterContext.Controller.ViewBag.LoginedUser = UserStore.GetUserByIdAsync(loginUserId).Result;
+                
                 #region 檢核
-                if (filterContext.ActionDescriptor.ControllerDescriptor.ControllerName.ToLowerInvariant() == "error")
+                if (LoweredControllerName == "error")
                 {
                     return;
                 }
 
-                if (filterContext.ActionDescriptor.ControllerDescriptor.ControllerName.ToLowerInvariant() == "elmah")
+                if (LoweredControllerName == "elmah")
                 {
-                    if (filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.GetUserName() == "root")
+                    if (IsAuthenticated && LoweredCurrentLoginedUserName == "root")
                     {
                         return;
                     }
                 }
 
-                if (filterContext.HttpContext.User.Identity.IsAuthenticated && filterContext.HttpContext.User.Identity.GetUserName() == "root")
+                if (IsAuthenticated && LoweredCurrentLoginedUserName == "root")
                 {
                     return;
                 }
 
-                aspnet_Applications appInfo = filterContext.Controller.GetApplicationInfo();
+                aspnet_Applications appInfo = AppStore.GetApplicationFromConfiguratinFile();
 
                 if (appInfo == null)
                 {
@@ -60,20 +84,10 @@ namespace EdiuxTemplateWebApp.Filters
                 #endregion
 
                 #region 取得目前所在虛擬路徑的資訊
-                aspnet_Paths pathInfo = null;
+                aspnet_Paths pathInfo = PathStore.GetEntityByQuery(filterContext.RequestContext.HttpContext.Request.Path);
 
-                if (appInfo.aspnet_Paths.Any(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path))
+                if (pathInfo != null)
                 {
-                    #region 取出路徑資訊
-
-                    pathInfo = (from a in appInfo.aspnet_Paths
-                                where a.Path == filterContext.RequestContext.HttpContext.Request.Path
-                                select a).Single();
-
-                    var loginUserId = filterContext.RequestContext.HttpContext.User.Identity.GetUserId();
-
-                    filterContext.Controller.ViewBag.LoginedUser = appInfo.aspnet_Users.Where(w => w.Id == loginUserId).ToList().Single();
-                    
                     #region 檢查是否有目前使用者對應的設定紀錄
                     if (pathInfo.aspnet_PersonalizationPerUser.Any(a => a.aspnet_Users.Id == loginUserId))
                     {
@@ -81,16 +95,16 @@ namespace EdiuxTemplateWebApp.Filters
                         //當前使用者的設定檔
                         var pageUserSettings = pathInfo.aspnet_PersonalizationPerUser.Single(a => a.aspnet_Users.Id == loginUserId);
 
-                        PageSettingByUserViewModel userSettingModel = null;
+                        //PageSettingByUserViewModel userSettingModel = null;
 
                         if (pageUserSettings != null)
                         {
-                            userSettingModel = pageUserSettings.PageSettings.Deserialize<PageSettingByUserViewModel>();
+                            //pageUserSettings.SettingsserSettingModel = pageUserSettings.PageSettings.Deserialize<PageSettingByUserViewModel>();
 
                             #region 權限
 
                             #region 檢查是否匿名存取
-                            if (userSettingModel.AllowAnonymous)
+                            if (pageUserSettings.Settings.AllowAnonymous)
                             {
                                 return;
                             }
@@ -98,7 +112,7 @@ namespace EdiuxTemplateWebApp.Filters
 
                             #region 檢查是否可以執行
 
-                            var UserPermission = userSettingModel.Permission;
+                            var UserPermission = pageUserSettings.Settings.Permission;
 
                             if (UserPermission != null)
                             {
@@ -112,7 +126,7 @@ namespace EdiuxTemplateWebApp.Filters
                             #region 檢查是否在例外角色清單
                             var allowRoles = Roles.ToLowerInvariant().Split(',');
 
-                            var checkIsInRoles = (from e in userSettingModel.AllowExcpetionRoles
+                            var checkIsInRoles = (from e in pageUserSettings.Settings.AllowExcpetionRoles
                                                   from a in allowRoles
                                                   from r in appInfo.aspnet_Roles
                                                   from u in r.aspnet_Users
@@ -128,7 +142,7 @@ namespace EdiuxTemplateWebApp.Filters
 
                             #region 檢查是否在例外使用者清單中
                             var allowUsers = Users.ToLowerInvariant().Split(',');
-                            var checkIsInUsers = (from eu in userSettingModel.AllowExcpetionUsers
+                            var checkIsInUsers = (from eu in pageUserSettings.Settings.AllowExcpetionUsers
                                                   from lu in allowUsers
                                                   from au in appInfo.aspnet_Users
                                                   where eu.Key == lu && au.LoweredUserName == eu.Key
@@ -143,8 +157,6 @@ namespace EdiuxTemplateWebApp.Filters
 
                             #endregion
                         }
-
-
                     }
                     #endregion
 
@@ -152,7 +164,7 @@ namespace EdiuxTemplateWebApp.Filters
                     if (pathInfo.aspnet_PersonalizationAllUsers != null)
                     {
                         PageSettingsBaseModel GlobalSettings
-                            = pathInfo.aspnet_PersonalizationAllUsers.PageSettings.Deserialize<PageSettingsBaseModel>();
+                            = pathInfo.aspnet_PersonalizationAllUsers.Settings;
 
                         var checkSettings = GlobalSettings.AllowExcpetionRoles
                             .Select(s => s.Key).Distinct()
@@ -187,9 +199,17 @@ namespace EdiuxTemplateWebApp.Filters
                     }
 
                     #endregion
-
-                    #endregion
                 }
+
+                //if (appInfo.aspnet_Paths.Any(a => a.Path == filterContext.RequestContext.HttpContext.Request.Path))
+                //{
+                //    #region 取出路徑資訊
+
+                //    pathInfo = (from a in appInfo.aspnet_Paths
+                //                where a.Path == filterContext.RequestContext.HttpContext.Request.Path
+                //                select a).Single();
+                //    #endregion
+                //}
 
                 #endregion
 

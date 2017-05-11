@@ -1,25 +1,18 @@
-﻿using EdiuxTemplateWebApp.Helpers;
-using EdiuxTemplateWebApp.Models;
+﻿using EdiuxTemplateWebApp.Models;
 using EdiuxTemplateWebApp.Models.AspNetModels;
 using Microsoft.AspNet.Identity.Owin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Caching;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
 namespace EdiuxTemplateWebApp.Filters
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class ApplicationIdentifyAttribute : ActionFilterAttribute, IActionFilter
     {
-        private Type _appType;
-
-        public ApplicationIdentifyAttribute(Type appType)
+        public ApplicationIdentifyAttribute()
         {
-            _appType = appType; 
         }
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
@@ -27,16 +20,17 @@ namespace EdiuxTemplateWebApp.Filters
            
             IApplicationStore<aspnet_Applications,Guid> store = filterContext.HttpContext.GetOwinContext().Get<IEdiuxAspNetSqlUserStore>();
 
-            var getAppTask = store.GetCurrentApplicationInfoAsync();
+            store.Initialization(filterContext);
+            //var getAppTask = store.GetEntityByQueryAsync(store.GetApplicationNameFromConfiguratinFile());
 
-            if (!getAppTask.IsCompleted)
-            {
-                getAppTask.Wait();
-            }
+            //if (!getAppTask.IsCompleted)
+            //{
+            //    getAppTask.Wait();
+            //}
 
-            aspnet_Applications fromStore = getAppTask.Result;
+            //aspnet_Applications fromStore = getAppTask.Result;
 
-            if (fromStore == null)
+            if (filterContext.Controller.ViewBag.ApplicationInfo == null)
             {
                 filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary
                     {
@@ -48,7 +42,7 @@ namespace EdiuxTemplateWebApp.Filters
                 return;
             }
 
-            filterContext.Controller.ViewBag.ApplicationInfo = fromStore;
+            filterContext.Controller.ViewBag.WebSiteName = ConfigHelper.GetConfig("WebSiteName");
         }
     }
 }
